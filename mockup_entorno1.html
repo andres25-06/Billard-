@@ -251,6 +251,125 @@
   .big-total span{font-size:12px;color:var(--c300);text-transform:uppercase;letter-spacing:.8px;font-weight:600}
   .big-total b{font-size:28px;font-family:'JetBrains Mono'}
   .tables-pick{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+
+  /* ================= PIEZA 1.3 · CLIENTES Y FIADOS ================= */
+  .view{display:none}
+  .view.active{display:block}
+  .c-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:20px;flex-wrap:wrap}
+  .c-search{flex:1;min-width:260px;max-width:420px;display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px;box-shadow:0 2px 8px rgba(56,62,92,.04)}
+  .c-search input{border:none;outline:none;flex:1;font-family:inherit;font-size:13.5px;color:var(--c900);background:transparent}
+  .c-search svg{color:var(--c400)}
+  .table-card-wrap{background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 6px 20px rgba(56,62,92,.07)}
+  .ctable{width:100%;border-collapse:collapse;font-size:13px}
+  .ctable th{text-align:left;font-size:11px;color:var(--c400);text-transform:uppercase;letter-spacing:.7px;font-weight:700;padding:14px 18px;background:var(--soft);border-bottom:1px solid var(--line)}
+  .ctable td{padding:14px 18px;border-bottom:1px solid var(--line);vertical-align:middle}
+  .ctable tr:last-child td{border-bottom:none}
+  .ctable tbody tr:hover{background:#F8F9FC}
+  .c-user{display:flex;align-items:center;gap:12px}
+  .c-user .avatar-sm{width:40px;height:40px;border-radius:12px;background:var(--c800);color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px;flex-shrink:0}
+  .c-user b{font-size:14px;color:var(--c900);display:flex;align-items:center;gap:6px}
+  .alias{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:#EEF0F8;color:var(--c600)}
+  .c-user small{display:block;font-size:11.5px;color:var(--c400);margin-top:2px}
+  .phone-chip{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono';font-size:12px;color:var(--c700);background:var(--soft);padding:5px 10px;border-radius:8px;border:1px solid var(--line)}
+  .phone-chip svg{width:13px;height:13px;color:var(--ok)}
+  .credit-box{min-width:190px}
+  .credit-top{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px}
+  .credit-top b{font-family:'JetBrains Mono';font-size:13px}
+  .credit-top span{color:var(--c400);font-size:11px}
+  .bar-bg{height:7px;background:var(--soft);border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+  .bar-fill{height:100%;border-radius:10px}
+  .row-actions{display:flex;gap:6px;justify-content:flex-end}
+  .btn-sm{padding:7px 11px;border-radius:9px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:5px;transition:.15s}
+  .btn-sm svg{width:14px;height:14px}
+  .btn-abono{background:var(--c600);color:#fff}
+  .btn-abono:hover{background:var(--c700)}
+  .btn-hist{background:var(--soft);color:var(--c700);border:1px solid var(--line)}
+  .btn-hist:hover{border-color:var(--c400)}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .f-group{display:flex;flex-direction:column;gap:6px}
+  .f-group.full{grid-column:1 / -1}
+  .f-group label{font-size:11.5px;font-weight:700;color:var(--c600);text-transform:uppercase;letter-spacing:.6px}
+  .f-input{border:1.5px solid var(--line);border-radius:11px;padding:10px 13px;font-family:inherit;font-size:13.5px;color:var(--c900);outline:none;background:var(--surface)}
+  .f-input:focus{border-color:var(--c600)}
+  .ledger{border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .ledger-row{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--line);font-size:12.5px}
+  .ledger-row:last-child{border-bottom:none}
+  .ledger-row small{display:block;color:var(--c400);font-size:11px;margin-top:2px}
+  .amt-debt{font-family:'JetBrains Mono';font-weight:700;color:var(--busy)}
+  .amt-pay{font-family:'JetBrains Mono';font-weight:700;color:var(--ok)}
+
+  /* ================= PIEZA 1.4 · INVENTARIO BAR ================= */
+  .cat-badge{font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:6px;background:var(--soft);color:var(--c600);border:1px solid var(--line)}
+  .price-mono{font-family:'JetBrains Mono';font-size:13.5px;font-weight:700;color:var(--c900)}
+  .cost-mono{font-family:'JetBrains Mono';font-size:13px;font-weight:600;color:var(--c400)}
+  .margin-pill{display:inline-flex;align-items:center;gap:5px;font-family:'JetBrains Mono';font-size:12px;font-weight:700;padding:4px 9px;border-radius:20px;background:var(--ok-bg);color:var(--ok)}
+  .btn-merma{background:var(--busy-bg);color:var(--busy);border:1px solid rgba(224,83,95,.25)}
+  .btn-merma:hover{background:var(--busy);color:#fff}
+
+  /* ================= PIEZA 1.5 · CAJA Y ARQUEO ================= */
+  .shift-bar{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,var(--c800),var(--c700));color:#fff;padding:16px 22px;border-radius:16px;margin-bottom:20px;flex-wrap:wrap;gap:14px}
+  .shift-info{display:flex;align-items:center;gap:14px}
+  .shift-info .ic{width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.1);display:grid;place-items:center;color:var(--c100)}
+  .shift-info h3{font-size:15px;font-weight:700}
+  .shift-info p{font-size:12px;color:var(--c300);margin-top:2px}
+  .shift-actions{display:flex;gap:10px;flex-wrap:wrap}
+  .m-badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:20px}
+  .m-cash{background:var(--ok-bg);color:var(--ok)}
+  .m-nequi{background:#F3E8FF;color:#7E22CE}
+  .m-davi{background:var(--busy-bg);color:var(--busy)}
+  .m-card{background:#EEF0F8;color:var(--c600)}
+  .m-out{background:var(--warn-bg);color:#B07A0C}
+  .arqueo-box{border-radius:14px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;transition:.2s}
+  .arqueo-ok{background:var(--ok-bg);border:1.5px solid var(--ok);color:var(--ok)}
+  .arqueo-diff{background:var(--busy-bg);border:1.5px solid var(--busy);color:var(--busy)}
+
+  /* ================= PIEZA 1.6 · CAMPEONATOS, REPORTES Y CONFIGURACIÓN ================= */
+  .groups-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+  .group-card{background:var(--surface);border:1px solid var(--line);border-radius:15px;overflow:hidden;box-shadow:0 4px 14px rgba(56,62,92,.06);position:relative}
+  .group-head{padding:10px 14px;background:linear-gradient(135deg,var(--c800),var(--c700));color:#fff;display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700}
+  .group-head small{font-weight:500;color:var(--c300);font-size:11px}
+  .group-table{width:100%;border-collapse:collapse;font-size:12.5px}
+  .group-table th{text-align:left;padding:6px 10px;font-size:10px;text-transform:uppercase;color:var(--c400);background:var(--soft);border-bottom:1px solid var(--line)}
+  .group-table td{padding:8px 10px;border-bottom:1px solid var(--line)}
+  .group-table tr.pass{background:rgba(31,163,122,.07)}
+  .group-table tr.pass td:first-child{border-left:3px solid var(--ok)}
+  .group-table tr.elim{opacity:.58;background:rgba(224,83,95,.05)}
+  .group-foot{padding:8px 12px;background:var(--soft);display:flex;align-items:center;justify-content:space-between;font-size:11px;font-weight:700;color:var(--ok)}
+
+  /* Árbol de llaves 1 vs 1 con líneas y flechas conectoras */
+  .bracket-tree{display:grid;grid-template-columns:1fr 64px 1fr 64px 1fr;align-items:stretch;margin-bottom:24px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 6px 20px rgba(56,62,92,.06)}
+  .b-col{display:flex;flex-direction:column;justify-content:space-around;gap:14px}
+  .b-col-title{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--c600);background:var(--soft);border:1px solid var(--line);padding:9px 14px;border-radius:10px;display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .b-conn{display:flex;flex-direction:column;justify-content:space-around;align-items:center;padding-top:38px}
+  .b-conn svg{width:100%;height:100%;overflow:visible}
+  .match-card{background:var(--surface);border:1.5px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 4px 12px rgba(56,62,92,.06);position:relative}
+  .match-card.live{border:2px solid var(--busy);box-shadow:0 6px 18px rgba(224,83,95,.18)}
+  .match-head{padding:7px 12px;background:var(--soft);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:600;color:var(--c400)}
+  .match-p{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-bottom:1px solid var(--line);font-size:12.5px}
+  .match-p:last-of-type{border-bottom:none}
+  .match-p.win{background:var(--ok-bg);font-weight:700;color:var(--c900)}
+  .match-p .pts{font-family:'JetBrains Mono';font-weight:700;font-size:13.5px;padding:2px 8px;border-radius:6px;background:var(--soft)}
+  .match-p.win .pts{background:var(--ok);color:#fff}
+  .match-foot{padding:7px 12px;background:var(--soft);border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+
+  /* Reportes y Gráficas */
+  .rep-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:20px;margin-bottom:22px}
+  .panel-card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px 22px;box-shadow:0 6px 20px rgba(56,62,92,.06)}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .panel-head h3{font-size:15px;font-weight:700}
+  .panel-head small{font-size:12px;color:var(--c400)}
+  .chart-bars{display:grid;grid-template-columns:repeat(7,1fr);gap:12px;height:185px;align-items:end;padding-top:16px;border-bottom:1px solid var(--line)}
+  .bar-col{display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+  .bar-stack{width:100%;max-width:38px;border-radius:8px 8px 0 0;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end}
+  .b-time{background:var(--c600)}
+  .b-bar{background:var(--ok)}
+  .bar-lbl{font-size:11px;font-weight:600;color:var(--c400);margin-top:6px}
+  .bar-val{font-family:'JetBrains Mono';font-size:10.5px;font-weight:700;color:var(--c700)}
+  .legend{display:flex;gap:16px;font-size:12px;color:var(--c600);margin-top:12px}
+  .legend span{display:flex;align-items:center;gap:6px;font-weight:600}
+
+  /* Configuración y Login */
+  .conf-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 </style>
 </head>
 <body>
@@ -264,24 +383,24 @@
 
   <div class="nav-label">Operación</div>
   <ul class="nav">
-    <li class="active"><i data-lucide="layout-grid"></i>Mapa de mesas<span class="count">3</span></li>
-    <li><i data-lucide="receipt"></i>Ventas y comandas</li>
-    <li><i data-lucide="users"></i>Clientes y fiados</li>
-    <li><i data-lucide="package"></i>Inventario</li>
-    <li><i data-lucide="wallet"></i>Caja y arqueo</li>
-    <li><i data-lucide="trophy"></i>Campeonatos</li>
+    <li class="active" id="navTables" onclick="switchView('tables',this)"><i data-lucide="layout-grid"></i>Mapa de mesas<span class="count">3</span></li>
+    <li id="navSales" onclick="openDrawer()"><i data-lucide="receipt"></i>Ventas y comandas</li>
+    <li id="navClients" onclick="switchView('clients',this)"><i data-lucide="users"></i>Clientes y fiados<span class="count" style="background:var(--warn);color:#fff">5</span></li>
+    <li id="navInventory" onclick="switchView('inventory',this)"><i data-lucide="package"></i>Inventario<span class="count" style="background:var(--busy);color:#fff">3</span></li>
+    <li id="navCash" onclick="switchView('cash',this)"><i data-lucide="wallet"></i>Caja y arqueo</li>
+    <li id="navTourney" onclick="switchView('tourney',this)"><i data-lucide="trophy"></i>Campeonatos<span class="count" style="background:var(--ok);color:#fff">En vivo</span></li>
   </ul>
 
   <div class="nav-label">Administración</div>
   <ul class="nav">
-    <li><i data-lucide="bar-chart-3"></i>Reportes<span class="end"><i data-lucide="lock"></i></span></li>
-    <li><i data-lucide="settings"></i>Usuarios y tarifas<span class="end"><i data-lucide="lock"></i></span></li>
+    <li id="navReports" onclick="switchView('reports',this)"><i data-lucide="bar-chart-3"></i>Reportes<span class="end"><i data-lucide="lock"></i></span></li>
+    <li id="navSettings" onclick="switchView('settings',this)"><i data-lucide="settings"></i>Usuarios y tarifas<span class="end"><i data-lucide="lock"></i></span></li>
   </ul>
 
   <div class="user">
     <div class="avatar">AA</div>
     <div><h4>Andrés Ardila</h4><p>Administrador · Turno abierto</p></div>
-    <button class="icon-btn" title="Cerrar sesión"><i data-lucide="log-out"></i></button>
+    <button class="icon-btn" title="Bloquear / Cerrar sesión (RF-01.3)" onclick="openM('mLogin')"><i data-lucide="log-out"></i></button>
   </div>
 </aside>
 
@@ -289,8 +408,8 @@
 <div class="main">
   <header class="topbar">
     <div class="title">
-      <h2>Mapa de mesas</h2>
-      <p>Lunes 9 de noviembre · Tiempos, marcadores y cuentas en vivo</p>
+      <h2 id="pageTitle">Mapa de mesas</h2>
+      <p id="pageSub">Lunes 9 de noviembre · Tiempos, marcadores y cuentas en vivo</p>
     </div>
     <div class="status" title="Operación local sin internet · Autoguardado cada 5 s">
       <span class="dot"></span>Red local · Autoguardado
@@ -301,11 +420,13 @@
       Mesa 1 solicita 3× Cerveza Poker
       <button>Atender</button>
     </div>
-    <button class="btn btn-ghost"><i data-lucide="plus"></i>Nueva mesa</button>
+    <button class="btn btn-ghost" id="btnTopSec"><i data-lucide="plus"></i>Nueva mesa</button>
     <button class="btn btn-primary"><i data-lucide="shopping-cart"></i>Venta en barra</button>
   </header>
 
   <main class="content">
+    <!-- ============ VISTA 1.1: MAPA DE MESAS ============ -->
+    <div class="view active" id="viewTables">
     <!-- KPIs del turno -->
     <section class="kpis">
       <div class="kpi"><div class="kpi-ic"><i data-lucide="activity"></i></div><div><span>Mesas en juego</span><b>2 / 3</b></div></div>
@@ -427,6 +548,1128 @@
       </article>
 
     </section>
+    </div>
+
+    <!-- ============ VISTA 1.3: CLIENTES Y FIADOS (M2) ============ -->
+    <div class="view" id="viewClients">
+      <!-- KPIs de Clientes y Crédito -->
+      <section class="kpis">
+        <div class="kpi"><div class="kpi-ic"><i data-lucide="users"></i></div><div><span>Clientes registrados</span><b>48 jugadores</b></div></div>
+        <div class="kpi"><div class="kpi-ic" style="background:var(--warn-bg);color:#B07A0C"><i data-lucide="notebook-pen"></i></div><div><span>Total por cobrar (Fiados)</span><b>$185.000</b></div></div>
+        <div class="kpi"><div class="kpi-ic" style="background:var(--ok-bg);color:var(--ok)"><i data-lucide="hand-coins"></i></div><div><span>Abonos recibidos hoy</span><b>$62.000</b></div></div>
+        <div class="kpi"><div class="kpi-ic" style="background:var(--busy-bg);color:var(--busy)"><i data-lucide="shield-alert"></i></div><div><span>Cupo al límite / Bloqueados</span><b>1 cliente</b></div></div>
+      </section>
+
+      <!-- Barra de búsqueda, filtros y nuevo cliente -->
+      <div class="c-toolbar">
+        <div class="c-search">
+          <i data-lucide="search"></i>
+          <input id="clientSearchInput" oninput="searchClients(this.value)" placeholder="Buscar por nombre, apodo ('El Chamo', 'El Zurdo') o teléfono...">
+        </div>
+        <div class="tabs">
+          <button class="tab active" onclick="filtClients('all',this)">Todos (6)</button>
+          <button class="tab" onclick="filtClients('debt',this)"><span class="sd" style="background:var(--warn)"></span>Con deuda (3)</button>
+          <button class="tab" onclick="filtClients('ok',this)"><span class="sd" style="background:var(--ok)"></span>Al día (2)</button>
+          <button class="tab" onclick="filtClients('max',this)"><span class="sd" style="background:var(--busy)"></span>Cupo lleno (1)</button>
+        </div>
+        <button class="btn btn-primary" onclick="openM('mClientNew')"><i data-lucide="user-plus"></i>Registrar cliente</button>
+      </div>
+
+      <!-- Tabla Directorio de Clientes -->
+      <div class="table-card-wrap">
+        <table class="ctable" id="clientsTable">
+          <thead>
+            <tr>
+              <th>Jugador / Apodo Billarista</th>
+              <th>Teléfono / WhatsApp</th>
+              <th>Visitas y Actividad</th>
+              <th>Estado de Crédito (Fiado)</th>
+              <th style="text-align:right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Cliente 1: Con deuda parcial -->
+            <tr data-cs="debt">
+              <td>
+                <div class="c-user">
+                  <div class="avatar-sm">CM</div>
+                  <div>
+                    <b>Carlos Martínez <span class="alias">"El Ingeniero"</span></b>
+                    <small>Cliente de confianza · Juega Tres Bandas</small>
+                  </div>
+                </div>
+              </td>
+              <td><span class="phone-chip"><i data-lucide="message-circle"></i>312 458 9021</span></td>
+              <td><b>34 visitas</b><br><small style="color:var(--ok);font-weight:600">En Mesa 1 ahora</small></td>
+              <td>
+                <div class="credit-box">
+                  <div class="credit-top"><b style="color:#B07A0C">Debe $45.000</b><span>Cupo $80.000</span></div>
+                  <div class="bar-bg"><div class="bar-fill" style="width:56%;background:var(--warn)"></div></div>
+                </div>
+              </td>
+              <td>
+                <div class="row-actions">
+                  <button class="btn-sm btn-abono" onclick="openM('mClientDebt')"><i data-lucide="hand-coins"></i>Abonar</button>
+                  <button class="btn-sm btn-hist" onclick="openM('mClientDebt')"><i data-lucide="receipt"></i>Estado</button>
+                  <button class="btn-sm btn-hist" onclick="openM('mClientNew')" title="Editar"><i data-lucide="pencil"></i></button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Cliente 2: Al día -->
+            <tr data-cs="ok">
+              <td>
+                <div class="c-user">
+                  <div class="avatar-sm" style="background:var(--c600)">CH</div>
+                  <div>
+                    <b>Jhonatan Vargas <span class="alias">"El Chamo"</span></b>
+                    <small>Frecuente VIP · Campeón Torneo Octubre</small>
+                  </div>
+                </div>
+              </td>
+              <td><span class="phone-chip"><i data-lucide="message-circle"></i>300 819 4410</span></td>
+              <td><b>62 visitas</b><br><small style="color:var(--ok);font-weight:600">En Mesa 1 ahora</small></td>
+              <td>
+                <div class="credit-box">
+                  <div class="credit-top"><b style="color:var(--ok)">$0 (Al día)</b><span>Cupo $120.000</span></div>
+                  <div class="bar-bg"><div class="bar-fill" style="width:0%;background:var(--ok)"></div></div>
+                </div>
+              </td>
+              <td>
+                <div class="row-actions">
+                  <button class="btn-sm btn-hist" onclick="openM('mClientDebt')"><i data-lucide="history"></i>Historial</button>
+                  <button class="btn-sm btn-hist" onclick="openM('mClientNew')" title="Editar"><i data-lucide="pencil"></i></button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Cliente 3: Cupo al límite / Bloqueado -->
+            <tr data-cs="max">
+              <td>
+                <div class="c-user">
+                  <div class="avatar-sm" style="background:var(--busy)">JJ</div>
+                  <div>
+                    <b>Jhon Jairo Rincón <span class="alias">"Doble J"</span></b>
+                    <small style="color:var(--busy)">Cupo lleno · No autorizar más fiado hasta abono</small>
+                  </div>
+                </div>
+              </td>
+              <td><span class="phone-chip"><i data-lucide="message-circle"></i>315 220 7781</span></td>
+              <td><b>19 visitas</b><br><small style="color:var(--ok);font-weight:600">En Mesa 1 ahora</small></td>
+              <td>
+                <div class="credit-box">
+                  <div class="credit-top"><b style="color:var(--busy)">Debe $80.000</b><span>Cupo $80.000</span></div>
+                  <div class="bar-bg"><div class="bar-fill" style="width:100%;background:var(--busy)"></div></div>
+                </div>
+              </td>
+              <td>
+                <div class="row-actions">
+                  <button class="btn-sm btn-abono" onclick="openM('mClientDebt')"><i data-lucide="hand-coins"></i>Abonar</button>
+                  <button class="btn-sm btn-hist" onclick="openM('mClientDebt')"><i data-lucide="receipt"></i>Estado</button>
+                  <button class="btn-sm btn-hist" onclick="openM('mClientNew')" title="Editar"><i data-lucide="pencil"></i></button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Cliente 4: Con deuda parcial -->
+            <tr data-cs="debt">
+              <td>
+                <div class="c-user">
+                  <div class="avatar-sm">EZ</div>
+                  <div>
+                    <b>Héctor Ospina <span class="alias">"El Zurdo"</span></b>
+                    <small>Cliente antiguo · Abona los sábados</small>
+                  </div>
+                </div>
+              </td>
+              <td><span class="phone-chip"><i data-lucide="message-circle"></i>320 991 3042</span></td>
+              <td><b>41 visitas</b><br><small style="color:var(--ok);font-weight:600">En Mesa 3 ahora</small></td>
+              <td>
+                <div class="credit-box">
+                  <div class="credit-top"><b style="color:#B07A0C">Debe $35.000</b><span>Cupo $100.000</span></div>
+                  <div class="bar-bg"><div class="bar-fill" style="width:35%;background:var(--warn)"></div></div>
+                </div>
+              </td>
+              <td>
+                <div class="row-actions">
+                  <button class="btn-sm btn-abono" onclick="openM('mClientDebt')"><i data-lucide="hand-coins"></i>Abonar</button>
+                  <button class="btn-sm btn-hist" onclick="openM('mClientDebt')"><i data-lucide="receipt"></i>Estado</button>
+                  <button class="btn-sm btn-hist" onclick="openM('mClientNew')" title="Editar"><i data-lucide="pencil"></i></button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Cliente 5: Con deuda menor -->
+            <tr data-cs="debt">
+              <td>
+                <div class="c-user">
+                  <div class="avatar-sm">FR</div>
+                  <div>
+                    <b>Fernando Ríos <span class="alias">"El Profe"</span></b>
+                    <small>Cliente de confianza · Torneo Tres Bandas</small>
+                  </div>
+                </div>
+              </td>
+              <td><span class="phone-chip"><i data-lucide="message-circle"></i>310 654 1189</span></td>
+              <td><b>28 visitas</b><br><small style="color:var(--c400)">Última: ayer</small></td>
+              <td>
+                <div class="credit-box">
+                  <div class="credit-top"><b style="color:#B07A0C">Debe $25.000</b><span>Cupo $80.000</span></div>
+                  <div class="bar-bg"><div class="bar-fill" style="width:31%;background:var(--warn)"></div></div>
+                </div>
+              </td>
+              <td>
+                <div class="row-actions">
+                  <button class="btn-sm btn-abono" onclick="openM('mClientDebt')"><i data-lucide="hand-coins"></i>Abonar</button>
+                  <button class="btn-sm btn-hist" onclick="openM('mClientDebt')"><i data-lucide="receipt"></i>Estado</button>
+                  <button class="btn-sm btn-hist" onclick="openM('mClientNew')" title="Editar"><i data-lucide="pencil"></i></button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Cliente 6: Al día -->
+            <tr data-cs="ok">
+              <td>
+                <div class="c-user">
+                  <div class="avatar-sm">DM</div>
+                  <div>
+                    <b>Mario Hernández <span class="alias">"Don Mario"</span></b>
+                    <small>Siempre paga de contado · Jugador senior</small>
+                  </div>
+                </div>
+              </td>
+              <td><span class="phone-chip"><i data-lucide="message-circle"></i>311 302 8854</span></td>
+              <td><b>51 visitas</b><br><small style="color:var(--ok);font-weight:600">En Mesa 3 ahora</small></td>
+              <td>
+                <div class="credit-box">
+                  <div class="credit-top"><b style="color:var(--ok)">$0 (Al día)</b><span>Cupo $100.000</span></div>
+                  <div class="bar-bg"><div class="bar-fill" style="width:0%;background:var(--ok)"></div></div>
+                </div>
+              </td>
+              <td>
+                <div class="row-actions">
+                  <button class="btn-sm btn-hist" onclick="openM('mClientDebt')"><i data-lucide="history"></i>Historial</button>
+                  <button class="btn-sm btn-hist" onclick="openM('mClientNew')" title="Editar"><i data-lucide="pencil"></i></button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============ VISTA 1.4: INVENTARIO DEL BAR (M6) ============ -->
+    <div class="view" id="viewInventory">
+      <!-- KPIs de Inventario -->
+      <section class="kpis">
+        <div class="kpi"><div class="kpi-ic"><i data-lucide="package"></i></div><div><span>Referencias en catálogo</span><b>38 productos</b></div></div>
+        <div class="kpi"><div class="kpi-ic" style="background:var(--busy-bg);color:var(--busy)"><i data-lucide="alert-triangle"></i></div><div><span>Alertas de stock mínimo</span><b>3 por agotarse</b></div></div>
+        <div class="kpi"><div class="kpi-ic"><i data-lucide="coins"></i></div><div><span>Valor inventario (Costo)</span><b>$2.480.000</b></div></div>
+        <div class="kpi"><div class="kpi-ic" style="background:var(--ok-bg);color:var(--ok)"><i data-lucide="trending-up"></i></div><div><span>Ganancia estimada bodega</span><b>+$1.620.000</b></div></div>
+      </section>
+
+      <!-- Barra de búsqueda, categorías y acciones de inventario -->
+      <div class="c-toolbar">
+        <div class="c-search">
+          <i data-lucide="search"></i>
+          <input oninput="searchInv(this.value)" placeholder="Buscar cerveza, licor, gaseosa, tiza o proveedor...">
+        </div>
+        <div class="tabs">
+          <button class="tab active" onclick="filtInv('all',this)">Todos (8)</button>
+          <button class="tab" onclick="filtInv('cerveza',this)">Cervezas</button>
+          <button class="tab" onclick="filtInv('licor',this)">Licores</button>
+          <button class="tab" onclick="filtInv('otros',this)">Bebidas / Snacks / Acc.</button>
+          <button class="tab" onclick="filtInv('low',this)"><span class="sd" style="background:var(--busy)"></span>Stock bajo (3)</button>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost" onclick="openM('mInvMerma')" style="color:var(--busy);border-color:rgba(224,83,95,.35)"><i data-lucide="package-minus"></i>Registrar merma</button>
+          <button class="btn btn-ghost" onclick="openM('mInvEntry')"><i data-lucide="truck"></i>+ Entrada mercancía</button>
+          <button class="btn btn-primary" onclick="openM('mInvNew')"><i data-lucide="plus"></i>Nuevo producto</button>
+        </div>
+      </div>
+
+      <!-- Tabla de Catálogo con Precios Dobles y Stock -->
+      <div class="table-card-wrap">
+        <table class="ctable" id="invTable">
+          <thead>
+            <tr>
+              <th>Producto / Categoría</th>
+              <th>Precio Costo <span style="font-size:9px;color:var(--c600)">(Dueño)</span></th>
+              <th>Precio Venta</th>
+              <th>Utilidad Unitaria</th>
+              <th>Stock Disponible</th>
+              <th style="text-align:right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- 1. Cerveza Poker -->
+            <tr data-cat="cerveza" data-low="no">
+              <td>
+                <div class="c-user">
+                  <div class="avatar-sm" style="background:var(--c100);color:var(--c700)"><i data-lucide="beer"></i></div>
+                  <div>
+                    <b>Cerveza Poker 330 ml <span class="cat-badge">Cervezas</span></b>
+                    <small>Proveedor: Bavaria · Canasta ×30 unds</small>
+                  </div>
+                </div>
+              </td>
+              <td><span class="cost-mono">$2.600</span></td>
+              <td><span class="price-mono">$5.000</span></td>
+              <td><span class="margin-pill">+$2.400 · 48%</span></td>
+              <td>
+                <div class="credit-box">
+                  <div class="credit-top"><b style="color:var(--ok)">86 unds</b><span>Mín. 30</span></div>
+                  <div class="bar-bg"><div class="bar-fill" style="width:82%;background:var(--ok)"></div></div>
+                </div>
+              </td>
+              <td>
+                <div class="row-actions">
+                  <button class="btn-sm btn-abono" onclick="openM('mInvEntry')"><i data-lucide="plus"></i>Entrada</button>
+                  <button class="btn-sm btn-merma" onclick="openM('mInvMerma')" title="Dar de baja / Merma"><i data-lucide="package-minus"></i></button>
+                  <button class="btn-sm btn-hist" onclick="openM('mInvNew')" title="Editar precios"><i data-lucide="pencil"></i></button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- 2. Club Colombia -->
+            <tr data-cat="cerveza" data-low="no">
+              <td>
+                <div class="c-user">
+                  <div class="avatar-sm" style="background:var(--c100);color:var(--c700)"><i data-lucide="beer"></i></div>
+                  <div>
+                    <b>Club Colombia Dorada <span class="cat-badge">Cervezas</span></b>
+                    <small>Proveedor: Bavaria · Canasta ×30 unds</small>
+                  </div>
+                </div>
+              </td>
+              <td><span class="cost-mono">$3.100</span></td>
+              <td><span class="price-mono">$6.000</span></td>
+              <td><span class="margin-pill">+$2.900 · 48%</span></td>
+              <td>
+                <div class="credit-box">
+                  <div class="credit-top"><b style="color:var(--ok)">40 unds</b><span>Mín. 24</span></div>
+                  <div class="bar-bg"><div class="bar-fill" style="width:60%;background:var(--ok)"></div></div>
+                </div>
+              </td>
+              <td>
+                <div class="row-actions">
+                  <button class="btn-sm btn-abono" onclick="openM('mInvEntry')"><i data-lucide="plus"></i>Entrada</button>
+                  <button class="btn-sm btn-merma" onclick="openM('mInvMerma')"><i data-lucide="package-minus"></i></button>
+                  <button class="btn-sm btn-hist" onclick="openM('mInvNew')"><i data-lucide="pencil"></i></button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- 3. Cerveza Corona (Stock Bajo) -->
+            <tr data-cat="cerveza" data-low="yes">
+              <td>
+                <div class="c-user">
+                  <div class="avatar-sm" style="background:var(--busy-bg);color:var(--busy)"><i data-lucide="alert-triangle"></i></div>
+                  <div>
+                    <b>Cerveza Corona Importada <span class="cat-badge">Cervezas</span></b>
+                    <small style="color:var(--busy);font-weight:600">Alerta: Quedan pocas unidades · Pedir a distribuidor</small>
+                  </div>
+                </div>
+              </td>
+              <td><span class="cost-mono">$4.800</span></td>
+              <td><span class="price-mono">$9.000</span></td>
+              <td><span class="margin-pill">+$4.200 · 47%</span></td>
+              <td>
+                <div class="credit-box">
+                  <div class="credit-top"><b style="color:var(--busy)">4 unds</b><span>Mín. 12</span></div>
+                  <div class="bar-bg"><div class="bar-fill" style="width:18%;background:var(--busy)"></div></div>
+                </div>
+              </td>
+              <td>
+                <div class="row-actions">
+                  <button class="btn-sm btn-abono" onclick="openM('mInvEntry')"><i data-lucide="plus"></i>Entrada</button>
+                  <button class="btn-sm btn-merma" onclick="openM('mInvMerma')"><i data-lucide="package-minus"></i></button>
+                  <button class="btn-sm btn-hist" onclick="openM('mInvNew')"><i data-lucide="pencil"></i></button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- 4. Cerveza Pilsen (Stock Bajo) -->
+            <tr data-cat="cerveza" data-low="yes">
+              <td>
+                <div class="c-user">
+                  <div class="avatar-sm" style="background:var(--busy-bg);color:var(--busy)"><i data-lucide="alert-triangle"></i></div>
+                  <div>
+                    <b>Cerveza Pilsen 330 ml <span class="cat-badge">Cervezas</span></b>
+                    <small style="color:var(--busy);font-weight:600">Alerta: Por debajo del stock mínimo</small>
+                  </div>
+                </div>
+              </td>
+              <td><span class="cost-mono">$2.400</span></td>
+              <td><span class="price-mono">$4.500</span></td>
+              <td><span class="margin-pill">+$2.100 · 47%</span></td>
+              <td>
+                <div class="credit-box">
+                  <div class="credit-top"><b style="color:var(--busy)">3 unds</b><span>Mín. 15</span></div>
+                  <div class="bar-bg"><div class="bar-fill" style="width:14%;background:var(--busy)"></div></div>
+                </div>
+              </td>
+              <td>
+                <div class="row-actions">
+                  <button class="btn-sm btn-abono" onclick="openM('mInvEntry')"><i data-lucide="plus"></i>Entrada</button>
+                  <button class="btn-sm btn-merma" onclick="openM('mInvMerma')"><i data-lucide="package-minus"></i></button>
+                  <button class="btn-sm btn-hist" onclick="openM('mInvNew')"><i data-lucide="pencil"></i></button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- 5. Aguardiente Antioqueño Media -->
+            <tr data-cat="licor" data-low="no">
+              <td>
+                <div class="c-user">
+                  <div class="avatar-sm" style="background:var(--c100);color:var(--c700)"><i data-lucide="wine"></i></div>
+                  <div>
+                    <b>Aguardiente Antioqueño ½ (375 ml) <span class="cat-badge">Licores</span></b>
+                    <small>Proveedor: Dislicores · Caja ×12</small>
+                  </div>
+                </div>
+              </td>
+              <td><span class="cost-mono">$24.500</span></td>
+              <td><span class="price-mono">$45.000</span></td>
+              <td><span class="margin-pill">+$20.500 · 46%</span></td>
+              <td>
+                <div class="credit-box">
+                  <div class="credit-top"><b style="color:var(--ok)">14 botellas</b><span>Mín. 5</span></div>
+                  <div class="bar-bg"><div class="bar-fill" style="width:75%;background:var(--ok)"></div></div>
+                </div>
+              </td>
+              <td>
+                <div class="row-actions">
+                  <button class="btn-sm btn-abono" onclick="openM('mInvEntry')"><i data-lucide="plus"></i>Entrada</button>
+                  <button class="btn-sm btn-merma" onclick="openM('mInvMerma')"><i data-lucide="package-minus"></i></button>
+                  <button class="btn-sm btn-hist" onclick="openM('mInvNew')"><i data-lucide="pencil"></i></button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- 6. Ron Viejo de Caldas -->
+            <tr data-cat="licor" data-low="no">
+              <td>
+                <div class="c-user">
+                  <div class="avatar-sm" style="background:var(--c100);color:var(--c700)"><i data-lucide="wine"></i></div>
+                  <div>
+                    <b>Ron Viejo de Caldas Botella 750 ml <span class="cat-badge">Licores</span></b>
+                    <small>Proveedor: Dislicores · Estampillado</small>
+                  </div>
+                </div>
+              </td>
+              <td><span class="cost-mono">$48.000</span></td>
+              <td><span class="price-mono">$85.000</span></td>
+              <td><span class="margin-pill">+$37.000 · 44%</span></td>
+              <td>
+                <div class="credit-box">
+                  <div class="credit-top"><b style="color:var(--ok)">8 botellas</b><span>Mín. 3</span></div>
+                  <div class="bar-bg"><div class="bar-fill" style="width:68%;background:var(--ok)"></div></div>
+                </div>
+              </td>
+              <td>
+                <div class="row-actions">
+                  <button class="btn-sm btn-abono" onclick="openM('mInvEntry')"><i data-lucide="plus"></i>Entrada</button>
+                  <button class="btn-sm btn-merma" onclick="openM('mInvMerma')"><i data-lucide="package-minus"></i></button>
+                  <button class="btn-sm btn-hist" onclick="openM('mInvNew')"><i data-lucide="pencil"></i></button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- 7. Papas Margarita -->
+            <tr data-cat="otros" data-low="no">
+              <td>
+                <div class="c-user">
+                  <div class="avatar-sm" style="background:var(--c100);color:var(--c700)"><i data-lucide="cookie"></i></div>
+                  <div>
+                    <b>Papas Margarita Pollo / Limón <span class="cat-badge">Mecato</span></b>
+                    <small>Proveedor: Frito Lay · Tira ×12</small>
+                  </div>
+                </div>
+              </td>
+              <td><span class="cost-mono">$1.600</span></td>
+              <td><span class="price-mono">$3.000</span></td>
+              <td><span class="margin-pill">+$1.400 · 47%</span></td>
+              <td>
+                <div class="credit-box">
+                  <div class="credit-top"><b style="color:var(--ok)">28 paquetes</b><span>Mín. 10</span></div>
+                  <div class="bar-bg"><div class="bar-fill" style="width:70%;background:var(--ok)"></div></div>
+                </div>
+              </td>
+              <td>
+                <div class="row-actions">
+                  <button class="btn-sm btn-abono" onclick="openM('mInvEntry')"><i data-lucide="plus"></i>Entrada</button>
+                  <button class="btn-sm btn-merma" onclick="openM('mInvMerma')"><i data-lucide="package-minus"></i></button>
+                  <button class="btn-sm btn-hist" onclick="openM('mInvNew')"><i data-lucide="pencil"></i></button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- 8. Tiza Profesional Master (Stock Bajo) -->
+            <tr data-cat="otros" data-low="yes">
+              <td>
+                <div class="c-user">
+                  <div class="avatar-sm" style="background:var(--busy-bg);color:var(--busy)"><i data-lucide="alert-triangle"></i></div>
+                  <div>
+                    <b>Tiza Profesional Master Azul <span class="cat-badge">Accesorios</span></b>
+                    <small style="color:var(--busy);font-weight:600">Alerta: Quedan 2 cubos para venta</small>
+                  </div>
+                </div>
+              </td>
+              <td><span class="cost-mono">$2.000</span></td>
+              <td><span class="price-mono">$4.000</span></td>
+              <td><span class="margin-pill">+$2.000 · 50%</span></td>
+              <td>
+                <div class="credit-box">
+                  <div class="credit-top"><b style="color:var(--busy)">2 unds</b><span>Mín. 8</span></div>
+                  <div class="bar-bg"><div class="bar-fill" style="width:15%;background:var(--busy)"></div></div>
+                </div>
+              </td>
+              <td>
+                <div class="row-actions">
+                  <button class="btn-sm btn-abono" onclick="openM('mInvEntry')"><i data-lucide="plus"></i>Entrada</button>
+                  <button class="btn-sm btn-merma" onclick="openM('mInvMerma')"><i data-lucide="package-minus"></i></button>
+                  <button class="btn-sm btn-hist" onclick="openM('mInvNew')"><i data-lucide="pencil"></i></button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============ VISTA 1.5: CAJA, GASTOS MENORES Y ARQUEO (M7) ============ -->
+    <div class="view" id="viewCash">
+      <!-- Banner de estado del turno -->
+      <div class="shift-bar">
+        <div class="shift-info">
+          <div class="ic"><i data-lucide="vault"></i></div>
+          <div>
+            <h3>Turno #108 · Caja Abierta (Operando)</h3>
+            <p>Apertura: Hoy 2:00 p.m. · Cajero responsable: <b>Andrés Ardila</b> · Base inicial: <b>$100.000</b></p>
+          </div>
+        </div>
+        <div class="shift-actions">
+          <button class="btn btn-ghost" style="background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.2)" onclick="openM('mCashOpen')"><i data-lucide="coins"></i>Base inicial</button>
+          <button class="btn btn-ghost" style="background:rgba(242,114,127,.18);color:#FFD1D6;border-color:rgba(242,114,127,.4)" onclick="openM('mCashExpense')"><i data-lucide="arrow-up-right"></i>Registrar gasto menor</button>
+          <button class="btn btn-ok" onclick="openM('mCashClose')"><i data-lucide="calculator"></i>Hacer arqueo y cerrar caja</button>
+        </div>
+      </div>
+
+      <!-- KPIs Financieros del Turno (RF-07.1, RF-07.2, RF-07.3) -->
+      <section class="kpis">
+        <div class="kpi">
+          <div class="kpi-ic" style="background:var(--ok-bg);color:var(--ok)"><i data-lucide="banknote"></i></div>
+          <div>
+            <span>Efectivo esperado en cajón</span>
+            <b>$347.500</b>
+            <small style="font-size:11px;color:var(--c400);display:block">Base $100k + Ventas $265.5k − Gastos $18k</small>
+          </div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-ic" style="background:#F3E8FF;color:#7E22CE"><i data-lucide="smartphone"></i></div>
+          <div>
+            <span>Nequi y Daviplata</span>
+            <b>$138.000</b>
+            <small style="font-size:11px;color:var(--c400);display:block">6 transferencias recibidas</small>
+          </div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-ic"><i data-lucide="credit-card"></i></div>
+          <div>
+            <span>Tarjetas / Datáfono</span>
+            <b>$27.000</b>
+            <small style="font-size:11px;color:var(--c400);display:block">1 pago con voucher</small>
+          </div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-ic" style="background:var(--busy-bg);color:var(--busy)"><i data-lucide="receipt-text"></i></div>
+          <div>
+            <span>Gastos menores (Salidas)</span>
+            <b style="color:var(--busy)">−$18.000</b>
+            <small style="font-size:11px;color:var(--c400);display:block">2 retiros justificados hoy</small>
+          </div>
+        </div>
+      </section>
+
+      <!-- Barra de búsqueda y filtros por método de pago -->
+      <div class="c-toolbar">
+        <div class="c-search">
+          <i data-lucide="search"></i>
+          <input oninput="searchCash(this.value)" placeholder="Buscar por comprobante, mesa, cliente, gasto o medio de pago...">
+        </div>
+        <div class="tabs">
+          <button class="tab active" onclick="filtCash('all',this)">Todos (7)</button>
+          <button class="tab" onclick="filtCash('efectivo',this)"><span class="sd" style="background:var(--ok)"></span>Efectivo</button>
+          <button class="tab" onclick="filtCash('digital',this)"><span class="sd" style="background:#7E22CE"></span>Nequi / Daviplata</button>
+          <button class="tab" onclick="filtCash('tarjeta',this)">Tarjeta</button>
+          <button class="tab" onclick="filtCash('gasto',this)"><span class="sd" style="background:var(--busy)"></span>Gastos menores (2)</button>
+        </div>
+      </div>
+
+      <!-- Tabla de Movimientos Auditados del Turno (RF-01.4 y RF-07.2) -->
+      <div class="table-card-wrap">
+        <table class="ctable" id="cashTable">
+          <thead>
+            <tr>
+              <th>Hora / Recibo</th>
+              <th>Concepto y Detalle</th>
+              <th>Medio de Pago</th>
+              <th>Registrado por</th>
+              <th style="text-align:right">Monto</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Mov 1: Cierre Mesa 2 -->
+            <tr data-cm="efectivo">
+              <td><span class="price-mono">#1092</span><br><small style="color:var(--c400)">Hace 18 min · 5:08 p.m.</small></td>
+              <td>
+                <b>Cierre de cuenta · Mesa 2 (Tres Bandas)</b>
+                <small style="display:block;color:var(--c400)">Tiempo libre (1h 15m: $22.500) + 6× Poker ($30.000) + Maní ($1.500)</small>
+              </td>
+              <td><span class="m-badge m-cash"><i data-lucide="banknote" style="width:13px;height:13px"></i>Efectivo</span></td>
+              <td>Andrés Ardila</td>
+              <td style="text-align:right"><span class="amt-pay">+$54.000</span></td>
+            </tr>
+
+            <!-- Mov 2: Pago parcial Mesa 1 por Nequi -->
+            <tr data-cm="digital">
+              <td><span class="price-mono">#1091</span><br><small style="color:var(--c400)">4:52 p.m.</small></td>
+              <td>
+                <b>Pago discriminado · Mesa 1 (El Chamo)</b>
+                <small style="display:block;color:var(--c400)">1/4 tiempo ($6.300) + 2× Club Colombia ($12.000) + 1/4 compartido ($7.500)</small>
+              </td>
+              <td><span class="m-badge m-nequi"><i data-lucide="smartphone" style="width:13px;height:13px"></i>Nequi</span></td>
+              <td>Andrés Ardila</td>
+              <td style="text-align:right"><span class="amt-pay">+$25.800</span></td>
+            </tr>
+
+            <!-- Mov 3: Gasto menor (Hielo) -->
+            <tr data-cm="gasto">
+              <td><span class="price-mono">GASTO-02</span><br><small style="color:var(--c400)">4:30 p.m.</small></td>
+              <td>
+                <b style="color:var(--busy)">Gasto menor · Compra de 3 bolsas de hielo grandes</b>
+                <small style="display:block;color:var(--c400)">Motivo: Se agotó hielo para cubetazos · Proveedor: Cigarrería La Esquina</small>
+              </td>
+              <td><span class="m-badge m-out"><i data-lucide="arrow-up-right" style="width:13px;height:13px"></i>Salida Efectivo</span></td>
+              <td>Andrés Ardila</td>
+              <td style="text-align:right"><span class="amt-debt">−$12.000</span></td>
+            </tr>
+
+            <!-- Mov 4: Abono de Fiado Daviplata -->
+            <tr data-cm="digital">
+              <td><span class="price-mono">#1090</span><br><small style="color:var(--c400)">4:10 p.m.</small></td>
+              <td>
+                <b>Abono a cuenta pendiente (Fiado) · Héctor "El Zurdo"</b>
+                <small style="display:block;color:var(--c400)">Abono parcial · Saldo anterior: $75.000 → Nuevo saldo: $35.000</small>
+              </td>
+              <td><span class="m-badge m-davi"><i data-lucide="smartphone" style="width:13px;height:13px"></i>Daviplata</span></td>
+              <td>Andrés Ardila</td>
+              <td style="text-align:right"><span class="amt-pay">+$40.000</span></td>
+            </tr>
+
+            <!-- Mov 5: Venta en barra Tarjeta -->
+            <tr data-cm="tarjeta">
+              <td><span class="price-mono">#1089</span><br><small style="color:var(--c400)">3:45 p.m.</small></td>
+              <td>
+                <b>Venta directa en barra (Sin mesa)</b>
+                <small style="display:block;color:var(--c400)">3× Cerveza Corona ($27.000) · Voucher #8841</small>
+              </td>
+              <td><span class="m-badge m-card"><i data-lucide="credit-card" style="width:13px;height:13px"></i>Tarjeta / Datáfono</span></td>
+              <td>Andrés Ardila</td>
+              <td style="text-align:right"><span class="amt-pay">+$27.000</span></td>
+            </tr>
+
+            <!-- Mov 6: Gasto menor (Aseo) -->
+            <tr data-cm="gasto">
+              <td><span class="price-mono">GASTO-01</span><br><small style="color:var(--c400)">2:50 p.m.</small></td>
+              <td>
+                <b style="color:var(--busy)">Gasto menor · Limpiavidrios y toallas de papel</b>
+                <small style="display:block;color:var(--c400)">Motivo: Limpieza de monitores táctiles de 14" y paños</small>
+              </td>
+              <td><span class="m-badge m-out"><i data-lucide="arrow-up-right" style="width:13px;height:13px"></i>Salida Efectivo</span></td>
+              <td>Andrés Ardila</td>
+              <td style="text-align:right"><span class="amt-debt">−$6.000</span></td>
+            </tr>
+
+            <!-- Mov 7: Apertura de caja -->
+            <tr data-cm="efectivo">
+              <td><span class="price-mono">BASE-108</span><br><small style="color:var(--c400)">2:00 p.m.</small></td>
+              <td>
+                <b>Apertura de jornada · Base inicial de efectivo</b>
+                <small style="display:block;color:var(--c400)">Billetes sencillos y moneda para dar vueltas en caja</small>
+              </td>
+              <td><span class="m-badge m-cash"><i data-lucide="vault" style="width:13px;height:13px"></i>Base Efectivo</span></td>
+              <td>Andrés Ardila</td>
+              <td style="text-align:right"><span class="price-mono">$100.000</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============ VISTA 1.6-A: CAMPEONATOS (M8) ============ -->
+    <div class="view" id="viewTourney">
+      <!-- Banner del Torneo Activo Adaptable -->
+      <div class="shift-bar">
+        <div class="shift-info">
+          <div class="ic"><i data-lucide="trophy"></i></div>
+          <div>
+            <h3>Copa Billar Chamo · Tres Bandas (12 Jugadores Inscritos → 4 Grupos de 3)</h3>
+            <p>Formato real: <b>Fase 1 en Grupos de 3 (Pasan 2)</b> ➔ <b>Fase 2 Sorteo 1 contra 1</b> · Inscripción: <b>$30.000</b> · Bolsa: <b>$360.000</b></p>
+          </div>
+        </div>
+        <div class="shift-actions">
+          <button class="btn btn-ghost" style="background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.2)" onclick="openM('mTourneyNew')"><i data-lucide="plus"></i>Nuevo / Inscribir jugadores</button>
+          <button class="btn btn-ghost" style="background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.2)" onclick="alert('Sorteo automático realizado entre los 8 clasificados de los grupos de 3.')"><i data-lucide="shuffle"></i>Sortear 1 vs 1</button>
+          <button class="btn btn-ok" onclick="window.open('mockup_entorno3_tv.html','_blank')"><i data-lucide="tv"></i>Proyectar en Smart TV HDMI</button>
+        </div>
+      </div>
+
+      <!-- PASO 1: FASE DE GRUPOS DE 3 JUGADORES (PASAN 2 DE CADA GRUPO) -->
+      <div class="step" style="margin-bottom:12px">
+        <i>1</i>Fase Inicial: Grupos / Ternas de 3 Jugadores (Clasifican 2 por grupo · Sale 1)
+      </div>
+
+      <div class="groups-grid">
+        <!-- Grupo 1 -->
+        <div class="group-card">
+          <div class="group-head"><span>GRUPO 1 · Mesa 1</span><small>Finalizado</small></div>
+          <table class="group-table">
+            <thead><tr><th>Jugador (Terna 1)</th><th>Car.</th><th>Estado</th></tr></thead>
+            <tbody>
+              <tr class="pass"><td><b>1. El Chamo</b></td><td class="price-mono">15</td><td><span class="st ok">Pasa 1.° ➔</span></td></tr>
+              <tr class="pass"><td><b>2. Felipe Gómez</b></td><td class="price-mono">12</td><td><span class="st ok">Pasa 2.° ➔</span></td></tr>
+              <tr class="elim"><td>3. Ramiro V.</td><td class="cost-mono">7</td><td><span class="st pend" style="background:var(--busy-bg);color:var(--busy)">Eliminado</span></td></tr>
+            </tbody>
+          </table>
+          <div class="group-foot"><span>2 clasificados al sorteo 1 vs 1</span><i data-lucide="arrow-down-right"></i></div>
+        </div>
+
+        <!-- Grupo 2 -->
+        <div class="group-card">
+          <div class="group-head"><span>GRUPO 2 · Mesa 2</span><small>Finalizado</small></div>
+          <table class="group-table">
+            <thead><tr><th>Jugador (Terna 2)</th><th>Car.</th><th>Estado</th></tr></thead>
+            <tbody>
+              <tr class="pass"><td><b>1. Carlos "Ingeniero"</b></td><td class="price-mono">15</td><td><span class="st ok">Pasa 1.° ➔</span></td></tr>
+              <tr class="pass"><td><b>2. Jhon J. "Doble J"</b></td><td class="price-mono">13</td><td><span class="st ok">Pasa 2.° ➔</span></td></tr>
+              <tr class="elim"><td>3. Andrés P.</td><td class="cost-mono">9</td><td><span class="st pend" style="background:var(--busy-bg);color:var(--busy)">Eliminado</span></td></tr>
+            </tbody>
+          </table>
+          <div class="group-foot"><span>2 clasificados al sorteo 1 vs 1</span><i data-lucide="arrow-down-right"></i></div>
+        </div>
+
+        <!-- Grupo 3 -->
+        <div class="group-card">
+          <div class="group-head"><span>GRUPO 3 · Mesa 3</span><small>Finalizado</small></div>
+          <table class="group-table">
+            <thead><tr><th>Jugador (Terna 3)</th><th>Car.</th><th>Estado</th></tr></thead>
+            <tbody>
+              <tr class="pass"><td><b>1. Don Mario</b></td><td class="price-mono">15</td><td><span class="st ok">Pasa 1.° ➔</span></td></tr>
+              <tr class="pass"><td><b>2. Luis P.</b></td><td class="price-mono">11</td><td><span class="st ok">Pasa 2.° ➔</span></td></tr>
+              <tr class="elim"><td>3. Camilo R.</td><td class="cost-mono">6</td><td><span class="st pend" style="background:var(--busy-bg);color:var(--busy)">Eliminado</span></td></tr>
+            </tbody>
+          </table>
+          <div class="group-foot"><span>2 clasificados al sorteo 1 vs 1</span><i data-lucide="arrow-down-right"></i></div>
+        </div>
+
+        <!-- Grupo 4 -->
+        <div class="group-card">
+          <div class="group-head"><span>GRUPO 4 · Mesa 1</span><small>Finalizado</small></div>
+          <table class="group-table">
+            <thead><tr><th>Jugador (Terna 4)</th><th>Car.</th><th>Estado</th></tr></thead>
+            <tbody>
+              <tr class="pass"><td><b>1. Héctor "El Zurdo"</b></td><td class="price-mono">15</td><td><span class="st ok">Pasa 1.° ➔</span></td></tr>
+              <tr class="pass"><td><b>2. Fernando "El Profe"</b></td><td class="price-mono">14</td><td><span class="st ok">Pasa 2.° ➔</span></td></tr>
+              <tr class="elim"><td>3. Oscar M.</td><td class="cost-mono">8</td><td><span class="st pend" style="background:var(--busy-bg);color:var(--busy)">Eliminado</span></td></tr>
+            </tbody>
+          </table>
+          <div class="group-foot"><span>2 clasificados al sorteo 1 vs 1</span><i data-lucide="arrow-down-right"></i></div>
+        </div>
+      </div>
+
+      <!-- PASO 2: FASE ELIMINATORIA 1 CONTRA 1 AL SORTEO CON LÍNEAS Y FLECHAS CONECTORAS -->
+      <div class="step" style="margin-bottom:12px">
+        <i>2</i>Fase Eliminatoria: 1 contra 1 al Sorteo (8 Clasificados · Cuadro con Líneas de Avance)
+      </div>
+
+      <div class="bracket-tree">
+        <!-- Definición global de puntas de flecha SVG -->
+        <svg width="0" height="0" style="position:absolute">
+          <defs>
+            <marker id="arrowOk" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 8 5 L 0 9 z" fill="#1FA37A"/>
+            </marker>
+            <marker id="arrowLine" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 8 5 L 0 9 z" fill="#4F5580"/>
+            </marker>
+          </defs>
+        </svg>
+
+        <!-- COLUMNA 1: CUARTOS DE FINAL (1 vs 1 por sorteo) -->
+        <div class="b-col">
+          <div class="b-col-title"><span>Sorteo 1 vs 1 (Cuartos)</span><span class="st ok">4 llaves</span></div>
+          
+          <div class="match-card">
+            <div class="match-head"><span>Llave 1 · Mesa 1</span><span>1.° G1 vs 2.° G3</span></div>
+            <div class="match-p win"><span>El Chamo (1.° G1)</span><span class="pts">20</span></div>
+            <div class="match-p"><span>Luis P. (2.° G3)</span><span class="pts">13</span></div>
+          </div>
+
+          <div class="match-card">
+            <div class="match-head"><span>Llave 2 · Mesa 2</span><span>1.° G2 vs 2.° G4</span></div>
+            <div class="match-p win"><span>Carlos "Ingeniero" (1.° G2)</span><span class="pts">20</span></div>
+            <div class="match-p"><span>Fernando "El Profe" (2.° G4)</span><span class="pts">17</span></div>
+          </div>
+
+          <div class="match-card">
+            <div class="match-head"><span>Llave 3 · Mesa 3</span><span>1.° G3 vs 2.° G2</span></div>
+            <div class="match-p win"><span>Don Mario (1.° G3)</span><span class="pts">20</span></div>
+            <div class="match-p"><span>Jhon J. "Doble J" (2.° G2)</span><span class="pts">15</span></div>
+          </div>
+
+          <div class="match-card">
+            <div class="match-head"><span>Llave 4 · Mesa 1</span><span>1.° G4 vs 2.° G1</span></div>
+            <div class="match-p win"><span>Héctor "El Zurdo" (1.° G4)</span><span class="pts">20</span></div>
+            <div class="match-p"><span>Felipe Gómez (2.° G1)</span><span class="pts">18</span></div>
+          </div>
+        </div>
+
+        <!-- CONECTOR 1: FLECHAS DE CUARTOS A SEMIFINALES -->
+        <div class="b-conn">
+          <svg viewBox="0 0 64 420" preserveAspectRatio="none">
+            <!-- Llave 1 y Llave 2 hacia Semifinal 1 -->
+            <path d="M 2 52 H 30 V 105 H 58" fill="none" stroke="#1FA37A" stroke-width="2.5" marker-end="url(#arrowOk)"/>
+            <path d="M 2 158 H 30 V 105" fill="none" stroke="#1FA37A" stroke-width="2.5"/>
+            <!-- Llave 3 y Llave 4 hacia Semifinal 2 -->
+            <path d="M 2 265 H 30 V 318 H 58" fill="none" stroke="#1FA37A" stroke-width="2.5" marker-end="url(#arrowOk)"/>
+            <path d="M 2 370 H 30 V 318" fill="none" stroke="#1FA37A" stroke-width="2.5"/>
+          </svg>
+        </div>
+
+        <!-- COLUMNA 2: SEMIFINALES (1 vs 1) -->
+        <div class="b-col">
+          <div class="b-col-title"><span>Semifinales (1 vs 1)</span><span class="st pend">En juego</span></div>
+
+          <div class="match-card">
+            <div class="match-head"><span>Semifinal 1 · Mesa 1 (Terminado)</span><span style="color:var(--ok)">Avanza ➔</span></div>
+            <div class="match-p win"><span>El Chamo</span><span class="pts">20</span></div>
+            <div class="match-p"><span>Carlos "Ingeniero"</span><span class="pts">16</span></div>
+            <div class="match-foot">
+              <small style="color:var(--c400);font-size:11px">22 entradas · Serie mayor: 5</small>
+              <span class="st ok">Clasificado ➔</span>
+            </div>
+          </div>
+
+          <div class="match-card live">
+            <div class="match-head"><span style="color:var(--busy);font-weight:700">● EN VIVO · Semifinal 2 (Mesa 3)</span><span>Entradas: 19</span></div>
+            <div class="match-p" id="sfP1"><span><b>Don Mario</b></span><span class="pts" style="background:var(--c800);color:#fff">19</span></div>
+            <div class="match-p" id="sfP2"><span>Héctor "El Zurdo"</span><span class="pts">17</span></div>
+            <div class="match-foot">
+              <small style="color:var(--c600);font-size:11px">A 1 carambola</small>
+              <button class="btn-sm btn-abono" onclick="advanceWinner()"><i data-lucide="award"></i>Pasar a la Final ➔</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONECTOR 2: FLECHAS DE SEMIFINALES A LA GRAN FINAL -->
+        <div class="b-conn">
+          <svg viewBox="0 0 64 420" preserveAspectRatio="none">
+            <!-- Semifinal 1 hacia Gran Final -->
+            <path d="M 2 115 H 32 V 210 H 58" fill="none" stroke="#1FA37A" stroke-width="2.5" marker-end="url(#arrowOk)"/>
+            <!-- Semifinal 2 hacia Gran Final -->
+            <path id="arrowSf2" d="M 2 315 H 32 V 210" fill="none" stroke="#4F5580" stroke-width="2.5" stroke-dasharray="5,4"/>
+          </svg>
+        </div>
+
+        <!-- COLUMNA 3: GRAN FINAL (1 vs 1) -->
+        <div class="b-col">
+          <div class="b-col-title"><span>Gran Final ($260k + $100k)</span><span class="cat-badge">Mesa 1</span></div>
+
+          <div class="match-card" id="finalMatchCard">
+            <div class="match-head"><span>Gran Final · A 25 Carambolas</span><span id="finalStatus">Esperando rival</span></div>
+            <div class="match-p"><span><b>1. El Chamo</b></span><span class="pts">0</span></div>
+            <div class="match-p"><span id="finalSlot2" style="color:var(--c400)">Ganador Semifinal 2...</span><span class="pts">0</span></div>
+            <div class="match-foot">
+              <small style="color:var(--c400);font-size:11px">Campeón: $260.000 · Subcampeón: $100.000</small>
+              <button class="btn-sm btn-hist" id="btnStartFinal"><i data-lucide="play"></i>Iniciar Final</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla de Inscritos y Pagos de Inscripción (RF-08.2) -->
+      <div class="table-card-wrap">
+        <table class="ctable">
+          <thead>
+            <tr>
+              <th>Jugador Inscrito ("Los que salgan": 12 hoy)</th>
+              <th>Grupo Inicial (Terna de 3)</th>
+              <th>Resultado en Grupo</th>
+              <th>Estado Inscripción ($30.000)</th>
+              <th>Llave 1 vs 1 Sorteada</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>Jhonatan Vargas <span class="alias">"El Chamo"</span></b></td>
+              <td>Grupo 1 (Mesa 1)</td>
+              <td><span class="st ok">Pasó 1.° (15 car.)</span></td>
+              <td><span class="st ok">Pagado (Efectivo)</span></td>
+              <td><span class="m-badge m-cash">En la Gran Final ➔</span></td>
+            </tr>
+            <tr>
+              <td><b>Mario Hernández <span class="alias">"Don Mario"</span></b></td>
+              <td>Grupo 3 (Mesa 3)</td>
+              <td><span class="st ok">Pasó 1.° (15 car.)</span></td>
+              <td><span class="st ok">Pagado (Nequi)</span></td>
+              <td><span class="m-badge m-card">Jugando Semifinal 2</span></td>
+            </tr>
+            <tr>
+              <td><b>Héctor Ospina <span class="alias">"El Zurdo"</span></b></td>
+              <td>Grupo 4 (Mesa 1)</td>
+              <td><span class="st ok">Pasó 1.° (15 car.)</span></td>
+              <td><span class="st pend">Pendiente (Cobrar al cierre)</span></td>
+              <td><span class="m-badge m-card">Jugando Semifinal 2</span></td>
+            </tr>
+            <tr>
+              <td><b>Carlos Martínez <span class="alias">"El Ingeniero"</span></b></td>
+              <td>Grupo 2 (Mesa 2)</td>
+              <td><span class="st ok">Pasó 1.° (15 car.)</span></td>
+              <td><span class="st ok">Pagado (Efectivo)</span></td>
+              <td><span class="cat-badge">Semifinalista</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============ VISTA 1.6-B: REPORTES DEL DUEÑO (M9) ============ -->
+    <div class="view" id="viewReports">
+      <div class="c-toolbar">
+        <div class="tabs">
+          <button class="tab" onclick="pickTab(this)">Hoy (Lunes)</button>
+          <button class="tab active" onclick="pickTab(this)">Esta Semana (7 días)</button>
+          <button class="tab" onclick="pickTab(this)">Mes de Noviembre</button>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost"><i data-lucide="file-spreadsheet"></i>Exportar Excel (.xlsx)</button>
+          <button class="btn btn-primary"><i data-lucide="file-text"></i>Descargar Informe PDF</button>
+        </div>
+      </div>
+
+      <!-- Ecuación de Ganancia Real del Propietario (RF-09.1 y RF-09.2) -->
+      <section class="kpis">
+        <div class="kpi">
+          <div class="kpi-ic" style="background:#EEF0F8;color:var(--c600)"><i data-lucide="clock"></i></div>
+          <div>
+            <span>Alquiler de Tiempo (100% Neto)</span>
+            <b>+$1.420.000</b>
+            <small style="font-size:11px;color:var(--ok);font-weight:600">78.8 horas facturadas</small>
+          </div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-ic"><i data-lucide="beer"></i></div>
+          <div>
+            <span>Ventas Bar − Costo Mercancía</span>
+            <b>+$1.370.000</b>
+            <small style="font-size:11px;color:var(--c400)">Ventas $2.85M − Costo $1.48M</small>
+          </div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-ic" style="background:var(--busy-bg);color:var(--busy)"><i data-lucide="arrow-down-right"></i></div>
+          <div>
+            <span>Gastos Menores y Mermas</span>
+            <b style="color:var(--busy)">−$95.000</b>
+            <small style="font-size:11px;color:var(--c400)">Hielo, insumos y 2 roturas</small>
+          </div>
+        </div>
+        <div class="kpi" style="border-color:var(--ok);background:var(--ok-bg)">
+          <div class="kpi-ic" style="background:var(--ok);color:#fff"><i data-lucide="wallet-cards"></i></div>
+          <div>
+            <span style="color:var(--c800);font-weight:700">UTILIDAD REAL (GANANCIA LIMPIA)</span>
+            <b style="color:var(--ok);font-size:22px">$2.695.000</b>
+            <small style="font-size:11px;color:var(--c700)">Margen neto total: 63.1%</small>
+          </div>
+        </div>
+      </section>
+
+      <!-- Gráfica de ingresos de la semana + Top Productos Más Vendidos -->
+      <div class="rep-grid">
+        <div class="panel-card">
+          <div class="panel-head">
+            <div>
+              <h3>Ingresos por Día: Alquiler de Mesas vs. Bar</h3>
+              <small>Comparativo últimos 7 días · Viernes y Sábado son los días pico</small>
+            </div>
+            <span class="cat-badge">Total Ventas Brutas: $4.270.000</span>
+          </div>
+          <div class="chart-bars">
+            <div class="bar-col"><span class="bar-val">$380k</span><div class="bar-stack" style="height:45%"><div class="b-bar" style="height:55%"></div><div class="b-time" style="height:45%"></div></div><span class="bar-lbl">Mar</span></div>
+            <div class="bar-col"><span class="bar-val">$420k</span><div class="bar-stack" style="height:50%"><div class="b-bar" style="height:58%"></div><div class="b-time" style="height:42%"></div></div><span class="bar-lbl">Mié</span></div>
+            <div class="bar-col"><span class="bar-val">$510k</span><div class="bar-stack" style="height:62%"><div class="b-bar" style="height:60%"></div><div class="b-time" style="height:40%"></div></div><span class="bar-lbl">Jue</span></div>
+            <div class="bar-col"><span class="bar-val">$940k</span><div class="bar-stack" style="height:92%"><div class="b-bar" style="height:68%"></div><div class="b-time" style="height:32%"></div></div><span class="bar-lbl">Vie</span></div>
+            <div class="bar-col"><span class="bar-val">$1.12M</span><div class="bar-stack" style="height:100%"><div class="b-bar" style="height:70%"></div><div class="b-time" style="height:30%"></div></div><span class="bar-lbl">Sáb</span></div>
+            <div class="bar-col"><span class="bar-val">$488k</span><div class="bar-stack" style="height:58%"><div class="b-bar" style="height:54%"></div><div class="b-time" style="height:46%"></div></div><span class="bar-lbl">Dom</span></div>
+            <div class="bar-col"><span class="bar-val">$412k</span><div class="bar-stack" style="height:49%"><div class="b-bar" style="height:52%"></div><div class="b-time" style="height:48%"></div></div><span class="bar-lbl">Hoy</span></div>
+          </div>
+          <div class="legend">
+            <span><i class="sd" style="background:var(--ok);display:inline-block"></i>Consumo de Bar ($2.850.000)</span>
+            <span><i class="sd" style="background:var(--c600);display:inline-block"></i>Tiempo de Mesas ($1.420.000 — 100% utilidad)</span>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-head">
+            <div>
+              <h3>Top Productos Más Vendidos (RF-09.3)</h3>
+              <small>Rotación semanal para pedido a proveedores</small>
+            </div>
+          </div>
+          <div class="ledger">
+            <div class="ledger-row">
+              <div><b>1. Cerveza Poker 330 ml</b><small>284 unidades vendidas · 9.5 canastas</small></div>
+              <span class="amt-pay">+$681.600 util.</span>
+            </div>
+            <div class="ledger-row">
+              <div><b>2. Club Colombia Dorada</b><small>130 unidades vendidas · 4.3 canastas</small></div>
+              <span class="amt-pay">+$377.000 util.</span>
+            </div>
+            <div class="ledger-row">
+              <div><b>3. Aguardiente Antioqueño ½</b><small>9 medias vendidas</small></div>
+              <span class="amt-pay">+$184.500 util.</span>
+            </div>
+            <div class="ledger-row">
+              <div><b>4. Cerveza Corona Importada</b><small>26 unidades vendidas</small></div>
+              <span class="amt-pay">+$109.200 util.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bitácora de Control Antifraude Exclusiva del Propietario (RNF-06) -->
+      <div class="table-card-wrap">
+        <table class="ctable">
+          <thead>
+            <tr>
+              <th>Fecha y Hora</th>
+              <th>Evento Auditado (RNF-06 · Control Antifraude)</th>
+              <th>Motivo Registrado</th>
+              <th>Usuario en Turno</th>
+              <th style="text-align:right">Impacto</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Hoy · 8:25 p.m.</td>
+              <td><b>Anulación de producto en Comanda Mesa 1</b> (1× Cerveza Águila)</td>
+              <td>"Se cargó dos veces por error al tocar la pantalla"</td>
+              <td>Andrés Ardila</td>
+              <td style="text-align:right"><span class="price-mono">$5.000</span></td>
+            </tr>
+            <tr>
+              <td>Hoy · 5:20 p.m.</td>
+              <td><b>Baja de inventario por merma</b> (1× Cerveza Poker)</td>
+              <td>"Se resbaló botella al sacarla de la nevera 2"</td>
+              <td>Andrés Ardila</td>
+              <td style="text-align:right"><span class="amt-debt">−$2.600 (Costo)</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============ VISTA 1.6-C: USUARIOS, TARIFAS Y CONFIGURACIÓN (M1 y M3) ============ -->
+    <div class="view" id="viewSettings">
+      <div class="conf-grid">
+        <!-- Columna 1: Gestión de Usuarios y Roles (M1) -->
+        <div class="panel-card">
+          <div class="panel-head">
+            <div>
+              <h3>Usuarios del Sistema y Roles (RF-01.1 y RF-01.5)</h3>
+              <small>El rol Empleado/Cajero tiene bloqueados los costos y reportes de ganancias</small>
+            </div>
+            <button class="btn-sm btn-abono" onclick="openM('mUserNew')"><i data-lucide="user-plus"></i>Nuevo usuario</button>
+          </div>
+          <div class="ledger">
+            <div class="ledger-row">
+              <div class="c-user">
+                <div class="avatar-sm">AA</div>
+                <div>
+                  <b>Andrés Ardila <span class="alias">Propietario / Admin</span></b>
+                  <small>Usuario: <b>aardila</b> · Acceso total a reportes, costos y tarifas</small>
+                </div>
+              </div>
+              <span class="st ok">Activo ahora</span>
+            </div>
+            <div class="ledger-row">
+              <div class="c-user">
+                <div class="avatar-sm" style="background:var(--c600)">SO</div>
+                <div>
+                  <b>Socio Propietario <span class="alias">Propietario / Admin</span></b>
+                  <small>Usuario: <b>socio_admin</b> · Recibe cierre diario por WhatsApp</small>
+                </div>
+              </div>
+              <span class="st ok">Habilitado</span>
+            </div>
+            <div class="ledger-row">
+              <div class="c-user">
+                <div class="avatar-sm" style="background:var(--c400)">CJ</div>
+                <div>
+                  <b>Camilo Jiménez <span class="cat-badge">Empleado / Cajero</span></b>
+                  <small>Usuario: <b>cajero1</b> · Solo opera mesas, comandas y arqueo</small>
+                </div>
+              </div>
+              <button class="btn-sm btn-hist" onclick="openM('mUserNew')"><i data-lucide="pencil"></i>Editar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Columna 2: Tarifas de Mesas y Datos del Salón (RF-03.6 y RF-05.5) -->
+        <div class="panel-card">
+          <div class="panel-head">
+            <div>
+              <h3>Tarifas de Mesas y Datos del Establecimiento</h3>
+              <small>Información impresa en recibos POS (58/80mm) y alertas automáticas</small>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="f-group">
+              <label>Nombre comercial en recibo</label>
+              <input class="f-input" value="CLUB DE BILLARES EL CHAMO">
+            </div>
+            <div class="f-group">
+              <label>NIT / Régimen</label>
+              <input class="f-input" value="901.452.881-3">
+            </div>
+            <div class="f-group">
+              <label>Tarifa Hora · Tres Bandas</label>
+              <input class="f-input" value="$18.000 / hora ($300/min)">
+            </div>
+            <div class="f-group">
+              <label>Tarifa Hora · Pool / Libre</label>
+              <input class="f-input" value="$15.000 / hora ($250/min)">
+            </div>
+            <div class="f-group">
+              <label>WhatsApp Resumen Cierre (RF-09.4)</label>
+              <input class="f-input" value="+57 300 819 4410">
+            </div>
+            <div class="f-group">
+              <label>Bloqueo por inactividad (RF-01.3)</label>
+              <select class="f-input">
+                <option>15 minutos sin actividad</option>
+                <option>30 minutos sin actividad</option>
+                <option>Nunca en turno activo</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-top:16px;display:flex;justify-content:flex-end">
+            <button class="btn btn-ok"><i data-lucide="save"></i>Guardar configuración</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </main>
 </div>
 
@@ -463,7 +1706,7 @@
       </div>
       <div>
         <div class="step"><i>2</i>Jugadores (1 a 4)</div>
-        <div class="search"><i data-lucide="search"></i><input value="Fe" placeholder="Buscar cliente por nombre o apodo..."><button class="btn btn-ghost" style="padding:6px 10px"><i data-lucide="user-plus"></i>Nuevo</button></div>
+        <div class="search"><i data-lucide="search"></i><input value="Fe" placeholder="Buscar cliente por nombre o apodo..."><button class="btn btn-ghost" style="padding:6px 10px" onclick="openM('mClientNew')"><i data-lucide="user-plus"></i>Nuevo</button></div>
         <div class="sugg">
           <div><span class="ini">FR</span>Fernando Ríos <b>"El Profe"</b><small>Última visita: ayer</small></div>
           <div><span class="ini">FG</span>Felipe Gómez<small>12 visitas</small></div>
@@ -667,6 +1910,608 @@
   </div>
 </div>
 
+<!-- =================== PIEZA 1.3 · MODALES DE CLIENTES Y FIADOS =================== -->
+
+<!-- 6. REGISTRAR / EDITAR CLIENTE (RF-02.1) -->
+<div class="overlay" id="mClientNew" style="z-index:75">
+  <div class="modal" style="width:min(620px,94vw)">
+    <div class="m-head">
+      <div class="kpi-ic"><i data-lucide="user-plus"></i></div>
+      <div><h3>Registrar cliente</h3><p>Directorio permanente para asignación rápida en mesas, torneos y fiados</p></div>
+      <button class="x" onclick="closeAll()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="m-body">
+      <div class="form-grid">
+        <div class="f-group">
+          <label>Nombre completo *</label>
+          <input class="f-input" placeholder="Ej. Roberto Gómez" value="Roberto Gómez">
+        </div>
+        <div class="f-group">
+          <label>Apodo / Alias billarista *</label>
+          <input class="f-input" placeholder="Ej. El Maestro" value="El Maestro">
+        </div>
+        <div class="f-group">
+          <label>Teléfono / WhatsApp</label>
+          <input class="f-input" placeholder="Ej. 314 555 8900" value="314 555 8900">
+        </div>
+        <div class="f-group">
+          <label>Modalidad preferida</label>
+          <select class="f-input">
+            <option>Tres Bandas</option>
+            <option>Libre / Carambola</option>
+            <option>Pool / Bola 8</option>
+          </select>
+        </div>
+        <div class="f-group full">
+          <label>Notas del cliente</label>
+          <input class="f-input" placeholder="Ej. Amigo del dueño, juega los viernes en la noche..." value="Cliente de confianza, recomendado por El Chamo">
+        </div>
+      </div>
+
+      <div>
+        <div class="step"><i>$</i>Configuración de crédito ("Fiados")</div>
+        <div class="opts">
+          <button class="opt sel" onclick="pick(this,'.opt');cupoBlocks.style.display='flex'">
+            <div class="oi"><i data-lucide="shield-check"></i></div>
+            <div><h4>Con cupo de confianza</h4><p>Permite dejar saldo pendiente hasta el tope asignado.</p></div>
+          </button>
+          <button class="opt" onclick="pick(this,'.opt');cupoBlocks.style.display='none'">
+            <div class="oi"><i data-lucide="ban"></i></div>
+            <div><h4>Solo contado</h4><p>No habilita el botón de Fiado al momento de cobrar.</p></div>
+          </button>
+        </div>
+        <div class="blocks" id="cupoBlocks">
+          <button class="blk" onclick="pick(this,'.blk')">$50.000<small>Básico</small></button>
+          <button class="blk sel" onclick="pick(this,'.blk')">$80.000<small>Estándar</small></button>
+          <button class="blk" onclick="pick(this,'.blk')">$120.000<small>VIP</small></button>
+          <button class="blk" onclick="pick(this,'.blk')">Otro<small>Manual</small></button>
+        </div>
+      </div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-ghost btn-lg" onclick="closeAll()">Cancelar</button>
+      <button class="btn btn-ok btn-lg" onclick="closeAll()"><i data-lucide="check"></i>Guardar cliente</button>
+    </div>
+  </div>
+</div>
+
+<!-- 7. ESTADO DE CUENTA Y REGISTRAR ABONO (RF-02.3) -->
+<div class="overlay" id="mClientDebt" style="z-index:75">
+  <div class="modal" style="width:min(740px,94vw)">
+    <div class="m-head">
+      <div class="c-num">CM</div>
+      <div><h3>Carlos Martínez "El Ingeniero"</h3><p>Tel: 312 458 9021 · Cupo autorizado: $80.000 · Disponible: $35.000</p></div>
+      <button class="x" onclick="closeAll()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="m-body">
+      <div class="big-total">
+        <div>
+          <span>Saldo pendiente actual (Fiado)</span>
+          <p style="font-size:12px;color:var(--c300);margin-top:3px">2 consumos pendientes · Último abono hace 6 días</p>
+        </div>
+        <b>$45.000</b>
+      </div>
+
+      <div>
+        <div class="step"><i>1</i>Historial de consumos fiados y abonos</div>
+        <div class="ledger">
+          <div class="ledger-row">
+            <div>
+              <b>Viernes 6 Nov · Mesa 2 (Tres Bandas)</b>
+              <small>Tiempo (60 min) + 4× Club Colombia · Autorizó: Andrés</small>
+            </div>
+            <span class="amt-debt">+ $42.000</span>
+          </div>
+          <div class="ledger-row">
+            <div>
+              <b>Martes 3 Nov · Abono en caja (Nequi)</b>
+              <small>Recibió en turno: Andrés · Comprobante #1084</small>
+            </div>
+            <span class="amt-pay">− $20.000</span>
+          </div>
+          <div class="ledger-row">
+            <div>
+              <b>Sábado 31 Oct · Mesa 1 (Cuenta dividida)</b>
+              <small>3× Poker + 1/4 tiempo de mesa · Autorizó: Andrés</small>
+            </div>
+            <span class="amt-debt">+ $23.000</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="step"><i>2</i>Registrar abono hoy</div>
+        <div class="cash" style="margin-bottom:12px">
+          <div class="field"><label>Deuda actual</label><div>$45.000</div></div>
+          <div class="field" style="border-color:var(--c600)"><label>Valor que abona hoy</label><div>$45.000</div></div>
+          <div class="field hl"><label>Nuevo saldo pendiente</label><div>$0</div></div>
+        </div>
+        <div class="quick" style="margin-bottom:14px">
+          <button>Pago total ($45.000)</button>
+          <button>Mitad ($22.500)</button>
+          <button>$20.000</button>
+          <button>$10.000</button>
+        </div>
+
+        <div class="pays" style="grid-template-columns:repeat(4,1fr)">
+          <button class="pay sel" onclick="pick(this,'.pay')"><i data-lucide="banknote"></i>Efectivo</button>
+          <button class="pay" onclick="pick(this,'.pay')"><i data-lucide="smartphone"></i>Nequi</button>
+          <button class="pay" onclick="pick(this,'.pay')"><i data-lucide="smartphone"></i>Daviplata</button>
+          <button class="pay" onclick="pick(this,'.pay')"><i data-lucide="credit-card"></i>Tarjeta</button>
+        </div>
+      </div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-ghost btn-lg"><i data-lucide="message-circle"></i>Enviar estado por WhatsApp</button>
+      <button class="btn btn-ghost btn-lg"><i data-lucide="printer"></i>Recibo de abono</button>
+      <button class="btn btn-ok btn-lg" onclick="closeAll()"><i data-lucide="check"></i>Registrar abono</button>
+    </div>
+  </div>
+</div>
+
+<!-- =================== PIEZA 1.4 · MODALES DE INVENTARIO (M6) =================== -->
+
+<!-- 8. ENTRADA DE MERCANCÍA A PROVEEDOR (RF-06.5) -->
+<div class="overlay" id="mInvEntry" style="z-index:75">
+  <div class="modal" style="width:min(640px,94vw)">
+    <div class="m-head">
+      <div class="kpi-ic"><i data-lucide="truck"></i></div>
+      <div><h3>Registrar entrada de mercancía</h3><p>Ingreso de compras a distribuidores · Suma automáticamente al stock disponible</p></div>
+      <button class="x" onclick="closeAll()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="m-body">
+      <div class="form-grid">
+        <div class="f-group full">
+          <label>Producto a ingresar *</label>
+          <select class="f-input">
+            <option>Cerveza Corona Importada (Stock actual: 4 unds — Alerta)</option>
+            <option>Cerveza Poker 330 ml (Stock actual: 86 unds)</option>
+            <option>Cerveza Pilsen 330 ml (Stock actual: 3 unds — Alerta)</option>
+            <option>Aguardiente Antioqueño ½ (Stock actual: 14 unds)</option>
+          </select>
+        </div>
+        <div class="f-group">
+          <label>Proveedor / Distribuidor</label>
+          <input class="f-input" value="Bavaria S.A. · Camión Ruta 4">
+        </div>
+        <div class="f-group">
+          <label>N.º Factura / Remisión</label>
+          <input class="f-input" value="FAC-90482">
+        </div>
+      </div>
+
+      <div>
+        <div class="step"><i>+</i>Cantidad recibida</div>
+        <div class="blocks" style="margin-top:0;margin-bottom:14px">
+          <button class="blk" onclick="pick(this,'.blk')">1 Canasta<small>+30 unds</small></button>
+          <button class="blk sel" onclick="pick(this,'.blk')">2 Canastas<small>+60 unds</small></button>
+          <button class="blk" onclick="pick(this,'.blk')">1 Caja ×24<small>+24 unds</small></button>
+          <button class="blk" onclick="pick(this,'.blk')">Unidades sueltas<small>Manual</small></button>
+        </div>
+
+        <div class="cash">
+          <div class="field"><label>Unidades que entran</label><div>+60 unds</div></div>
+          <div class="field"><label>Costo unitario compra</label><div>$4.800</div></div>
+          <div class="field hl"><label>Nuevo stock en bodega</label><div>64 unds</div></div>
+        </div>
+      </div>
+
+      <div class="summary"><i data-lucide="check-circle-2"></i>Inversión total de esta compra: <b>$288.000</b> · Ganancia proyectada al vender: <b>+$252.000</b></div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-ghost btn-lg" onclick="closeAll()">Cancelar</button>
+      <button class="btn btn-ok btn-lg" onclick="closeAll()"><i data-lucide="check"></i>Confirmar entrada (+60 unds)</button>
+    </div>
+  </div>
+</div>
+
+<!-- 9. REGISTRAR MERMA O BAJA JUSTIFICADA (RF-06.6 y RNF-06) -->
+<div class="overlay" id="mInvMerma" style="z-index:75">
+  <div class="modal" style="width:min(580px,94vw)">
+    <div class="m-head">
+      <div class="kpi-ic" style="background:var(--busy-bg);color:var(--busy)"><i data-lucide="package-minus"></i></div>
+      <div><h3>Registrar merma o baja de inventario</h3><p>Control antifraude (RNF-06): Toda baja exige motivo y queda en el reporte del dueño</p></div>
+      <button class="x" onclick="closeAll()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="m-body">
+      <div class="form-grid">
+        <div class="f-group">
+          <label>Producto afectado *</label>
+          <select class="f-input">
+            <option>Cerveza Poker 330 ml (86 unds)</option>
+            <option>Club Colombia Dorada (40 unds)</option>
+            <option>Aguardiente Antioqueño ½ (14 unds)</option>
+          </select>
+        </div>
+        <div class="f-group">
+          <label>Cantidad a dar de baja *</label>
+          <input type="number" class="f-input" value="1" min="1">
+        </div>
+      </div>
+
+      <div>
+        <div class="step"><i>!</i>Causa de la baja (Obligatorio)</div>
+        <div class="blocks" style="margin-top:0">
+          <button class="blk sel" onclick="pick(this,'.blk')">Rotura accidental<small>Botella quebrada</small></button>
+          <button class="blk" onclick="pick(this,'.blk')">Producto dañado<small>Sin gas / Vencido</small></button>
+          <button class="blk" onclick="pick(this,'.blk')">Cambio proveedor<small>Para reposición</small></button>
+        </div>
+      </div>
+
+      <div class="f-group full">
+        <label>Justificación detallada para auditoría *</label>
+        <input class="f-input" value="Se resbaló una botella al sacarla de la nevera 2 frente a la Mesa 1">
+      </div>
+
+      <div class="summary" style="background:var(--busy-bg);color:var(--busy)">
+        <i data-lucide="shield-alert" style="color:var(--busy)"></i>
+        Quedará registrado a nombre de <b>Andrés Ardila</b> (Lunes 9 Nov · 5:20 p.m.) · Costo descontado: <b>$2.600</b>.
+      </div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-ghost btn-lg" onclick="closeAll()">Cancelar</button>
+      <button class="btn btn-primary btn-lg" style="background:var(--busy)" onclick="closeAll()"><i data-lucide="check"></i>Registrar baja auditada</button>
+    </div>
+  </div>
+</div>
+
+<!-- 10. NUEVO / EDITAR PRODUCTO CON PRECIOS DOBLES (RF-06.1 y RF-06.2) -->
+<div class="overlay" id="mInvNew" style="z-index:75">
+  <div class="modal" style="width:min(640px,94vw)">
+    <div class="m-head">
+      <div class="kpi-ic"><i data-lucide="package-plus"></i></div>
+      <div><h3>Ficha de producto y precios dobles</h3><p>El precio de costo permite calcular la ganancia real del negocio en el módulo de reportes</p></div>
+      <button class="x" onclick="closeAll()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="m-body">
+      <div class="form-grid">
+        <div class="f-group">
+          <label>Nombre del producto *</label>
+          <input class="f-input" value="Cerveza Águila Light 330 ml">
+        </div>
+        <div class="f-group">
+          <label>Categoría *</label>
+          <select class="f-input">
+            <option>Cervezas nacionales</option>
+            <option>Cervezas importadas</option>
+            <option>Licores</option>
+            <option>Gaseosas y agua</option>
+            <option>Mecato / Snacks</option>
+            <option>Cigarrillos y accesorios</option>
+          </select>
+        </div>
+        <div class="f-group">
+          <label>Precio de Costo (Compra) *</label>
+          <input type="number" id="inpCost" class="f-input" value="2600" oninput="calcMargin()">
+        </div>
+        <div class="f-group">
+          <label>Precio de Venta (Público) *</label>
+          <input type="number" id="inpSale" class="f-input" value="5000" oninput="calcMargin()">
+        </div>
+        <div class="f-group">
+          <label>Stock inicial (Unidades)</label>
+          <input type="number" class="f-input" value="60">
+        </div>
+        <div class="f-group">
+          <label>Alerta de stock mínimo (RF-06.4)</label>
+          <input type="number" class="f-input" value="24">
+        </div>
+      </div>
+
+      <div class="big-total">
+        <div>
+          <span>Utilidad neta por cada unidad vendida</span>
+          <p style="font-size:12px;color:var(--c300);margin-top:2px">Precio de venta menos costo de compra al distribuidor</p>
+        </div>
+        <b id="outMargin">+$2.400 (48%)</b>
+      </div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-ghost btn-lg" onclick="closeAll()">Cancelar</button>
+      <button class="btn btn-ok btn-lg" onclick="closeAll()"><i data-lucide="check"></i>Guardar producto</button>
+    </div>
+  </div>
+</div>
+
+<!-- =================== PIEZA 1.5 · MODALES DE CAJA Y ARQUEO (M7) =================== -->
+
+<!-- 11. APERTURA DE CAJA / BASE INICIAL (RF-07.1) -->
+<div class="overlay" id="mCashOpen" style="z-index:75">
+  <div class="modal" style="width:min(540px,94vw)">
+    <div class="m-head">
+      <div class="kpi-ic"><i data-lucide="coins"></i></div>
+      <div><h3>Apertura de turno y base inicial</h3><p>Dinero en efectivo con el que inicia el cajón para dar vueltas</p></div>
+      <button class="x" onclick="closeAll()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="m-body">
+      <div>
+        <div class="step"><i>$</i>Seleccionar base en efectivo</div>
+        <div class="blocks" style="margin-top:0;margin-bottom:14px">
+          <button class="blk" onclick="pick(this,'.blk')">$50.000<small>Mínima</small></button>
+          <button class="blk sel" onclick="pick(this,'.blk')">$100.000<small>Estándar</small></button>
+          <button class="blk" onclick="pick(this,'.blk')">$150.000<small>Fin de semana</small></button>
+          <button class="blk" onclick="pick(this,'.blk')">Otro<small>Manual</small></button>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="f-group">
+          <label>Monto exacto en cajón *</label>
+          <input type="number" class="f-input" value="100000">
+        </div>
+        <div class="f-group">
+          <label>Cajero responsable</label>
+          <input class="f-input" value="Andrés Ardila" readonly>
+        </div>
+        <div class="f-group full">
+          <label>Observación de apertura</label>
+          <input class="f-input" value="Billetes de $2.000, $5.000, $10.000 y $15.000 en moneda">
+        </div>
+      </div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-ghost btn-lg" onclick="closeAll()">Cancelar</button>
+      <button class="btn btn-ok btn-lg" onclick="closeAll()"><i data-lucide="check"></i>Guardar base de caja</button>
+    </div>
+  </div>
+</div>
+
+<!-- 12. REGISTRAR GASTO MENOR DE CAJA (RF-07.3) -->
+<div class="overlay" id="mCashExpense" style="z-index:75">
+  <div class="modal" style="width:min(580px,94vw)">
+    <div class="m-head">
+      <div class="kpi-ic" style="background:var(--busy-bg);color:var(--busy)"><i data-lucide="arrow-up-right"></i></div>
+      <div><h3>Registrar gasto menor (Salida de efectivo)</h3><p>Se descuenta automáticamente del efectivo esperado al hacer el arqueo del día</p></div>
+      <button class="x" onclick="closeAll()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="m-body">
+      <div>
+        <div class="step"><i>1</i>Categoría del gasto</div>
+        <div class="blocks" style="margin-top:0">
+          <button class="blk sel" onclick="pick(this,'.blk')">Hielo / Insumos<small>Bar rápido</small></button>
+          <button class="blk" onclick="pick(this,'.blk')">Aseo / Limpieza<small>Insumos local</small></button>
+          <button class="blk" onclick="pick(this,'.blk')">Domicilio / Flete<small>Transporte</small></button>
+          <button class="blk" onclick="pick(this,'.blk')">Otro gasto<small>Emergencia</small></button>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="f-group">
+          <label>Valor retirado del cajón *</label>
+          <input type="number" class="f-input" value="12000">
+        </div>
+        <div class="f-group">
+          <label>Pagado a / Proveedor</label>
+          <input class="f-input" value="Cigarrería La Esquina">
+        </div>
+        <div class="f-group full">
+          <label>Motivo justificado obligatorio (RNF-06) *</label>
+          <input class="f-input" value="Compra de 3 bolsas de hielo grandes para cubetazos de cerveza">
+        </div>
+      </div>
+
+      <div class="summary">
+        <i data-lucide="info"></i>
+        El efectivo esperado en cajón pasará de <b>$359.500</b> a <b>$347.500</b> y quedará auditado en el cierre.
+      </div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-ghost btn-lg" onclick="closeAll()">Cancelar</button>
+      <button class="btn btn-primary btn-lg" style="background:var(--busy)" onclick="closeAll()"><i data-lucide="check"></i>Registrar salida (−$12.000)</button>
+    </div>
+  </div>
+</div>
+
+<!-- 13. ARQUEO Y CIERRE DIARIO DE CAJA (RF-07.4, RNF-07, RF-09.4) -->
+<div class="overlay" id="mCashClose" style="z-index:75">
+  <div class="modal" style="width:min(760px,94vw)">
+    <div class="m-head">
+      <div class="kpi-ic" style="background:var(--ok-bg);color:var(--ok)"><i data-lucide="calculator"></i></div>
+      <div><h3>Arqueo y cierre diario de caja · Turno #108</h3><p>Compara lo registrado por el sistema vs. el dinero real contado por el cajero</p></div>
+      <button class="x" onclick="closeAll()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="m-body">
+      <!-- Tabla comparativa Sistema vs Contado -->
+      <div>
+        <div class="step"><i>1</i>Conteo de dinero real vs. Sistema</div>
+        <table class="split">
+          <thead>
+            <tr>
+              <th>Medio / Bolsillo</th>
+              <th>Según Sistema</th>
+              <th>Dinero Real Contado</th>
+              <th>Estado / Diferencia</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <b>Efectivo físico en cajón</b>
+                <small style="display:block;color:var(--c400)">Base $100k + Efectivo $265.5k − Gastos $18k</small>
+              </td>
+              <td><span class="price-mono">$347.500</span></td>
+              <td>
+                <input type="number" id="inpCountCash" class="f-input" style="width:150px;padding:7px 10px;font-family:'JetBrains Mono';font-weight:700" value="347500" oninput="calcArqueo()">
+              </td>
+              <td><span class="st ok" id="stCashDiff">Exacto ($0)</span></td>
+            </tr>
+            <tr>
+              <td>
+                <b>Transferencias (Nequi + Daviplata)</b>
+                <small style="display:block;color:var(--c400)">6 pagos verificados en celular</small>
+              </td>
+              <td><span class="price-mono">$138.000</span></td>
+              <td>
+                <input type="number" id="inpCountDig" class="f-input" style="width:150px;padding:7px 10px;font-family:'JetBrains Mono';font-weight:700" value="138000" oninput="calcArqueo()">
+              </td>
+              <td><span class="st ok" id="stDigDiff">Exacto ($0)</span></td>
+            </tr>
+            <tr>
+              <td>
+                <b>Tarjetas / Datáfono</b>
+                <small style="display:block;color:var(--c400)">1 cierre de lote datáfono</small>
+              </td>
+              <td><span class="price-mono">$27.000</span></td>
+              <td>
+                <input type="number" id="inpCountCard" class="f-input" style="width:150px;padding:7px 10px;font-family:'JetBrains Mono';font-weight:700" value="27000" oninput="calcArqueo()">
+              </td>
+              <td><span class="st ok" id="stCardDiff">Exacto ($0)</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Resultado del cuadre en vivo -->
+      <div class="arqueo-box arqueo-ok" id="arqueoBanner">
+        <div>
+          <b style="font-size:15px;display:block" id="arqueoTitle">CAJA CUADRADA A LA PERFECCIÓN</b>
+          <span style="font-size:12px;opacity:.9" id="arqueoSub">Total esperado: $512.500 · Total contado: $512.500 · Diferencia: $0</span>
+        </div>
+        <b style="font-family:'JetBrains Mono';font-size:22px" id="arqueoTotalDiff">$0</b>
+      </div>
+
+      <div class="f-group full">
+        <label>Observaciones del cierre de turno</label>
+        <input class="f-input" placeholder="Notas opcionales o justificación si existe alguna diferencia..." value="Se dejan $100.000 de base en el cajón para mañana martes.">
+      </div>
+
+      <div class="summary">
+        <i data-lucide="cloud-upload"></i>
+        Al cerrar: <b>1)</b> Se genera copia de seguridad automática (RNF-07) y <b>2)</b> Se envía el resumen diario al WhatsApp del propietario (RF-09.4).
+      </div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-ghost btn-lg" onclick="closeAll()">Cancelar</button>
+      <button class="btn btn-ghost btn-lg"><i data-lucide="printer"></i>Imprimir tirilla Z</button>
+      <button class="btn btn-ok btn-lg" onclick="closeAll()"><i data-lucide="lock"></i>Confirmar cierre y enviar al dueño</button>
+    </div>
+  </div>
+</div>
+
+<!-- =================== PIEZA 1.6 · MODALES CAMPEONATOS, USUARIOS Y LOGIN =================== -->
+
+<!-- 14. CREAR NUEVO CAMPEONATO (RF-08.1) -->
+<div class="overlay" id="mTourneyNew" style="z-index:75">
+  <div class="modal" style="width:min(640px,94vw)">
+    <div class="m-head">
+      <div class="kpi-ic"><i data-lucide="trophy"></i></div>
+      <div><h3>Crear campeonato adaptable ("Los jugadores que salgan")</h3><p>El sistema arma automáticamente las ternas de 3 jugadores y luego sortea el 1 contra 1</p></div>
+      <button class="x" onclick="closeAll()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="m-body">
+      <div class="form-grid">
+        <div class="f-group full">
+          <label>Nombre del torneo *</label>
+          <input class="f-input" value="Gran Torneo Viernes de Tres Bandas">
+        </div>
+        <div class="f-group">
+          <label>Modalidad</label>
+          <select class="f-input">
+            <option>Tres Bandas</option>
+            <option>Carambola Libre</option>
+            <option>Pool Bola 8</option>
+          </select>
+        </div>
+        <div class="f-group">
+          <label>Sistema de juego *</label>
+          <select class="f-input">
+            <option>Fase 1: Grupos de 3 (Pasan 2) ➔ Fase 2: Sorteo 1 vs 1</option>
+            <option>Sorteo 1 contra 1 desde el inicio</option>
+          </select>
+        </div>
+        <div class="f-group">
+          <label>Meta en Fase 1 (Grupos de 3)</label>
+          <input class="f-input" value="15 carambolas por jugador">
+        </div>
+        <div class="f-group">
+          <label>Meta en Fase 2 (Mano a mano 1 vs 1)</label>
+          <input class="f-input" value="20 carambolas (Final a 25)">
+        </div>
+        <div class="f-group">
+          <label>Inscripción por jugador</label>
+          <input type="number" class="f-input" value="30000">
+        </div>
+        <div class="f-group">
+          <label>Ajuste si sobran 1 o 2 jugadores</label>
+          <select class="f-input">
+            <option>Armar 1 grupo de 4 o clasificar mejor eliminado</option>
+            <option>Pase directo por sorteo (Bye)</option>
+          </select>
+        </div>
+      </div>
+      <div class="summary">
+        <i data-lucide="users"></i>
+        Inscribes todos los jugadores que lleguen; al cerrar inscripciones, el botón <b>"Armar Grupos de 3"</b> los reparte al azar en las 3 mesas.
+      </div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-ghost btn-lg" onclick="closeAll()">Cancelar</button>
+      <button class="btn btn-ok btn-lg" onclick="closeAll();lucide.createIcons()"><i data-lucide="shuffle"></i>Abrir inscripciones y sortear</button>
+    </div>
+  </div>
+</div>
+
+<!-- 15. CREAR / EDITAR USUARIO DEL SISTEMA (RF-01.1) -->
+<div class="overlay" id="mUserNew" style="z-index:75">
+  <div class="modal" style="width:min(540px,94vw)">
+    <div class="m-head">
+      <div class="kpi-ic"><i data-lucide="user-cog"></i></div>
+      <div><h3>Gestión de usuario y permisos (M1)</h3><p>Asigna credenciales y restringe vistas sensibles según el rol</p></div>
+      <button class="x" onclick="closeAll()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="m-body">
+      <div class="form-grid">
+        <div class="f-group">
+          <label>Nombre completo *</label>
+          <input class="f-input" value="Camilo Jiménez">
+        </div>
+        <div class="f-group">
+          <label>Usuario de ingreso *</label>
+          <input class="f-input" value="cajero1">
+        </div>
+        <div class="f-group">
+          <label>Contraseña segura *</label>
+          <input type="password" class="f-input" value="••••••••">
+        </div>
+        <div class="f-group">
+          <label>Rol en el sistema *</label>
+          <select class="f-input">
+            <option>Empleado / Cajero (Sin acceso a utilidades ni costos)</option>
+            <option>Administrador / Propietario (Acceso total)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-ghost btn-lg" onclick="closeAll()">Cancelar</button>
+      <button class="btn btn-ok btn-lg" onclick="closeAll()"><i data-lucide="check"></i>Guardar usuario</button>
+    </div>
+  </div>
+</div>
+
+<!-- 16. PANTALLA DE LOGIN / BLOQUEO DE SEGURIDAD (RF-01.2 y RF-01.3) -->
+<div class="overlay" id="mLogin" style="z-index:90;background:rgba(18,20,31,.82);backdrop-filter:blur(10px)">
+  <div class="modal" style="width:min(420px,92vw)">
+    <div class="m-head" style="justify-content:center;flex-direction:column;text-align:center;padding:28px 24px 18px">
+      <div class="logo" style="width:54px;height:54px;margin-bottom:8px"><i data-lucide="lock"></i></div>
+      <h3>BILLAR CHAMO · Acceso Seguro</h3>
+      <p>Sesión bloqueada · Ingresa tus credenciales para continuar operando</p>
+    </div>
+    <div class="m-body">
+      <div class="f-group">
+        <label>Usuario</label>
+        <input class="f-input" value="aardila">
+      </div>
+      <div class="f-group">
+        <label>Contraseña</label>
+        <input type="password" class="f-input" value="••••••••">
+      </div>
+    </div>
+    <div class="m-foot" style="justify-content:stretch">
+      <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center" onclick="closeAll()"><i data-lucide="log-in"></i>Desbloquear / Iniciar sesión</button>
+    </div>
+  </div>
+</div>
+
 <script>
   lucide.createIcons();
   let s1=5058, s3=252;
@@ -697,6 +2542,147 @@
   document.querySelectorAll('.card [title="Trasladar"]').forEach(b=>b.onclick=()=>openM('mMove'));
   document.querySelector('.topbar .btn-primary').onclick=()=>openM('mBar');
   document.querySelector('.alert button').onclick=openDrawer;
+
+  /* ===== Pieza 1.3: Navegación de vistas y filtro de clientes ===== */
+  function switchView(view, navEl){
+    document.querySelectorAll('.sidebar .nav li').forEach(li=>li.classList.remove('active'));
+    if(navEl) navEl.classList.add('active');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    if(view==='tables'){
+      $('viewTables').classList.add('active');
+      $('pageTitle').textContent='Mapa de mesas';
+      $('pageSub').textContent='Lunes 9 de noviembre · Tiempos, marcadores y cuentas en vivo';
+    } else if(view==='clients'){
+      $('viewClients').classList.add('active');
+      $('pageTitle').textContent='Clientes y control de fiados';
+      $('pageSub').textContent='Directorio de billaristas, cupos de confianza, saldos pendientes y abonos';
+    } else if(view==='inventory'){
+      $('viewInventory').classList.add('active');
+      $('pageTitle').textContent='Inventario del bar y precios dobles';
+      $('pageSub').textContent='Control de existencias, costo vs. venta, entradas de proveedor y mermas auditadas';
+    } else if(view==='cash'){
+      $('viewCash').classList.add('active');
+      $('pageTitle').textContent='Caja, gastos menores y arqueo diario';
+      $('pageSub').textContent='Separación de Efectivo, Nequi, Daviplata y Tarjetas · Cuadre exacto de fin de jornada';
+    } else if(view==='tourney'){
+      $('viewTourney').classList.add('active');
+      $('pageTitle').textContent='Campeonatos y cuadro de llaves en vivo';
+      $('pageSub').textContent='Gestión de inscripciones, avance de rondas en tiempo real y proyección en Smart TV';
+    } else if(view==='reports'){
+      $('viewReports').classList.add('active');
+      $('pageTitle').textContent='Dashboard del propietario · Ganancia real';
+      $('pageSub').textContent='Vista protegida · Alquiler de tiempo 100% neto + margen real de bar y auditoría antifraude';
+    } else if(view==='settings'){
+      $('viewSettings').classList.add('active');
+      $('pageTitle').textContent='Usuarios, roles y tarifas del salón';
+      $('pageSub').textContent='Administración de accesos, precios por hora de mesas y datos del recibo POS';
+    }
+  }
+  function filtClients(status, btn){
+    btn.parentElement.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('#clientsTable tbody tr').forEach(row=>{
+      const ok = status==='all' || row.dataset.cs===status;
+      row.style.display = ok ? '' : 'none';
+    });
+  }
+  function searchClients(q){
+    const term = q.toLowerCase().trim();
+    document.querySelectorAll('#clientsTable tbody tr').forEach(row=>{
+      row.style.display = row.innerText.toLowerCase().includes(term) ? '' : 'none';
+    });
+  }
+
+  /* ===== Pieza 1.4: Filtros y calculadora de margen de Inventario ===== */
+  function filtInv(cat, btn){
+    btn.parentElement.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('#invTable tbody tr').forEach(row=>{
+      const ok = cat==='all' || (cat==='low' ? row.dataset.low==='yes' : row.dataset.cat===cat);
+      row.style.display = ok ? '' : 'none';
+    });
+  }
+  function searchInv(q){
+    const term = q.toLowerCase().trim();
+    document.querySelectorAll('#invTable tbody tr').forEach(row=>{
+      row.style.display = row.innerText.toLowerCase().includes(term) ? '' : 'none';
+    });
+  }
+  function calcMargin(){
+    const cost = Number($('inpCost').value) || 0;
+    const sale = Number($('inpSale').value) || 0;
+    const diff = sale - cost;
+    const pct = sale > 0 ? Math.round((diff / sale) * 100) : 0;
+    const sign = diff >= 0 ? '+' : '';
+    $('outMargin').textContent = `${sign}$${diff.toLocaleString('es-CO')} (${pct}%)`;
+  }
+
+  /* ===== Pieza 1.5: Filtros de Caja y Calculadora de Arqueo Diario ===== */
+  function filtCash(mode, btn){
+    btn.parentElement.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('#cashTable tbody tr').forEach(row=>{
+      const ok = mode==='all' || row.dataset.cm===mode;
+      row.style.display = ok ? '' : 'none';
+    });
+  }
+  function searchCash(q){
+    const term = q.toLowerCase().trim();
+    document.querySelectorAll('#cashTable tbody tr').forEach(row=>{
+      row.style.display = row.innerText.toLowerCase().includes(term) ? '' : 'none';
+    });
+  }
+  function fmtDiff(d, el){
+    if(d===0){ el.className='st ok'; el.textContent='Exacto ($0)'; }
+    else if(d<0){ el.className='st pend'; el.style.background='var(--busy-bg)'; el.style.color='var(--busy)'; el.textContent=`Faltante −$${Math.abs(d).toLocaleString('es-CO')}`; }
+    else { el.className='st pend'; el.textContent=`Sobrante +$${d.toLocaleString('es-CO')}`; }
+  }
+  function calcArqueo(){
+    const cCash = Number($('inpCountCash').value)||0;
+    const cDig  = Number($('inpCountDig').value)||0;
+    const cCard = Number($('inpCountCard').value)||0;
+    const dCash = cCash - 347500;
+    const dDig  = cDig  - 138000;
+    const dCard = cCard - 27000;
+    fmtDiff(dCash, $('stCashDiff'));
+    fmtDiff(dDig,  $('stDigDiff'));
+    fmtDiff(dCard, $('stCardDiff'));
+    const totalCount = cCash + cDig + cCard;
+    const totalDiff  = totalCount - 512500;
+    const banner = $('arqueoBanner');
+    if(totalDiff === 0 && dCash === 0 && dDig === 0 && dCard === 0){
+      banner.className = 'arqueo-box arqueo-ok';
+      $('arqueoTitle').textContent = 'CAJA CUADRADA A LA PERFECCIÓN';
+      $('arqueoSub').textContent = `Total esperado: $512.500 · Total contado: $${totalCount.toLocaleString('es-CO')} · Diferencia: $0`;
+      $('arqueoTotalDiff').textContent = '$0';
+    } else {
+      banner.className = 'arqueo-box arqueo-diff';
+      const label = totalDiff < 0 ? 'DESCUADRE: HAY FALTANTE EN CAJA' : (totalDiff > 0 ? 'ATENCIÓN: HAY SOBRANTE EN CAJA' : 'DIFERENCIA CRUCE DE MEDIOS');
+      $('arqueoTitle').textContent = label;
+      $('arqueoSub').textContent = `Total esperado: $512.500 · Total contado: $${totalCount.toLocaleString('es-CO')}`;
+      $('arqueoTotalDiff').textContent = (totalDiff>=0?'+':'−') + '$' + Math.abs(totalDiff).toLocaleString('es-CO');
+    }
+  }
+
+  /* ===== Pieza 1.6: Avance en vivo de llave del Campeonato y pestañas ===== */
+  function advanceWinner(){
+    $('sfP1').classList.add('win');
+    $('sfP1').querySelector('.pts').textContent = '20';
+    $('finalSlot2').innerHTML = '<b>2. Don Mario (1.° G3)</b>';
+    $('finalSlot2').style.color = 'var(--c900)';
+    $('finalStatus').textContent = 'Lista para iniciar';
+    $('finalStatus').style.color = 'var(--ok)';
+    $('finalMatchCard').classList.add('live');
+    const arrow = $('arrowSf2');
+    if(arrow){
+      arrow.setAttribute('stroke', '#1FA37A');
+      arrow.removeAttribute('stroke-dasharray');
+    }
+  }
+  function pickTab(btn){
+    btn.parentElement.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+  }
 </script>
 </body>
 </html>
