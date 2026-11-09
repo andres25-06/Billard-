@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Billar Chamo · Entorno 3 — Pantalla Gigante Smart TV (HDMI)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  :root{
+    /* Paleta "Groza" (Fondo claro entre azul y blanco + cabeceras y marcadores profundos) */
+    --c900:#12141F; --c800:#232739; --c700:#383E5C; --c600:#4F5580;
+    --c400:#7B81A8; --c300:#AFB4CE; --c100:#E4E6F0;
+    --line:#D6D9E8; --surface:#FFFFFF; --soft:#F3F4F9;
+    --ok:#1FA37A; --ok-bg:rgba(31,163,122,.12);
+    --busy:#E0535F; --busy-bg:rgba(224,83,95,.12);
+    --warn:#D99A1E; --warn-bg:rgba(217,154,30,.14);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;user-select:none}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:linear-gradient(160deg,#EEF0F8 0%,#DDE1F0 55%,#C9CEE4 100%);
+    color:var(--c900);
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  svg.lucide{width:20px;height:20px;stroke-width:2}
+  button{font-family:inherit;cursor:pointer;border:none}
+
+  /* ================= 1. CABECERA TIPO TRANSMISIÓN DEPORTIVA TV ================= */
+  .tv-header{
+    height:76px;
+    background:linear-gradient(90deg,var(--c900),var(--c800));
+    color:#fff;
+    padding:0 28px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+    box-shadow:0 6px 24px rgba(18,20,31,.22);
+    flex-shrink:0;
+  }
+  .tv-brand{display:flex;align-items:center;gap:14px}
+  .tv-logo{
+    width:48px;height:48px;border-radius:14px;
+    background:linear-gradient(135deg,var(--c400),var(--c600));
+    display:grid;place-items:center;
+    box-shadow:0 4px 16px rgba(79,85,128,.5);
+  }
+  .tv-logo svg{width:26px;height:26px;color:#fff}
+  .tv-title h1{font-size:19px;font-weight:900;letter-spacing:.5px;display:flex;align-items:center;gap:10px}
+  .tv-title small{font-size:12.5px;color:var(--c300);font-weight:500}
+  .live-pill{
+    display:inline-flex;align-items:center;gap:6px;
+    font-size:11px;font-weight:800;padding:4px 10px;border-radius:20px;
+    background:rgba(224,83,95,.22);color:#FF98A2;letter-spacing:.7px;
+  }
+  .live-dot{width:8px;height:8px;border-radius:50%;background:#F2727F;animation:blink 1.1s infinite}
+  @keyframes blink{50%{opacity:.2}}
+
+  /* Conmutador de modo de pantalla TV */
+  .tv-modes{
+    display:flex;align-items:center;gap:6px;
+    background:rgba(255,255,255,.08);padding:5px;border-radius:13px;
+    border:1px solid rgba(255,255,255,.14);
+  }
+  .m-btn{
+    padding:8px 14px;border-radius:9px;font-size:12.5px;font-weight:700;
+    background:transparent;color:var(--c300);display:flex;align-items:center;gap:7px;transition:.15s;
+  }
+  .m-btn:hover{color:#fff;background:rgba(255,255,255,.08)}
+  .m-btn.active{background:var(--c100);color:var(--c900)}
+
+  .tv-clock{
+    display:flex;align-items:center;gap:14px;
+    background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);
+    padding:8px 16px;border-radius:12px;
+  }
+  .tv-clock b{font-family:'JetBrains Mono';font-size:20px;font-weight:800}
+  .tv-clock span{font-size:11px;color:var(--c300);text-transform:uppercase;font-weight:700;display:block}
+
+  /* ================= 2. CONTENEDOR DE VISTAS DEL TELEVISOR ================= */
+  .tv-stage{
+    flex:1;
+    padding:20px 28px;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+  }
+  .tv-view{display:none;flex:1;flex-direction:column;gap:18px}
+  .tv-view.active{display:flex}
+
+  /* --- VISTA 1: CAMPEONATO EN VIVO (GRUPOS DE 3 + ÁRBOL 1 VS 1 CON FLECHAS) --- */
+  .tourney-layout{
+    flex:1;
+    display:grid;
+    grid-template-columns:320px 1fr;
+    gap:20px;
+    align-items:stretch;
+  }
+  .phase-panel{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:16px 18px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    box-shadow:0 8px 26px rgba(56,62,92,.08);
+  }
+  .phase-head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding-bottom:10px;border-bottom:1px solid var(--line);
+  }
+  .phase-head h2{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--c800);display:flex;align-items:center;gap:8px}
+  .phase-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;background:#EEF0F8;color:var(--c600)}
+
+  /* Tarjetas compactas de los 4 Grupos de 3 (Pasan 2) */
+  .mini-groups{display:flex;flex-direction:column;gap:10px;flex:1;justify-content:space-between}
+  .mg-card{
+    border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--soft);
+  }
+  .mg-title{
+    background:var(--c800);color:#fff;padding:5px 10px;font-size:11px;font-weight:800;
+    display:flex;justify-content:space-between;
+  }
+  .mg-row{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:5px 10px;font-size:12px;border-bottom:1px solid var(--line);background:var(--surface);
+  }
+  .mg-row:last-child{border-bottom:none}
+  .mg-row.pass{border-left:3px solid var(--ok);font-weight:700}
+  .mg-row.out{opacity:.52;text-decoration:line-through}
+  .mg-pts{font-family:'JetBrains Mono';font-size:12px;font-weight:800;color:var(--c700)}
+  .mg-row.pass .mg-pts{color:var(--ok)}
+
+  /* Árbol 1 vs 1 con líneas y flechas conectoras */
+  .tv-bracket-grid{
+    flex:1;
+    display:grid;
+    grid-template-columns:1fr 68px 1fr 68px 1.05fr;
+    align-items:stretch;
+  }
+  .b-col{display:flex;flex-direction:column;justify-content:space-around;gap:10px}
+  .b-col-head{
+    text-align:center;font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;
+    color:var(--c600);background:var(--soft);border:1px solid var(--line);padding:7px 10px;border-radius:10px;
+  }
+  .b-conn{display:flex;align-items:center;justify-content:center;padding-top:28px}
+  .b-conn svg{width:100%;height:100%;overflow:visible}
+
+  .tv-match{
+    background:var(--surface);border:1.5px solid var(--line);border-radius:14px;overflow:hidden;
+    box-shadow:0 4px 12px rgba(56,62,92,.06);transition:.25s;
+  }
+  .tv-match.live{
+    border:2px solid var(--busy);
+    box-shadow:0 0 0 4px rgba(224,83,95,.15), 0 10px 24px rgba(224,83,95,.18);
+  }
+  .tvm-top{
+    padding:5px 10px;background:var(--soft);border-bottom:1px solid var(--line);
+    display:flex;justify-content:space-between;font-size:10.5px;font-weight:700;color:var(--c400);
+  }
+  .tv-match.live .tvm-top{background:var(--busy);color:#fff}
+  .tvm-p{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:8px 12px;font-size:13px;border-bottom:1px solid var(--line);
+  }
+  .tvm-p:last-child{border-bottom:none}
+  .tvm-p.win{background:var(--ok-bg);font-weight:800;color:var(--c900)}
+  .tvm-score{
+    font-family:'JetBrains Mono';font-size:15px;font-weight:800;
+    padding:2px 8px;border-radius:6px;background:var(--soft);color:var(--c800);
+  }
+  .tvm-p.win .tvm-score{background:var(--ok);color:#fff}
+
+  /* --- VISTA 2: SORTEO EN PANTALLA GRANDE --- */
+  .draw-grid{
+    flex:1;display:grid;grid-template-columns:360px 1fr;gap:22px;align-items:stretch;
+  }
+  .draw-wheel{
+    background:linear-gradient(155deg,var(--c900),var(--c800));
+    color:#fff;border-radius:22px;padding:26px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:16px;
+    box-shadow:0 16px 40px rgba(18,20,31,.25);
+  }
+  .ball-drum{
+    width:130px;height:130px;border-radius:50%;
+    background:radial-gradient(circle at 32% 30%,var(--c400),var(--c600));
+    border:4px solid rgba(255,255,255,.25);
+    display:grid;place-items:center;
+    font-family:'JetBrains Mono';font-size:38px;font-weight:900;
+    box-shadow:0 14px 35px rgba(0,0,0,.45);
+    transition:transform .3s;
+  }
+  .draw-btn{
+    width:100%;padding:14px 20px;border-radius:14px;background:var(--ok);color:#fff;
+    font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;
+  }
+  .draw-groups{
+    display:grid;grid-template-columns:repeat(2,1fr);gap:16px;
+  }
+
+  /* --- VISTA 3: SALÓN EN VIVO + CUADRO DE HONOR SEMANAL --- */
+  .hall-grid{
+    flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:stretch;
+  }
+  .tv-table-card{
+    background:var(--surface);border:2px solid var(--line);border-radius:20px;
+    display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;
+    box-shadow:0 10px 28px rgba(56,62,92,.08);
+  }
+  .tvt-head{
+    padding:16px 20px;background:linear-gradient(135deg,var(--c900),var(--c800));color:#fff;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .tvt-body{padding:18px 20px;display:flex;flex-direction:column;gap:10px;flex:1}
+  .tvt-row{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:12px 14px;border-radius:12px;background:var(--soft);border:1px solid var(--line);
+  }
+  .tvt-row b{font-size:15px}
+  .tvt-row span{font-family:'JetBrains Mono';font-size:24px;font-weight:800;color:var(--c800)}
+
+  /* ================= 3. FRANJA INFERIOR EN VIVO (TICKER DE LAS 3 MESAS) ================= */
+  .tv-ticker{
+    height:68px;
+    background:var(--c900);
+    color:#fff;
+    padding:0 28px;
+    display:grid;
+    grid-template-columns:auto 1fr 1fr 1fr;
+    gap:18px;
+    align-items:center;
+    border-top:2px solid var(--c700);
+    flex-shrink:0;
+  }
+  .ticker-tag{
+    background:var(--ok);color:#fff;padding:8px 14px;border-radius:10px;
+    font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .ticker-mesa{
+    background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+    padding:8px 14px;border-radius:11px;display:flex;align-items:center;justify-content:space-between;
+    font-size:12.5px;
+  }
+  .ticker-mesa b{color:var(--c100);font-weight:700}
+  .ticker-mesa .sc{font-family:'JetBrains Mono';font-weight:800;color:#4FD1A5;font-size:14px}
+</style>
+</head>
+<body>
+
+<!-- Definición global de flechas SVG -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <marker id="tvArrowOk" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#1FA37A"/>
+    </marker>
+  </defs>
+</svg>
+
+<!-- ============ 1. CABECERA DE PANTALLA GIGANTE TV ============ -->
+<header class="tv-header">
+  <div class="tv-brand">
+    <div class="tv-logo"><i data-lucide="trophy"></i></div>
+    <div class="tv-title">
+      <h1>COPA BILLAR CHAMO · TRES BANDAS <span class="live-pill"><span class="live-dot"></span>EN VIVO EN SALÓN</span></h1>
+      <small>12 Jugadores · Fase 1: Ternas de 3 (Pasan 2) ➔ Fase 2: Eliminación 1 contra 1 · Bolsa: $360.000</small>
+    </div>
+  </div>
+
+  <!-- Botones para probar las 3 vistas del Smart TV -->
+  <div class="tv-modes">
+    <button class="m-btn active" onclick="setTvMode('tourney',this)"><i data-lucide="git-merge"></i>1. Cuadro del Campeonato</button>
+    <button class="m-btn" onclick="setTvMode('draw',this)"><i data-lucide="shuffle"></i>2. Sorteo en Pantalla Grande</button>
+    <button class="m-btn" onclick="setTvMode('hall',this)"><i data-lucide="layout-grid"></i>3. Marcadores de las 3 Mesas</button>
+  </div>
+
+  <div class="tv-clock">
+    <div>
+      <span>Hora Local</span>
+      <b id="tvClock">08:45:12 PM</b>
+    </div>
+  </div>
+</header>
+
+<!-- ============ 2. ESCENARIO CENTRAL DEL TELEVISOR ============ -->
+<main class="tv-stage">
+
+  <!-- ====== MODO 1: CAMPEONATO EN VIVO (TERNAs DE 3 + LLAVES 1 VS 1 CON FLECHAS) ====== -->
+  <section class="tv-view active" id="tvViewTourney">
+    <div class="tourney-layout">
+
+      <!-- Columna Izquierda: Resumen de Fase 1 (Ternas de 3, Pasan 2) -->
+      <aside class="phase-panel">
+        <div class="phase-head">
+          <h2><i data-lucide="users"></i>Fase 1: Grupos de 3</h2>
+          <span class="phase-badge">Pasan 2 por grupo</span>
+        </div>
+
+        <div class="mini-groups">
+          <div class="mg-card">
+            <div class="mg-title"><span>GRUPO 1 · MESA 1</span><span>15 Car.</span></div>
+            <div class="mg-row pass"><span>1.° El Chamo ➔</span><span class="mg-pts">15</span></div>
+            <div class="mg-row pass"><span>2.° Felipe Gómez ➔</span><span class="mg-pts">12</span></div>
+            <div class="mg-row out"><span>3.° Ramiro V.</span><span class="mg-pts">7</span></div>
+          </div>
+
+          <div class="mg-card">
+            <div class="mg-title"><span>GRUPO 2 · MESA 2</span><span>15 Car.</span></div>
+            <div class="mg-row pass"><span>1.° Carlos "Ingeniero" ➔</span><span class="mg-pts">15</span></div>
+            <div class="mg-row pass"><span>2.° Jhon J. "Doble J" ➔</span><span class="mg-pts">13</span></div>
+            <div class="mg-row out"><span>3.° Andrés P.</span><span class="mg-pts">9</span></div>
+          </div>
+
+          <div class="mg-card">
+            <div class="mg-title"><span>GRUPO 3 · MESA 3</span><span>15 Car.</span></div>
+            <div class="mg-row pass"><span>1.° Don Mario ➔</span><span class="mg-pts">15</span></div>
+            <div class="mg-row pass"><span>2.° Luis P. ➔</span><span class="mg-pts">11</span></div>
+            <div class="mg-row out"><span>3.° Camilo R.</span><span class="mg-pts">6</span></div>
+          </div>
+
+          <div class="mg-card">
+            <div class="mg-title"><span>GRUPO 4 · MESA 1</span><span>15 Car.</span></div>
+            <div class="mg-row pass"><span>1.° Héctor "El Zurdo" ➔</span><span class="mg-pts">15</span></div>
+            <div class="mg-row pass"><span>2.° Fernando "El Profe" ➔</span><span class="mg-pts">14</span></div>
+            <div class="mg-row out"><span>3.° Oscar M.</span><span class="mg-pts">8</span></div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Columna Derecha: Fase 2 Eliminación 1 contra 1 con Líneas y Flechas -->
+      <section class="phase-panel">
+        <div class="phase-head">
+          <h2><i data-lucide="git-branch"></i>Fase 2: Sorteo 1 contra 1 — Camino a la Gran Final</h2>
+          <button class="m-btn active" style="background:var(--ok);color:#fff;padding:6px 12px" onclick="simTvWin()">
+            <i data-lucide="zap"></i>Simular Carambola 20 de Don Mario en Mesa 3
+          </button>
+        </div>
+
+        <div class="tv-bracket-grid">
+          <!-- CUARTOS DE FINAL -->
+          <div class="b-col">
+            <div class="b-col-head">Cuartos (1 vs 1 · 20 Car.)</div>
+
+            <div class="tv-match">
+              <div class="tvm-top"><span>LLAVE 1 · MESA 1</span><span>FINALIZADO</span></div>
+              <div class="tvm-p win"><span>El Chamo (1.° G1)</span><span class="tvm-score">20</span></div>
+              <div class="tvm-p"><span>Luis P. (2.° G3)</span><span class="tvm-score">13</span></div>
+            </div>
+
+            <div class="tv-match">
+              <div class="tvm-top"><span>LLAVE 2 · MESA 2</span><span>FINALIZADO</span></div>
+              <div class="tvm-p win"><span>Carlos "Ingeniero" (1.° G2)</span><span class="tvm-score">20</span></div>
+              <div class="tvm-p"><span>Fernando "El Profe" (2.° G4)</span><span class="tvm-score">17</span></div>
+            </div>
+
+            <div class="tv-match">
+              <div class="tvm-top"><span>LLAVE 3 · MESA 3</span><span>FINALIZADO</span></div>
+              <div class="tvm-p win"><span>Don Mario (1.° G3)</span><span class="tvm-score">20</span></div>
+              <div class="tvm-p"><span>Jhon J. "Doble J" (2.° G2)</span><span class="tvm-score">15</span></div>
+            </div>
+
+            <div class="tv-match">
+              <div class="tvm-top"><span>LLAVE 4 · MESA 1</span><span>FINALIZADO</span></div>
+              <div class="tvm-p win"><span>Héctor "El Zurdo" (1.° G4)</span><span class="tvm-score">20</span></div>
+              <div class="tvm-p"><span>Felipe Gómez (2.° G1)</span><span class="tvm-score">18</span></div>
+            </div>
+          </div>
+
+          <!-- CONECTOR 1 CON FLECHAS -->
+          <div class="b-conn">
+            <svg viewBox="0 0 68 420" preserveAspectRatio="none">
+              <path d="M 2 52 H 32 V 105 H 60" fill="none" stroke="#1FA37A" stroke-width="3" marker-end="url(#tvArrowOk)"/>
+              <path d="M 2 158 H 32 V 105" fill="none" stroke="#1FA37A" stroke-width="3"/>
+              <path d="M 2 265 H 32 V 318 H 60" fill="none" stroke="#1FA37A" stroke-width="3" marker-end="url(#tvArrowOk)"/>
+              <path d="M 2 370 H 32 V 318" fill="none" stroke="#1FA37A" stroke-width="3"/>
+            </svg>
+          </div>
+
+          <!-- SEMIFINALES -->
+          <div class="b-col">
+            <div class="b-col-head">Semifinales (1 vs 1 · 20 Car.)</div>
+
+            <div class="tv-match">
+              <div class="tvm-top"><span>SEMIFINAL 1 · MESA 1</span><span style="color:var(--ok)">CLASIFICADO ➔</span></div>
+              <div class="tvm-p win"><span>El Chamo</span><span class="tvm-score">20</span></div>
+              <div class="tvm-p"><span>Carlos "Ingeniero"</span><span class="tvm-score">16</span></div>
+            </div>
+
+            <div class="tv-match live" id="tvSf2Card">
+              <div class="tvm-top"><span id="tvSf2Status">● EN JUEGO · MESA 3 (ENT. 19)</span><span>META: 20</span></div>
+              <div class="tvm-p" id="tvSf2P1"><span><b>Don Mario</b></span><span class="tvm-score" id="tvSf2Score1" style="background:var(--c900);color:#fff">19</span></div>
+              <div class="tvm-p"><span>Héctor "El Zurdo"</span><span class="tvm-score">17</span></div>
+            </div>
+          </div>
+
+          <!-- CONECTOR 2 CON FLECHAS -->
+          <div class="b-conn">
+            <svg viewBox="0 0 68 420" preserveAspectRatio="none">
+              <path d="M 2 115 H 34 V 210 H 60" fill="none" stroke="#1FA37A" stroke-width="3" marker-end="url(#tvArrowOk)"/>
+              <path id="tvArrowSf2" d="M 2 315 H 34 V 210" fill="none" stroke="#4F5580" stroke-width="3" stroke-dasharray="6,4"/>
+            </svg>
+          </div>
+
+          <!-- GRAN FINAL -->
+          <div class="b-col">
+            <div class="b-col-head">Gran Final ($260k + $100k)</div>
+
+            <div class="tv-match" id="tvFinalCard" style="border-width:2px">
+              <div class="tvm-top"><span>GRAN FINAL · MESA 1 (A 25 CAR.)</span><span id="tvFinalTag">POR INICIAR</span></div>
+              <div class="tvm-p"><span><b>1. El Chamo</b></span><span class="tvm-score">0</span></div>
+              <div class="tvm-p"><span id="tvFinalRival" style="color:var(--c400)">Esperando ganador SF2...</span><span class="tvm-score">0</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </section>
+
+  <!-- ====== MODO 2: SORTEO EN VIVO EN PANTALLA GRANDE ====== -->
+  <section class="tv-view" id="tvViewDraw">
+    <div class="draw-grid">
+      <div class="draw-wheel">
+        <span class="live-pill">SORTEO PÚBLICO EN PANTALLA GRANDE</span>
+        <div class="ball-drum" id="drumText">G4</div>
+        <h2 id="drawnPlayerName" style="font-size:22px;font-weight:900">Fernando "El Profe"</h2>
+        <p style="font-size:13px;color:var(--c300)">Asignado automáticamente por balota aleatoria a la Terna del Grupo 4</p>
+        <button class="draw-btn" onclick="animateDraw()"><i data-lucide="sparkles"></i>Sortear Siguiente Jugador en Vivo</button>
+      </div>
+
+      <div class="phase-panel">
+        <div class="phase-head">
+          <h2><i data-lucide="grid"></i>Conformación de Grupos de 3 en Vivo (12 Inscritos)</h2>
+          <span class="phase-badge">Pasan los 2 mejores de cada grupo</span>
+        </div>
+        <div class="draw-groups">
+          <div class="mg-card">
+            <div class="mg-title"><span>GRUPO 1 · MESA 1</span><span>Completo (3/3)</span></div>
+            <div class="mg-row"><span>1. Jhonatan "El Chamo"</span><span class="phase-badge">Cabeza #1</span></div>
+            <div class="mg-row"><span>2. Felipe Gómez</span><span class="phase-badge">Sorteado</span></div>
+            <div class="mg-row"><span>3. Ramiro V.</span><span class="phase-badge">Sorteado</span></div>
+          </div>
+
+          <div class="mg-card">
+            <div class="mg-title"><span>GRUPO 2 · MESA 2</span><span>Completo (3/3)</span></div>
+            <div class="mg-row"><span>1. Carlos "El Ingeniero"</span><span class="phase-badge">Cabeza #2</span></div>
+            <div class="mg-row"><span>2. Jhon Jairo "Doble J"</span><span class="phase-badge">Sorteado</span></div>
+            <div class="mg-row"><span>3. Andrés P.</span><span class="phase-badge">Sorteado</span></div>
+          </div>
+
+          <div class="mg-card">
+            <div class="mg-title"><span>GRUPO 3 · MESA 3</span><span>Completo (3/3)</span></div>
+            <div class="mg-row"><span>1. Mario "Don Mario"</span><span class="phase-badge">Cabeza #3</span></div>
+            <div class="mg-row"><span>2. Luis P.</span><span class="phase-badge">Sorteado</span></div>
+            <div class="mg-row"><span>3. Camilo R.</span><span class="phase-badge">Sorteado</span></div>
+          </div>
+
+          <div class="mg-card">
+            <div class="mg-title"><span>GRUPO 4 · MESA 1</span><span id="g4Status">Completo (3/3)</span></div>
+            <div class="mg-row"><span>1. Héctor "El Zurdo"</span><span class="phase-badge">Cabeza #4</span></div>
+            <div class="mg-row"><span>2. Fernando "El Profe"</span><span class="phase-badge">Sorteado</span></div>
+            <div class="mg-row"><span id="drawSlotLast">3. Oscar M.</span><span class="phase-badge">Sorteado</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== MODO 3: MARCADORES DE LAS 3 MESAS EN VIVO (DÍA NORMAL) ====== -->
+  <section class="tv-view" id="tvViewHall">
+    <div class="hall-grid">
+      <div class="tv-table-card">
+        <div class="tvt-head">
+          <div><h3 style="font-size:18px;font-weight:800">MESA 1 · TRES BANDAS</h3><small style="color:var(--c300)">Partida a 20 carambolas · Entrada 22</small></div>
+          <span class="live-pill">EN JUEGO</span>
+        </div>
+        <div class="tvt-body">
+          <div class="tvt-row" style="border-color:var(--ok);background:var(--ok-bg)"><b>1. El Chamo (En tacada)</b><span style="color:var(--ok)">18</span></div>
+          <div class="tvt-row"><b>2. Carlos "El Ingeniero"</b><span>15</span></div>
+          <div class="tvt-row"><b>3. Andrés A.</b><span>14</span></div>
+          <div class="tvt-row"><b>4. Jhon Jairo "Doble J"</b><span>11</span></div>
+        </div>
+      </div>
+
+      <div class="tv-table-card">
+        <div class="tvt-head">
+          <div><h3 style="font-size:18px;font-weight:800">MESA 2 · TRES BANDAS</h3><small style="color:var(--c300)">Tarifa: $18.000 / hora · Cámara VAR lista</small></div>
+          <span class="phase-badge" style="background:var(--ok);color:#fff">DISPONIBLE</span>
+        </div>
+        <div class="tvt-body" style="align-items:center;justify-content:center;text-align:center">
+          <i data-lucide="circle-play" style="width:52px;height:52px;color:var(--ok)"></i>
+          <h4 style="font-size:18px;margin-top:8px">Mesa 2 Libre</h4>
+          <p style="font-size:13px;color:var(--c400);max-width:240px">Solicita tu partida en la barra con tiempo libre o prepago.</p>
+        </div>
+      </div>
+
+      <div class="tv-table-card">
+        <div class="tvt-head">
+          <div><h3 style="font-size:18px;font-weight:800">MESA 3 · SEMIFINAL TORNEO</h3><small style="color:var(--c300)">Mano a mano a 20 carambolas · Entrada 19</small></div>
+          <span class="live-pill">EN JUEGO</span>
+        </div>
+        <div class="tvt-body">
+          <div class="tvt-row" style="border-color:var(--ok);background:var(--ok-bg)"><b>1. Don Mario (AVG 1.000)</b><span style="color:var(--ok)">19</span></div>
+          <div class="tvt-row"><b>2. Héctor "El Zurdo" (AVG 0.895)</b><span>17</span></div>
+          <div style="margin-top:auto;padding:12px;border-radius:12px;background:var(--c900);color:#fff;font-size:12.5px;display:flex;justify-content:space-between">
+            <span>🏆 Récord de la Semana (Mayor Serie):</span>
+            <b style="color:#4FD1A5">El Chamo · Serie de 8</b>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ 3. FRANJA INFERIOR EN VIVO (SINCRONIZADA POR WEBSOCKETS RNF-03) ============ -->
+<footer class="tv-ticker">
+  <div class="ticker-tag"><i data-lucide="radio"></i>MARCADORES EN VIVO</div>
+  <div class="ticker-mesa">
+    <span><b>MESA 1:</b> El Chamo vs Carlos vs Andrés vs Jhon</span>
+    <span class="sc">18 · 15 · 14 · 11</span>
+  </div>
+  <div class="ticker-mesa">
+    <span><b>MESA 2:</b> Tres Bandas · Disponible para jugar</span>
+    <span class="sc" style="color:var(--c300)">LIBRE</span>
+  </div>
+  <div class="ticker-mesa">
+    <span><b>MESA 3 (SF2):</b> Don Mario vs El Zurdo</span>
+    <span class="sc" id="tickerM3">19 - 17</span>
+  </div>
+</footer>
+
+<script>
+  lucide.createIcons();
+
+  // Reloj en vivo del TV
+  setInterval(() => {
+    const now = new Date();
+    document.getElementById('tvClock').textContent = now.toLocaleTimeString('es-CO');
+  }, 1000);
+
+  // Cambiar entre las 3 vistas de proyección del Smart TV
+  function setTvMode(mode, btn) {
+    document.querySelectorAll('.tv-modes .m-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.tv-view').forEach(v => v.classList.remove('active'));
+    if (mode === 'tourney') document.getElementById('tvViewTourney').classList.add('active');
+    if (mode === 'draw') document.getElementById('tvViewDraw').classList.add('active');
+    if (mode === 'hall') document.getElementById('tvViewHall').classList.add('active');
+  }
+
+  // Simular cuando Don Mario hace la carambola 20 en el monitor táctil de la Mesa 3 y se refleja en el TV en < 1 segundo (RNF-03)
+  function simTvWin() {
+    document.getElementById('tvSf2Score1').textContent = '20';
+    document.getElementById('tvSf2Score1').style.background = 'var(--ok)';
+    document.getElementById('tvSf2P1').classList.add('win');
+    document.getElementById('tvSf2Card').classList.remove('live');
+    document.getElementById('tvSf2Status').textContent = 'FINALIZADO · GANÓ DON MARIO';
+    document.getElementById('tvArrowSf2').setAttribute('stroke', '#1FA37A');
+    document.getElementById('tvArrowSf2').removeAttribute('stroke-dasharray');
+    document.getElementById('tvFinalRival').innerHTML = '<b>2. Don Mario (1.° G3)</b>';
+    document.getElementById('tvFinalRival').style.color = 'var(--c900)';
+    document.getElementById('tvFinalTag').textContent = '● LISTA EN MESA 1';
+    document.getElementById('tvFinalCard').classList.add('live');
+    document.getElementById('tickerM3').textContent = '20 - 17 (FIN)';
+  }
+
+  // Simular sorteo animado en pantalla grande
+  const sampleDraws = [
+    { group: 'G1', player: 'Felipe Gómez' },
+    { group: 'G2', player: 'Jhon Jairo "Doble J"' },
+    { group: 'G3', player: 'Luis P.' },
+    { group: 'G4', player: 'Oscar M.' }
+  ];
+  let dIdx = 0;
+  function animateDraw() {
+    const drum = document.getElementById('drumText');
+    const name = document.getElementById('drawnPlayerName');
+    drum.style.transform = 'scale(1.15) rotate(12deg)';
+    setTimeout(() => {
+      const item = sampleDraws[dIdx % sampleDraws.length];
+      dIdx++;
+      drum.textContent = item.group;
+      name.textContent = item.player;
+      drum.style.transform = 'scale(1) rotate(0deg)';
+    }, 220);
+  }
+</script>
+</body>
+</html>
+
