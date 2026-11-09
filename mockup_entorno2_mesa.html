@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Billar Chamo · Entorno 2 — Monitor Táctil 14" en Mesa (Módulo M4)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  :root{
+    /* Paleta "Groza" (Fondo claro entre azul y blanco + acentos profundos) */
+    --c900:#12141F; --c800:#232739; --c700:#383E5C; --c600:#4F5580;
+    --c400:#7B81A8; --c300:#AFB4CE; --c100:#E4E6F0;
+    --line:#D6D9E8; --surface:#FFFFFF; --soft:#F3F4F9;
+    --ok:#1FA37A; --ok-bg:rgba(31,163,122,.12);
+    --busy:#E0535F; --busy-bg:rgba(224,83,95,.12);
+    --warn:#D99A1E; --warn-bg:rgba(217,154,30,.14);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;user-select:none}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:linear-gradient(160deg,#EEF0F8 0%,#DDE1F0 55%,#C9CEE4 100%);
+    color:var(--c900);
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  svg.lucide{width:20px;height:20px;stroke-width:2}
+  button{font-family:inherit;cursor:pointer;border:none}
+
+  /* ================= 1. BARRA SUPERIOR KIOSCO 14" ================= */
+  .k-top{
+    height:76px;
+    background:linear-gradient(90deg,var(--c900),var(--c800));
+    color:#fff;
+    padding:0 24px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    box-shadow:0 6px 24px rgba(18,20,31,.18);
+    flex-shrink:0;
+  }
+  .k-brand{display:flex;align-items:center;gap:14px}
+  .k-num{
+    width:48px;height:48px;border-radius:14px;
+    background:linear-gradient(135deg,var(--c400),var(--c600));
+    display:grid;place-items:center;
+    font-family:'JetBrains Mono';font-size:20px;font-weight:800;color:#fff;
+    box-shadow:0 4px 14px rgba(79,85,128,.5);
+  }
+  .k-title h1{font-size:18px;font-weight:800;letter-spacing:.4px;display:flex;align-items:center;gap:10px}
+  .k-title small{font-size:12px;color:var(--c300);font-weight:500}
+  .mode-pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;background:rgba(79,209,165,.18);color:#4FD1A5;text-transform:uppercase;letter-spacing:.6px}
+
+  /* Indicadores centrales: Entrada global y Cronómetro */
+  .k-center{display:flex;align-items:center;gap:14px}
+  .k-stat-box{
+    background:rgba(255,255,255,.07);
+    border:1px solid rgba(255,255,255,.14);
+    border-radius:13px;
+    padding:7px 16px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .k-stat-box label{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--c300);font-weight:700;display:block}
+  .k-stat-box b{font-family:'JetBrains Mono';font-size:22px;font-weight:800;color:#fff}
+  .rec-dot{width:9px;height:9px;border-radius:50%;background:#F2727F;animation:blink 1.2s infinite}
+  @keyframes blink{50%{opacity:.25}}
+
+  /* Conmutador de demostración (2, 3, 4 jugadores y Modo Reposo) */
+  .demo-bar{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);padding:5px;border-radius:12px;border:1px solid rgba(255,255,255,.12)}
+  .demo-bar span{font-size:11px;color:var(--c300);font-weight:600;padding:0 8px}
+  .d-btn{padding:7px 12px;border-radius:8px;font-size:12px;font-weight:700;background:transparent;color:var(--c300);transition:.15s;display:flex;align-items:center;gap:6px}
+  .d-btn:hover{color:#fff;background:rgba(255,255,255,.08)}
+  .d-btn.active{background:var(--c100);color:var(--c900)}
+  .d-btn.lock-btn{background:rgba(224,83,95,.2);color:#FFB4BC}
+  .d-btn.lock-btn:hover{background:var(--busy);color:#fff}
+
+  /* ================= 2. TABLERO GIGANTE DE JUGADORES (RF-04.1 y RF-04.2) ================= */
+  .board-area{
+    flex:1;
+    padding:20px 24px;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+  .players-board{
+    flex:1;
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:18px;
+    align-items:stretch;
+  }
+  .players-board.cols-2{grid-template-columns:repeat(2,1fr);max-width:1100px;margin:0 auto;width:100%}
+  .players-board.cols-3{grid-template-columns:repeat(3,1fr)}
+
+  .p-card{
+    background:var(--surface);
+    border:2px solid var(--line);
+    border-radius:22px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    overflow:hidden;
+    box-shadow:0 10px 28px rgba(56,62,92,.08);
+    transition:.2s;
+    position:relative;
+  }
+  /* Jugador con el turno activo en la mesa */
+  .p-card.active-turn{
+    border-color:var(--ok);
+    box-shadow:0 0 0 4px rgba(31,163,122,.18), 0 16px 38px rgba(31,163,122,.16);
+    transform:translateY(-2px);
+  }
+  .turn-banner{
+    height:34px;
+    background:var(--soft);
+    border-bottom:1px solid var(--line);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 16px;
+    font-size:11.5px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.7px;
+    color:var(--c400);
+  }
+  .p-card.active-turn .turn-banner{
+    background:var(--ok);
+    color:#fff;
+    border-bottom-color:var(--ok);
+  }
+  .run-pill{
+    font-family:'JetBrains Mono';
+    font-size:11.5px;
+    padding:2px 8px;
+    border-radius:12px;
+    background:rgba(0,0,0,.18);
+    color:#fff;
+  }
+
+  .p-header{
+    padding:14px 18px 8px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .p-avatar{
+    width:46px;height:46px;border-radius:14px;
+    background:var(--c800);color:#fff;
+    display:grid;place-items:center;
+    font-weight:800;font-size:16px;flex-shrink:0;
+  }
+  .p-card.active-turn .p-avatar{background:var(--ok)}
+  .p-name h2{font-size:19px;font-weight:800;color:var(--c900);line-height:1.15}
+  .p-name span{font-size:12.5px;color:var(--c600);font-weight:600}
+
+  /* Contador Gigante de Carambolas (Visible a distancia RNF-05) */
+  .score-box{
+    margin:6px 18px;
+    flex:1;
+    background:linear-gradient(145deg,var(--c900),var(--c800));
+    border-radius:18px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:12px 16px;
+    position:relative;
+    color:#fff;
+  }
+  .score-num{
+    font-family:'JetBrains Mono';
+    font-size:74px;
+    font-weight:800;
+    line-height:1;
+    letter-spacing:-2px;
+  }
+  .players-board.cols-2 .score-num{font-size:92px}
+  .score-goal{
+    width:100%;
+    margin-top:10px;
+  }
+  .score-goal-top{
+    display:flex;justify-content:space-between;
+    font-size:11px;color:var(--c300);font-weight:600;margin-bottom:4px;
+  }
+  .goal-bar{height:6px;background:rgba(255,255,255,.12);border-radius:8px;overflow:hidden}
+  .goal-fill{height:100%;background:var(--ok);border-radius:8px;transition:width .25s}
+
+  /* Estadísticas en vivo del jugador (RF-04.2) */
+  .p-stats{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+    padding:6px 18px 10px;
+  }
+  .st-cell{
+    background:var(--soft);
+    border:1px solid var(--line);
+    border-radius:11px;
+    padding:7px 8px;
+    text-align:center;
+  }
+  .st-cell small{display:block;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--c400);letter-spacing:.5px}
+  .st-cell b{font-family:'JetBrains Mono';font-size:15px;font-weight:800;color:var(--c800)}
+
+  /* Botones Táctiles Extra Grandes (Aptos para dedos con tiza RNF-05) */
+  .touch-controls{
+    padding:12px 18px 16px;
+    display:grid;
+    grid-template-columns:64px 1fr;
+    gap:10px;
+    background:var(--soft);
+    border-top:1px solid var(--line);
+  }
+  .btn-minus{
+    height:64px;
+    border-radius:15px;
+    background:var(--surface);
+    border:2px solid var(--line);
+    color:var(--c700);
+    font-family:'JetBrains Mono';
+    font-size:24px;
+    font-weight:800;
+    display:grid;
+    place-items:center;
+    transition:.12s;
+  }
+  .btn-minus:active{transform:scale(.95);background:var(--busy-bg);border-color:var(--busy);color:var(--busy)}
+  .btn-plus{
+    height:64px;
+    border-radius:15px;
+    background:var(--c600);
+    color:#fff;
+    font-size:18px;
+    font-weight:800;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    box-shadow:0 6px 18px rgba(79,85,128,.28);
+    transition:.12s;
+  }
+  .p-card.active-turn .btn-plus{
+    background:var(--ok);
+    box-shadow:0 8px 22px rgba(31,163,122,.35);
+  }
+  .btn-plus:active{transform:scale(.97)}
+  .btn-plus svg{width:24px;height:24px;stroke-width:2.6}
+
+  /* ================= 3. BARRA TÁCTIL INFERIOR (VAR, CLIPS, PEDIR AL BAR) ================= */
+  .k-dock{
+    height:88px;
+    background:var(--surface);
+    border-top:1px solid var(--line);
+    padding:0 24px;
+    display:grid;
+    grid-template-columns:1.1fr 1fr 1fr 1.1fr;
+    gap:16px;
+    align-items:center;
+    box-shadow:0 -6px 24px rgba(56,62,92,.06);
+    flex-shrink:0;
+  }
+  .dock-btn{
+    height:62px;
+    border-radius:16px;
+    padding:0 18px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    text-align:left;
+    border:1.5px solid var(--line);
+    background:var(--soft);
+    color:var(--c900);
+    transition:.15s;
+  }
+  .dock-btn:hover{border-color:var(--c400);transform:translateY(-2px)}
+  .dock-btn:active{transform:scale(.98)}
+  .dock-ic{
+    width:44px;height:44px;border-radius:12px;
+    display:grid;place-items:center;flex-shrink:0;
+  }
+  .dock-btn b{display:block;font-size:14px;font-weight:800}
+  .dock-btn small{font-size:11.5px;color:var(--c400);font-weight:600}
+
+  .dock-next{background:var(--c800);color:#fff;border-color:var(--c800)}
+  .dock-next small{color:var(--c300)}
+  .dock-next .dock-ic{background:rgba(255,255,255,.12);color:#fff}
+
+  .dock-var .dock-ic{background:var(--busy-bg);color:var(--busy)}
+  .dock-clip .dock-ic{background:var(--warn-bg);color:#B07A0C}
+  .dock-bar{background:var(--c600);color:#fff;border-color:var(--c600)}
+  .dock-bar small{color:var(--c100)}
+  .dock-bar .dock-ic{background:rgba(255,255,255,.16);color:#fff}
+
+  /* ================= 4. MODALES TÁCTILES (VAR, CLIPS 7 DÍAS, BAR) ================= */
+  .overlay{
+    position:fixed;inset:0;
+    background:rgba(18,20,31,.65);
+    backdrop-filter:blur(5px);
+    display:none;
+    z-index:60;
+    align-items:center;
+    justify-content:center;
+  }
+  .overlay.show{display:flex}
+  .modal{
+    background:var(--surface);
+    border-radius:24px;
+    width:min(860px,94vw);
+    max-height:90vh;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    box-shadow:0 30px 80px rgba(18,20,31,.45);
+  }
+  .m-head{
+    padding:18px 24px;
+    border-bottom:1px solid var(--line);
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+  .m-head h3{font-size:18px;font-weight:800}
+  .m-head p{font-size:12.5px;color:var(--c400)}
+  .btn-close{
+    margin-left:auto;width:42px;height:42px;border-radius:12px;
+    background:var(--soft);color:var(--c700);display:grid;place-items:center;
+  }
+  .m-body{padding:22px 24px;overflow-y:auto;display:flex;flex-direction:column;gap:18px}
+  .m-foot{padding:16px 24px;border-top:1px solid var(--line);background:var(--soft);display:flex;justify-content:space-between;align-items:center;gap:12px}
+
+  /* Simulador de Cámara Cenital IMOU Ranger (VAR RF-04.3) */
+  .var-screen{
+    height:340px;
+    background:#163E6C;
+    border:14px solid #3A2518;
+    border-radius:18px;
+    position:relative;
+    overflow:hidden;
+    box-shadow:inset 0 0 60px rgba(0,0,0,.45);
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    padding:16px;
+  }
+  .var-hud-top{
+    display:flex;justify-content:space-between;align-items:center;
+    font-family:'JetBrains Mono';font-size:12px;color:#fff;
+    background:rgba(18,20,31,.65);padding:6px 12px;border-radius:8px;z-index:2;
+  }
+  /* Trayectoria simulada de 3 bandas y bolas de billar */
+  .billiard-path{
+    position:absolute;inset:0;width:100%;height:100%;pointer-events:none;
+  }
+  .ball{
+    width:24px;height:24px;border-radius:50%;position:absolute;
+    box-shadow:0 4px 10px rgba(0,0,0,.5), inset -3px -3px 6px rgba(0,0,0,.3);
+  }
+  .ball-white{background:#f8fafc;top:62%;left:24%}
+  .ball-yellow{background:#facc15;top:28%;left:74%}
+  .ball-red{background:#ef4444;top:48%;left:78%}
+  .var-controls{
+    display:flex;align-items:center;gap:12px;
+    background:rgba(18,20,31,.82);padding:10px 14px;border-radius:12px;z-index:2;color:#fff;
+  }
+  .v-btn{
+    padding:8px 14px;border-radius:9px;background:rgba(255,255,255,.14);color:#fff;
+    font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:6px;
+  }
+  .v-btn.active{background:var(--ok);color:#fff}
+  .v-timeline{flex:1;height:8px;background:rgba(255,255,255,.2);border-radius:10px;overflow:hidden;position:relative}
+  .v-progress{width:72%;height:100%;background:#F2727F;border-radius:10px}
+
+  /* Catálogo Táctil de Bar en la Mesa (RF-04.5) */
+  .bar-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .bar-item{
+    border:1.5px solid var(--line);border-radius:16px;padding:14px;
+    background:var(--surface);display:flex;align-items:center;justify-content:space-between;gap:10px;
+  }
+  .bar-item b{font-size:14px;display:block;color:var(--c900)}
+  .bar-item span{font-family:'JetBrains Mono';font-size:13px;font-weight:700;color:var(--c600)}
+  .qty-touch{display:flex;align-items:center;gap:8px}
+  .qty-touch button{
+    width:38px;height:38px;border-radius:10px;background:var(--soft);
+    border:1px solid var(--line);font-size:18px;font-weight:800;color:var(--c800);
+  }
+  .qty-touch button.add{background:var(--c600);color:#fff;border-color:var(--c600)}
+  .qty-touch b{font-family:'JetBrains Mono';font-size:16px;width:22px;text-align:center}
+
+  /* ================= 5. PANTALLA DE REPOSO / MODO KIOSCO BLOQUEADO (RF-04.1 y RF-04.6) ================= */
+  .kiosk-lock{
+    position:fixed;inset:0;
+    background:linear-gradient(145deg,var(--c900) 0%,var(--c800) 60%,var(--c700) 100%);
+    color:#fff;
+    z-index:100;
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:32px;
+    gap:22px;
+  }
+  .kiosk-lock.show{display:flex}
+  .lock-circle{
+    width:96px;height:96px;border-radius:28px;
+    background:rgba(255,255,255,.08);
+    border:2px solid rgba(255,255,255,.16);
+    display:grid;place-items:center;
+    box-shadow:0 20px 50px rgba(0,0,0,.4);
+  }
+  .lock-circle svg{width:44px;height:44px;color:var(--c300)}
+  .kiosk-lock h1{font-size:36px;font-weight:900;letter-spacing:.5px}
+  .kiosk-lock p{font-size:16px;color:var(--c300);max-width:520px;line-height:1.5}
+  .unlock-demo{
+    margin-top:12px;
+    padding:16px 28px;
+    border-radius:16px;
+    background:var(--ok);
+    color:#fff;
+    font-size:15px;
+    font-weight:800;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    box-shadow:0 12px 30px rgba(31,163,122,.4);
+  }
+
+  /* Toast de confirmación táctil */
+  .toast{
+    position:fixed;top:92px;left:50%;transform:translateX(-50%);
+    background:var(--ok);color:#fff;padding:12px 22px;border-radius:30px;
+    font-size:14px;font-weight:800;display:none;align-items:center;gap:10px;
+    box-shadow:0 12px 30px rgba(31,163,122,.4);z-index:95;
+  }
+  .toast.show{display:flex}
+</style>
+</head>
+<body>
+
+<!-- Toast de notificación -->
+<div class="toast" id="toastMsg"><i data-lucide="check-circle-2"></i><span id="toastText">Acción completada</span></div>
+
+<!-- ============ 1. CABECERA DEL MONITOR TÁCTIL 14" ============ -->
+<header class="k-top">
+  <div class="k-brand">
+    <div class="k-num">01</div>
+    <div class="k-title">
+      <h1>MESA 1 · TRES BANDAS <span class="mode-pill">Modo Kiosco Activo</span></h1>
+      <small>BILLAR CHAMO · Meta: 20 Carambolas · Sincronizado en vivo con Caja y TV</small>
+    </div>
+  </div>
+
+  <div class="k-center">
+    <div class="k-stat-box">
+      <div>
+        <label>Entrada Actual</label>
+        <b id="globalInning">22</b>
+      </div>
+    </div>
+    <div class="k-stat-box">
+      <div>
+        <label>Tiempo de Juego</label>
+        <b id="tableTimer">01:24:18</b>
+      </div>
+    </div>
+    <div class="k-stat-box" title="Cámara IMOU Ranger grabando buffer circular de 30s">
+      <span class="rec-dot"></span>
+      <div>
+        <label>Cámara VAR</label>
+        <b style="font-size:14px;color:var(--c100)">Buffer 30s OK</b>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra para probar 2, 3 o 4 jugadores y el bloqueo de pantalla -->
+  <div class="demo-bar">
+    <span>Jugadores:</span>
+    <button class="d-btn" onclick="setPlayersCount(2,this)">2 (1 vs 1)</button>
+    <button class="d-btn" onclick="setPlayersCount(3,this)">3 (Terna)</button>
+    <button class="d-btn active" onclick="setPlayersCount(4,this)">4</button>
+    <button class="d-btn lock-btn" onclick="toggleLock(true)" title="Simular cómo se ve la pantalla cuando la mesa está cerrada"><i data-lucide="lock"></i>Modo Reposo</button>
+  </div>
+</header>
+
+<!-- ============ 2. TABLERO GIGANTE DE PUNTOS (RF-04.1 y RF-04.2) ============ -->
+<main class="board-area">
+  <div class="players-board" id="playersBoard">
+
+    <!-- JUGADOR 1 -->
+    <article class="p-card active-turn" data-idx="0">
+      <div class="turn-banner">
+        <span class="turn-txt">● EN TACADA (TURNO ACTIVO)</span>
+        <span class="run-pill" id="run-0">Serie actual: +3</span>
+      </div>
+      <div class="p-header">
+        <div class="p-avatar">CH</div>
+        <div class="p-name">
+          <h2>El Chamo</h2>
+          <span>Jhonatan Vargas · Jugador 1</span>
+        </div>
+      </div>
+      <div class="score-box">
+        <div class="score-num" id="pts-0">18</div>
+        <div class="score-goal">
+          <div class="score-goal-top"><span>Progreso a 20 car.</span><span id="pct-0">90%</span></div>
+          <div class="goal-bar"><div class="goal-fill" id="bar-0" style="width:90%"></div></div>
+        </div>
+      </div>
+      <div class="p-stats">
+        <div class="st-cell"><small>Entradas</small><b id="inn-0">22</b></div>
+        <div class="st-cell"><small>Serie Mayor</small><b id="max-0">6</b></div>
+        <div class="st-cell"><small>Promedio</small><b id="avg-0">0.818</b></div>
+      </div>
+      <div class="touch-controls">
+        <button class="btn-minus" onclick="addPoint(0,-1)" title="Restar carambola">−1</button>
+        <button class="btn-plus" onclick="addPoint(0,1)"><i data-lucide="plus-circle"></i>+1 CARAMBOLA</button>
+      </div>
+    </article>
+
+    <!-- JUGADOR 2 -->
+    <article class="p-card" data-idx="1">
+      <div class="turn-banner">
+        <span class="turn-txt">En espera de turno</span>
+        <span class="run-pill" id="run-1" style="opacity:.5">Serie: 0</span>
+      </div>
+      <div class="p-header">
+        <div class="p-avatar">CM</div>
+        <div class="p-name">
+          <h2>El Ingeniero</h2>
+          <span>Carlos Martínez · Jugador 2</span>
+        </div>
+      </div>
+      <div class="score-box">
+        <div class="score-num" id="pts-1">15</div>
+        <div class="score-goal">
+          <div class="score-goal-top"><span>Progreso a 20 car.</span><span id="pct-1">75%</span></div>
+          <div class="goal-bar"><div class="goal-fill" id="bar-1" style="width:75%"></div></div>
+        </div>
+      </div>
+      <div class="p-stats">
+        <div class="st-cell"><small>Entradas</small><b id="inn-1">21</b></div>
+        <div class="st-cell"><small>Serie Mayor</small><b id="max-1">4</b></div>
+        <div class="st-cell"><small>Promedio</small><b id="avg-1">0.714</b></div>
+      </div>
+      <div class="touch-controls">
+        <button class="btn-minus" onclick="addPoint(1,-1)">−1</button>
+        <button class="btn-plus" onclick="addPoint(1,1)"><i data-lucide="plus-circle"></i>+1 CARAMBOLA</button>
+      </div>
+    </article>
+
+    <!-- JUGADOR 3 -->
+    <article class="p-card" data-idx="2">
+      <div class="turn-banner">
+        <span class="turn-txt">En espera de turno</span>
+        <span class="run-pill" id="run-2" style="opacity:.5">Serie: 0</span>
+      </div>
+      <div class="p-header">
+        <div class="p-avatar">AA</div>
+        <div class="p-name">
+          <h2>Andrés A.</h2>
+          <span>Andrés Ardila · Jugador 3</span>
+        </div>
+      </div>
+      <div class="score-box">
+        <div class="score-num" id="pts-2">14</div>
+        <div class="score-goal">
+          <div class="score-goal-top"><span>Progreso a 20 car.</span><span id="pct-2">70%</span></div>
+          <div class="goal-bar"><div class="goal-fill" id="bar-2" style="width:70%"></div></div>
+        </div>
+      </div>
+      <div class="p-stats">
+        <div class="st-cell"><small>Entradas</small><b id="inn-2">21</b></div>
+        <div class="st-cell"><small>Serie Mayor</small><b id="max-2">5</b></div>
+        <div class="st-cell"><small>Promedio</small><b id="avg-2">0.667</b></div>
+      </div>
+      <div class="touch-controls">
+        <button class="btn-minus" onclick="addPoint(2,-1)">−1</button>
+        <button class="btn-plus" onclick="addPoint(2,1)"><i data-lucide="plus-circle"></i>+1 CARAMBOLA</button>
+      </div>
+    </article>
+
+    <!-- JUGADOR 4 -->
+    <article class="p-card" data-idx="3">
+      <div class="turn-banner">
+        <span class="turn-txt">En espera de turno</span>
+        <span class="run-pill" id="run-3" style="opacity:.5">Serie: 0</span>
+      </div>
+      <div class="p-header">
+        <div class="p-avatar">JJ</div>
+        <div class="p-name">
+          <h2>Doble J</h2>
+          <span>Jhon Jairo · Jugador 4</span>
+        </div>
+      </div>
+      <div class="score-box">
+        <div class="score-num" id="pts-3">11</div>
+        <div class="score-goal">
+          <div class="score-goal-top"><span>Progreso a 20 car.</span><span id="pct-3">55%</span></div>
+          <div class="goal-bar"><div class="goal-fill" id="bar-3" style="width:55%"></div></div>
+        </div>
+      </div>
+      <div class="p-stats">
+        <div class="st-cell"><small>Entradas</small><b id="inn-3">21</b></div>
+        <div class="st-cell"><small>Serie Mayor</small><b id="max-3">3</b></div>
+        <div class="st-cell"><small>Promedio</small><b id="avg-3">0.524</b></div>
+      </div>
+      <div class="touch-controls">
+        <button class="btn-minus" onclick="addPoint(3,-1)">−1</button>
+        <button class="btn-plus" onclick="addPoint(3,1)"><i data-lucide="plus-circle"></i>+1 CARAMBOLA</button>
+      </div>
+    </article>
+
+  </div>
+</main>
+
+<!-- ============ 3. BARRA INFERIOR DE CONTROLES TÁCTILES ============ -->
+<footer class="k-dock">
+  <button class="dock-btn dock-next" onclick="nextTurn()">
+    <div class="dock-ic"><i data-lucide="skip-forward"></i></div>
+    <div>
+      <b>PASAR TURNO (+1 ENTRADA)</b>
+      <small id="nextTurnLabel">Siguiente en tacar: El Ingeniero</small>
+    </div>
+  </button>
+
+  <button class="dock-btn dock-var" onclick="openM('mVar')">
+    <div class="dock-ic"><i data-lucide="video"></i></div>
+    <div>
+      <b>REPETIR JUGADA · VAR (30s)</b>
+      <small>Revisar última tacada en cámara IMOU</small>
+    </div>
+  </button>
+
+  <button class="dock-btn dock-clip" onclick="openM('mClips')">
+    <div class="dock-ic"><i data-lucide="star"></i></div>
+    <div>
+      <b>MEJORES CARAMBOLAS (4)</b>
+      <small>Clips guardados (Se borran a los 7 días)</small>
+    </div>
+  </button>
+
+  <button class="dock-btn dock-bar" onclick="openM('mBarOrder')">
+    <div class="dock-ic"><i data-lucide="beer"></i></div>
+    <div>
+      <b>PEDIR AL BAR · CUENTA $69.200</b>
+      <small>Solicitar cervezas o snacks sin ir a caja</small>
+    </div>
+  </button>
+</footer>
+
+<!-- =================== 4. MODALES DEL MONITOR DE MESA =================== -->
+
+<!-- MODAL A: REPETICIÓN EN VIDEO VAR (RF-04.3 y RNF-04) -->
+<div class="overlay" id="mVar">
+  <div class="modal">
+    <div class="m-head">
+      <div class="dock-ic" style="background:var(--busy-bg);color:var(--busy)"><i data-lucide="video"></i></div>
+      <div>
+        <h3>Sistema VAR · Repetición Instantánea (Últimos 30 segundos)</h3>
+        <p>Cámara Cenital IMOU Ranger Mesa 1 · Buffer en memoria RAM sin saturar disco SSD</p>
+      </div>
+      <button class="btn-close" onclick="closeAll()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="m-body">
+      <!-- Vista Cenital Simulada de la Mesa de Billar -->
+      <div class="var-screen">
+        <div class="var-hud-top">
+          <span>● REPLAY VAR · CAM-01 MESA 1 (1080p)</span>
+          <span id="varSpeedBadge">VELOCIDAD: 1.0× NORMAL</span>
+          <span>BUFFER: −00:24s / 00:30s</span>
+        </div>
+
+        <!-- Trayectoria de 3 bandas dibujada en SVG -->
+        <svg class="billiard-path" viewBox="0 0 800 320">
+          <polyline points="200,200 410,12 785,110 520,305 615,155" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="3" stroke-dasharray="8,6"/>
+        </svg>
+        <div class="ball ball-white" title="Bola Blanca"></div>
+        <div class="ball ball-yellow" title="Bola Amarilla"></div>
+        <div class="ball ball-red" title="Bola Roja"></div>
+
+        <div class="var-controls">
+          <button class="v-btn active" onclick="showToast('Reproduciendo últimos 30 segundos...')"><i data-lucide="rotate-ccw"></i>Repetir 30s</button>
+          <button class="v-btn" onclick="document.getElementById('varSpeedBadge').textContent='VELOCIDAD: 0.5× CÁMARA LENTA'"><i data-lucide="gauge"></i>Cámara Lenta 0.5×</button>
+          <div class="v-timeline"><div class="v-progress"></div></div>
+          <span style="font-family:'JetBrains Mono';font-size:12px">−00:08s</span>
+        </div>
+      </div>
+    </div>
+    <div class="m-foot">
+      <small style="color:var(--c400);font-weight:600">RF-04.3: Intervalo mínimo entre repeticiones: 45s para no retrasar la partida.</small>
+      <div style="display:flex;gap:10px">
+        <button class="d-btn" style="background:var(--warn-bg);color:#B07A0C;padding:12px 18px;border-radius:12px" onclick="closeAll();showToast('Clip guardado en Mejores Carambolas por 7 días')"><i data-lucide="star"></i>Guardar en Mejores Carambolas (7 días)</button>
+        <button class="d-btn active" style="background:var(--c800);color:#fff;padding:12px 20px;border-radius:12px" onclick="closeAll()">Volver a la partida</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL B: HISTORIAL DE MEJORES CARAMBOLAS (RF-04.4 y RNF-04) -->
+<div class="overlay" id="mClips">
+  <div class="modal">
+    <div class="m-head">
+      <div class="dock-ic" style="background:var(--warn-bg);color:#B07A0C"><i data-lucide="star"></i></div>
+      <div>
+        <h3>Mejores Carambolas de la Semana · Mesa 1</h3>
+        <p>Los clips destacados se conservan por 7 días y luego se eliminan automáticamente (RNF-04)</p>
+      </div>
+      <button class="btn-close" onclick="closeAll()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="m-body">
+      <div class="bar-grid" style="grid-template-columns:1fr 1fr">
+        <div class="bar-item">
+          <div>
+            <b>El Chamo · Serie de 6 carambolas</b>
+            <small style="color:var(--c400);display:block;margin-top:3px">Hoy 8:40 p.m. · Tres Bandas (28 seg)</small>
+            <span style="font-size:11px;color:var(--ok)">Se elimina automáticamente en 7 días</span>
+          </div>
+          <button class="d-btn active" style="background:var(--c600);color:#fff;padding:10px 14px" onclick="closeAll();openM('mVar')"><i data-lucide="play"></i>Ver clip</button>
+        </div>
+
+        <div class="bar-item">
+          <div>
+            <b>Don Mario · Carambola de 4 bandas</b>
+            <small style="color:var(--c400);display:block;margin-top:3px">Ayer Domingo · Semifinal Torneo (25 seg)</small>
+            <span style="font-size:11px;color:var(--ok)">Se elimina automáticamente en 6 días</span>
+          </div>
+          <button class="d-btn active" style="background:var(--c600);color:#fff;padding:10px 14px" onclick="closeAll();openM('mVar')"><i data-lucide="play"></i>Ver clip</button>
+        </div>
+
+        <div class="bar-item">
+          <div>
+            <b>El Zurdo · Tacada de cierre (Serie 5)</b>
+            <small style="color:var(--c400);display:block;margin-top:3px">Sábado 7 Nov · Tres Bandas (30 seg)</small>
+            <span style="font-size:11px;color:var(--warn)">Se elimina automáticamente en 4 días</span>
+          </div>
+          <button class="d-btn active" style="background:var(--c600);color:#fff;padding:10px 14px" onclick="closeAll();openM('mVar')"><i data-lucide="play"></i>Ver clip</button>
+        </div>
+
+        <div class="bar-item">
+          <div>
+            <b>Carlos "El Ingeniero" · Renverse 3 bandas</b>
+            <small style="color:var(--c400);display:block;margin-top:3px">Miércoles 4 Nov · Tres Bandas (22 seg)</small>
+            <span style="font-size:11px;color:var(--busy)">Se elimina mañana (Día 6 de 7)</span>
+          </div>
+          <button class="d-btn active" style="background:var(--c600);color:#fff;padding:10px 14px" onclick="closeAll();openM('mVar')"><i data-lucide="play"></i>Ver clip</button>
+        </div>
+      </div>
+    </div>
+    <div class="m-foot">
+      <small style="color:var(--c400);font-weight:600">Espacio ocupado en SSD local: 64 MB de 120 GB disponibles.</small>
+      <button class="d-btn active" style="background:var(--c800);color:#fff;padding:12px 20px;border-radius:12px" onclick="closeAll()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL C: PEDIR AL BAR DESDE LA MESA (RF-04.5) -->
+<div class="overlay" id="mBarOrder">
+  <div class="modal" style="width:min(900px,95vw)">
+    <div class="m-head">
+      <div class="dock-ic" style="background:var(--c100);color:var(--c600)"><i data-lucide="beer"></i></div>
+      <div>
+        <h3>Pedir a la Barra · Mesa 1</h3>
+        <p>Toca los productos que deseas y te los llevamos a la mesa (suena alerta inmediata en Caja)</p>
+      </div>
+      <button class="btn-close" onclick="closeAll()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="m-body">
+      <!-- Elegir a nombre de quién se carga el pedido -->
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span style="font-size:12.5px;font-weight:700;color:var(--c600);text-transform:uppercase">Cargar pedido a:</span>
+        <button class="d-btn active" style="background:var(--c600);color:#fff" onclick="pickWho(this)">Mesa 1 (Compartido)</button>
+        <button class="d-btn" style="background:var(--soft);color:var(--c800)" onclick="pickWho(this)">El Chamo</button>
+        <button class="d-btn" style="background:var(--soft);color:var(--c800)" onclick="pickWho(this)">El Ingeniero</button>
+        <button class="d-btn" style="background:var(--soft);color:var(--c800)" onclick="pickWho(this)">Andrés A.</button>
+        <button class="d-btn" style="background:var(--soft);color:var(--c800)" onclick="pickWho(this)">Doble J</button>
+      </div>
+
+      <!-- Productos grandes para tocar con dedos con tiza -->
+      <div class="bar-grid">
+        <div class="bar-item">
+          <div><b>Cerveza Poker</b><span>$5.000</span></div>
+          <div class="qty-touch">
+            <button onclick="chgQty('q1',-1)">−</button>
+            <b id="q1">3</b>
+            <button class="add" onclick="chgQty('q1',1)">+</button>
+          </div>
+        </div>
+
+        <div class="bar-item">
+          <div><b>Club Colombia</b><span>$6.000</span></div>
+          <div class="qty-touch">
+            <button onclick="chgQty('q2',-1)">−</button>
+            <b id="q2">0</b>
+            <button class="add" onclick="chgQty('q2',1)">+</button>
+          </div>
+        </div>
+
+        <div class="bar-item">
+          <div><b>Cerveza Águila</b><span>$5.000</span></div>
+          <div class="qty-touch">
+            <button onclick="chgQty('q3',-1)">−</button>
+            <b id="q3">0</b>
+            <button class="add" onclick="chgQty('q3',1)">+</button>
+          </div>
+        </div>
+
+        <div class="bar-item">
+          <div><b>Gaseosa / Coca-Cola</b><span>$4.000</span></div>
+          <div class="qty-touch">
+            <button onclick="chgQty('q4',-1)">−</button>
+            <b id="q4">0</b>
+            <button class="add" onclick="chgQty('q4',1)">+</button>
+          </div>
+        </div>
+
+        <div class="bar-item">
+          <div><b>Papas Margarita</b><span>$3.000</span></div>
+          <div class="qty-touch">
+            <button onclick="chgQty('q5',-1)">−</button>
+            <b id="q5">0</b>
+            <button class="add" onclick="chgQty('q5',1)">+</button>
+          </div>
+        </div>
+
+        <div class="bar-item">
+          <div><b>Botella de Agua</b><span>$2.500</span></div>
+          <div class="qty-touch">
+            <button onclick="chgQty('q6',-1)">−</button>
+            <b id="q6">0</b>
+            <button class="add" onclick="chgQty('q6',1)">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resumen transparente de lo que lleva la mesa -->
+      <div style="background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <b style="font-size:13px">Cuenta acumulada en Mesa 1 hasta el momento:</b>
+          <p style="font-size:12px;color:var(--c400)">Tiempo jugado (84 min): $25.200 · Consumo Bar entregado: $44.000</p>
+        </div>
+        <b style="font-family:'JetBrains Mono';font-size:20px;color:var(--c900)">$69.200</b>
+      </div>
+    </div>
+    <div class="m-foot">
+      <button class="d-btn" style="background:var(--surface);border:1px solid var(--line);color:var(--c700);padding:12px 20px;border-radius:12px" onclick="closeAll()">Cancelar</button>
+      <button class="d-btn active" style="background:var(--ok);color:#fff;padding:14px 26px;border-radius:12px;font-size:14px" onclick="closeAll();showToast('Pedido enviado a la Barra (3× Cerveza Poker)')"><i data-lucide="bell-ring"></i>Enviar Pedido a la Barra</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 5. PANTALLA DE REPOSO / MODO KIOSCO BLOQUEADO (RF-04.1 y RF-04.6) ============ -->
+<div class="kiosk-lock" id="kioskLock">
+  <div class="lock-circle"><i data-lucide="monitor-lock"></i></div>
+  <span class="mode-pill">MESA 01 · EN REPOSO (MODO KIOSCO SEGURO)</span>
+  <h1>BIENVENIDOS A BILLAR CHAMO</h1>
+  <p>Esta pantalla se desbloqueará automáticamente en menos de 100 ms tan pronto el administrador inicie el tiempo de tu partida en Caja (RF-03.3).</p>
+  <button class="unlock-demo" onclick="toggleLock(false)">
+    <i data-lucide="zap"></i>Simular Apertura desde Caja (Desbloquear Pantalla)
+  </button>
+</div>
+
+<script>
+  lucide.createIcons();
+
+  // Estado de los 4 jugadores en vivo
+  const state = [
+    { name: 'El Chamo',     pts: 18, inn: 22, run: 3, max: 6 },
+    { name: 'El Ingeniero', pts: 15, inn: 21, run: 0, max: 4 },
+    { name: 'Andrés A.',    pts: 14, inn: 21, run: 0, max: 5 },
+    { name: 'Doble J',      pts: 11, inn: 21, run: 0, max: 3 }
+  ];
+  let activeIdx = 0;
+  let visiblePlayers = 4;
+  let globalInning = 22;
+
+  // Cronómetro en vivo
+  let sec = 1 * 3600 + 24 * 60 + 18;
+  setInterval(() => {
+    sec++;
+    const h = String(Math.floor(sec / 3600)).padStart(2, '0');
+    const m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
+    const s = String(sec % 60).padStart(2, '0');
+    document.getElementById('tableTimer').textContent = `${h}:${m}:${s}`;
+  }, 1000);
+
+  // Sumar o restar carambola con recálculo instantáneo de Serie Mayor y Promedio
+  function addPoint(idx, delta) {
+    const p = state[idx];
+    if (p.pts + delta < 0) return;
+    p.pts += delta;
+    if (delta > 0) {
+      p.run += delta;
+      if (p.run > p.max) p.max = p.run;
+    } else if (p.run > 0) {
+      p.run--;
+    }
+    renderPlayer(idx);
+  }
+
+  function renderPlayer(idx) {
+    const p = state[idx];
+    document.getElementById(`pts-${idx}`).textContent = p.pts;
+    document.getElementById(`inn-${idx}`).textContent = p.inn;
+    document.getElementById(`max-${idx}`).textContent = p.max;
+    const avg = p.inn > 0 ? (p.pts / p.inn).toFixed(3) : '0.000';
+    document.getElementById(`avg-${idx}`).textContent = avg;
+    document.getElementById(`run-${idx}`).textContent = idx === activeIdx ? `Serie actual: +${p.run}` : `Serie: ${p.run}`;
+    const pct = Math.min(100, Math.round((p.pts / 20) * 100));
+    document.getElementById(`pct-${idx}`).textContent = `${pct}%`;
+    document.getElementById(`bar-${idx}`).style.width = `${pct}%`;
+  }
+
+  // Pasar turno al siguiente jugador activo
+  function nextTurn() {
+    state[activeIdx].run = 0;
+    renderPlayer(activeIdx);
+    activeIdx = (activeIdx + 1) % visiblePlayers;
+    if (activeIdx === 0) {
+      globalInning++;
+      document.getElementById('globalInning').textContent = globalInning;
+    }
+    state[activeIdx].inn++;
+    document.querySelectorAll('.p-card').forEach((card, i) => {
+      const isTurn = i === activeIdx;
+      card.classList.toggle('active-turn', isTurn);
+      card.querySelector('.turn-txt').textContent = isTurn ? '● EN TACADA (TURNO ACTIVO)' : 'En espera de turno';
+      card.querySelector('.run-pill').style.opacity = isTurn ? '1' : '0.5';
+      renderPlayer(i);
+    });
+    const nextIdx = (activeIdx + 1) % visiblePlayers;
+    document.getElementById('nextTurnLabel').textContent = `Siguiente en tacar: ${state[nextIdx].name}`;
+  }
+
+  // Cambiar entre 2, 3 o 4 jugadores para probar cómo se adapta la pantalla de 14"
+  function setPlayersCount(n, btn) {
+    visiblePlayers = n;
+    document.querySelectorAll('.demo-bar .d-btn:not(.lock-btn)').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const board = document.getElementById('playersBoard');
+    board.className = 'players-board' + (n === 2 ? ' cols-2' : n === 3 ? ' cols-3' : '');
+    document.querySelectorAll('.p-card').forEach((card, i) => {
+      card.style.display = i < n ? 'flex' : 'none';
+    });
+    if (activeIdx >= n) {
+      activeIdx = 0;
+      nextTurn();
+    }
+  }
+
+  function openM(id) { document.getElementById(id).classList.add('show'); }
+  function closeAll() { document.querySelectorAll('.overlay').forEach(o => o.classList.remove('show')); }
+  function toggleLock(lock) { document.getElementById('kioskLock').classList.toggle('show', lock); }
+
+  function chgQty(id, d) {
+    const el = document.getElementById(id);
+    const v = Math.max(0, Number(el.textContent) + d);
+    el.textContent = v;
+  }
+
+  function pickWho(btn) {
+    btn.parentElement.querySelectorAll('.d-btn').forEach(b => {
+      b.style.background = 'var(--soft)';
+      b.style.color = 'var(--c800)';
+    });
+    btn.style.background = 'var(--c600)';
+    btn.style.color = '#fff';
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toastMsg');
+    document.getElementById('toastText').textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+</script>
+</body>
+</html>
+
