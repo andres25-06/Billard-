@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Billar Chamo · PC de Control — Pieza 1.1 Mapa de Mesas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  :root{
+    /* Paleta "Groza" */
+    --c900:#12141F; --c800:#232739; --c700:#383E5C; --c600:#4F5580;
+    --c400:#7B81A8; --c300:#AFB4CE; --c100:#E4E6F0;
+    --line:#D6D9E8; --surface:#FFFFFF; --soft:#F3F4F9;
+    --ok:#1FA37A; --ok-bg:rgba(31,163,122,.10);
+    --busy:#E0535F; --busy-bg:rgba(224,83,95,.10);
+    --warn:#D99A1E; --warn-bg:rgba(217,154,30,.12);
+    --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',system-ui,sans-serif;background:linear-gradient(160deg,#EEF0F8 0%,#DDE1F0 55%,#C9CEE4 100%);color:var(--c900);display:flex;height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased}
+  svg.lucide{width:18px;height:18px;stroke-width:1.8}
+  button{font-family:inherit;cursor:pointer;border:none}
+
+  /* ===== Sidebar (se mantiene oscuro como ancla visual) ===== */
+  .sidebar{width:260px;background:linear-gradient(180deg,var(--c800),var(--c900));display:flex;flex-direction:column;flex-shrink:0;color:var(--c100)}
+  .brand{display:flex;align-items:center;gap:12px;padding:22px 20px;border-bottom:1px solid var(--c700)}
+  .logo{width:42px;height:42px;border-radius:12px;background:linear-gradient(140deg,var(--c400),var(--c600));display:grid;place-items:center;box-shadow:0 6px 18px rgba(79,85,128,.45)}
+  .logo svg{width:22px;height:22px;color:var(--c100)}
+  .brand h1{font-size:15px;font-weight:800;letter-spacing:.8px}
+  .brand small{font-size:11px;color:var(--c400);font-weight:500}
+  .nav-label{font-size:10.5px;font-weight:700;letter-spacing:1.2px;color:var(--c400);text-transform:uppercase;padding:20px 22px 8px}
+  .nav{list-style:none;padding:0 12px;display:flex;flex-direction:column;gap:2px}
+  .nav li{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;color:var(--c300);font-size:13.5px;font-weight:500;cursor:pointer;transition:.18s;position:relative}
+  .nav li:hover{background:rgba(123,129,168,.12);color:var(--c100)}
+  .nav li.active{background:linear-gradient(90deg,rgba(123,129,168,.30),rgba(123,129,168,.06));color:#fff;font-weight:600}
+  .nav li.active::before{content:"";position:absolute;left:-12px;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:var(--c300)}
+  .nav li .end{margin-left:auto;color:var(--c400)}
+  .nav li .end svg{width:14px;height:14px}
+  .count{margin-left:auto;font-size:11px;font-weight:700;background:var(--c600);color:var(--c100);padding:2px 8px;border-radius:20px}
+  .user{margin-top:auto;padding:16px;border-top:1px solid var(--c700);display:flex;align-items:center;gap:12px}
+  .avatar{width:38px;height:38px;border-radius:50%;background:var(--c600);display:grid;place-items:center;font-weight:700;font-size:13px;border:2px solid var(--c400)}
+  .user h4{font-size:13px;font-weight:600}
+  .user p{font-size:11px;color:var(--c400)}
+  .icon-btn{margin-left:auto;width:34px;height:34px;border-radius:9px;background:var(--c700);color:var(--c300);display:grid;place-items:center;transition:.18s}
+  .icon-btn:hover{background:var(--c600);color:var(--c100)}
+
+  /* ===== Main ===== */
+  .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+  .topbar{height:72px;padding:0 32px;display:flex;align-items:center;gap:18px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.7);backdrop-filter:blur(10px)}
+  .title h2{font-size:19px;font-weight:700;color:var(--c900)}
+  .title p{font-size:12px;color:var(--c400);margin-top:2px}
+  .status{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:500;color:var(--c600);background:var(--surface);border:1px solid var(--line);padding:7px 12px;border-radius:30px}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--ok);animation:pulse 2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(31,163,122,.5)}70%{box-shadow:0 0 0 7px rgba(31,163,122,0)}100%{box-shadow:0 0 0 0 rgba(31,163,122,0)}}
+  .spacer{flex:1}
+  .alert{display:flex;align-items:center;gap:10px;background:#FFF6E3;border:1px solid rgba(217,154,30,.4);color:#9A6A08;padding:8px 8px 8px 14px;border-radius:12px;font-size:13px;font-weight:600}
+  .alert .bell{animation:ring 1.8s infinite}
+  @keyframes ring{0%,100%{transform:rotate(0)}10%,30%{transform:rotate(14deg)}20%,40%{transform:rotate(-14deg)}50%{transform:rotate(0)}}
+  .alert button{background:var(--warn);color:#fff;font-size:12px;font-weight:700;padding:6px 12px;border-radius:8px}
+  .btn{display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:11px;font-size:13px;font-weight:600;transition:.18s}
+  .btn-primary{background:var(--c600);color:#fff;box-shadow:0 6px 16px rgba(79,85,128,.3)}
+  .btn-primary:hover{background:var(--c700);transform:translateY(-1px)}
+  .btn-ghost{background:var(--surface);color:var(--c700);border:1px solid var(--line)}
+  .btn-ghost:hover{border-color:var(--c400)}
+
+  .content{flex:1;overflow-y:auto;padding:28px 32px}
+
+  /* KPIs */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:26px}
+  .kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;display:flex;align-items:center;gap:14px;box-shadow:0 4px 14px rgba(56,62,92,.06)}
+  .kpi-ic{width:44px;height:44px;border-radius:12px;background:var(--c100);color:var(--c600);display:grid;place-items:center}
+  .kpi-ic svg{width:20px;height:20px}
+  .kpi span{font-size:11.5px;color:var(--c400);font-weight:500}
+  .kpi b{display:block;font-size:20px;font-weight:700;margin-top:2px;color:var(--c900)}
+
+  /* Toolbar */
+  .toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+  .tabs{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px;gap:2px}
+  .tab{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:9px;background:transparent;color:var(--c400);font-size:12.5px;font-weight:600;transition:.18s}
+  .tab:hover{color:var(--c700)}
+  .tab.active{background:var(--c600);color:#fff}
+  .sd{width:7px;height:7px;border-radius:50%}
+  .rate{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--c400)}
+  .rate b{color:var(--c800)}
+
+  /* Cards */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(370px,1fr));gap:22px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden;display:flex;flex-direction:column;transition:.22s;position:relative;box-shadow:0 6px 20px rgba(56,62,92,.08)}
+  .card:hover{transform:translateY(-3px);box-shadow:0 18px 40px rgba(56,62,92,.18);border-color:var(--c300)}
+  .card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px}
+  .card.busy::before{background:var(--busy)} .card.free::before{background:var(--ok)} .card.warn::before{background:var(--warn)}
+
+  .c-head{display:flex;align-items:center;justify-content:space-between;padding:20px 20px 14px}
+  .c-title{display:flex;align-items:center;gap:12px}
+  .c-num{width:42px;height:42px;border-radius:12px;background:var(--c800);color:#fff;display:grid;place-items:center;font-family:'JetBrains Mono';font-weight:700;font-size:17px}
+  .c-title h3{font-size:15px;font-weight:700}
+  .c-title small{font-size:11.5px;color:var(--c400)}
+  .pill{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:5px 10px;border-radius:30px;letter-spacing:.3px}
+  .pill.busy{background:var(--busy-bg);color:var(--busy)}
+  .pill.free{background:var(--ok-bg);color:var(--ok)}
+  .pill.warn{background:var(--warn-bg);color:#B07A0C}
+  .pill svg{width:13px;height:13px}
+
+  .c-body{padding:0 20px 18px;display:flex;flex-direction:column;gap:14px;flex:1}
+  .timer{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,var(--c800),var(--c700));color:#fff;border-radius:14px;padding:14px 16px}
+  .timer label{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--c300);text-transform:uppercase;letter-spacing:.8px}
+  .timer label svg{width:13px;height:13px}
+  .digits{font-family:'JetBrains Mono';font-size:30px;font-weight:700;letter-spacing:1px;margin-top:4px}
+  .digits.warn{color:#F5C55E} .digits.off{color:var(--c400)}
+  .hw{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+  .chip{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:500;color:var(--c100);background:rgba(255,255,255,.08);padding:4px 9px;border-radius:7px}
+  .chip svg{width:13px;height:13px}
+  .chip .on{width:6px;height:6px;border-radius:50%;background:#4FD1A5}
+  .chip .rec{width:6px;height:6px;border-radius:50%;background:#F2727F;animation:blink 1.2s infinite}
+  @keyframes blink{50%{opacity:.2}}
+
+  .sec{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:600;color:var(--c400);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+  .sec span{display:flex;align-items:center;gap:6px}
+  .sec svg{width:13px;height:13px}
+  .players{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .player{display:flex;align-items:center;gap:9px;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+  .ini{width:26px;height:26px;border-radius:50%;background:var(--c300);color:var(--c800);font-size:10.5px;font-weight:700;display:grid;place-items:center;flex-shrink:0}
+  .player .n{font-size:12.5px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--c800)}
+  .player .s{font-family:'JetBrains Mono';font-size:14px;font-weight:700;color:var(--c900)}
+  .player.lead{border-color:var(--c400);background:#EBEDF7} .player.lead .ini{background:var(--c600);color:#fff}
+
+  .bill{border-top:1px dashed var(--line);padding-top:12px;display:flex;flex-direction:column;gap:7px}
+  .row{display:flex;justify-content:space-between;font-size:12.5px;color:var(--c600)}
+  .row span:first-child{display:flex;align-items:center;gap:7px}
+  .row svg{width:14px;height:14px;color:var(--c400)}
+  .total{display:flex;justify-content:space-between;align-items:baseline;margin-top:4px}
+  .total span{font-size:12px;color:var(--c400);font-weight:600;text-transform:uppercase;letter-spacing:.8px}
+  .total b{font-size:22px;font-weight:800;color:var(--c900)}
+
+  .empty{flex:1;border:1.5px dashed var(--c300);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:26px 20px;gap:8px;background:var(--soft)}
+  .empty .ic{width:52px;height:52px;border-radius:50%;background:var(--ok-bg);color:var(--ok);display:grid;place-items:center}
+  .empty .ic svg{width:24px;height:24px}
+  .empty h4{font-size:14px} .empty p{font-size:12px;color:var(--c400);max-width:260px;line-height:1.5}
+
+  .c-foot{display:flex;gap:8px;padding:14px 20px;border-top:1px solid var(--line);background:var(--soft)}
+  .a{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:10px;border-radius:10px;font-size:12.5px;font-weight:600;transition:.18s}
+  .a-sec{background:var(--surface);color:var(--c700);border:1px solid var(--line)} .a-sec:hover{border-color:var(--c400)}
+  .a-ic{flex:0 0 42px;background:var(--surface);color:var(--c600);border:1px solid var(--line)} .a-ic:hover{border-color:var(--c400);color:var(--c800)}
+  .a-pri{background:var(--c600);color:#fff} .a-pri:hover{background:var(--c700)}
+  .a-go{background:var(--ok);color:#fff;padding:12px;font-size:13.5px} .a-go:hover{filter:brightness(1.06)}
+
+  /* ================= PIEZA 1.2 · MODALES Y PANEL ================= */
+  .overlay{position:fixed;inset:0;background:rgba(18,20,31,.45);backdrop-filter:blur(3px);display:none;z-index:50;align-items:center;justify-content:center}
+  .overlay.show{display:flex}
+  .modal{background:var(--surface);border-radius:20px;width:min(720px,94vw);max-height:90vh;display:flex;flex-direction:column;box-shadow:0 30px 70px rgba(18,20,31,.35);overflow:hidden;animation:pop .2s ease}
+  @keyframes pop{from{transform:scale(.96);opacity:0}}
+  .m-head{display:flex;align-items:center;gap:12px;padding:20px 24px;border-bottom:1px solid var(--line)}
+  .m-head h3{font-size:17px;font-weight:700}
+  .m-head p{font-size:12px;color:var(--c400)}
+  .m-head .x{margin-left:auto;width:34px;height:34px;border-radius:9px;background:var(--soft);color:var(--c600);display:grid;place-items:center}
+  .m-head .x:hover{background:var(--c100)}
+  .m-body{padding:22px 24px;overflow-y:auto;display:flex;flex-direction:column;gap:20px}
+  .m-foot{display:flex;gap:10px;justify-content:flex-end;padding:16px 24px;border-top:1px solid var(--line);background:var(--soft)}
+  .step{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:700;color:var(--c600);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
+  .step i{font-style:normal;width:22px;height:22px;border-radius:50%;background:var(--c600);color:#fff;display:grid;place-items:center;font-size:11px}
+  .opts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .opt{border:1.5px solid var(--line);border-radius:14px;padding:16px;display:flex;gap:12px;align-items:flex-start;cursor:pointer;transition:.15s;background:var(--surface);text-align:left}
+  .opt:hover{border-color:var(--c400)}
+  .opt.sel{border-color:var(--c600);background:#EEF0F8;box-shadow:0 0 0 3px rgba(79,85,128,.12)}
+  .opt .oi{width:40px;height:40px;border-radius:11px;background:var(--c100);color:var(--c600);display:grid;place-items:center;flex-shrink:0}
+  .opt.sel .oi{background:var(--c600);color:#fff}
+  .opt h4{font-size:14px;margin-bottom:3px} .opt p{font-size:12px;color:var(--c400);line-height:1.4}
+  .blocks{display:flex;gap:8px;margin-top:12px}
+  .blk{flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);font-size:13px;font-weight:600;color:var(--c700)}
+  .blk small{display:block;font-weight:500;color:var(--c400);font-size:11px}
+  .blk.sel{border-color:var(--c600);background:var(--c600);color:#fff} .blk.sel small{color:var(--c100)}
+  .search{display:flex;align-items:center;gap:10px;border:1.5px solid var(--line);border-radius:12px;padding:10px 14px;background:var(--surface)}
+  .search input{border:none;outline:none;flex:1;font-family:inherit;font-size:14px;color:var(--c900)}
+  .search svg{color:var(--c400)}
+  .sugg{border:1px solid var(--line);border-radius:12px;margin-top:6px;overflow:hidden}
+  .sugg div{display:flex;align-items:center;gap:10px;padding:9px 14px;font-size:13px;cursor:pointer}
+  .sugg div:hover{background:var(--soft)}
+  .sugg small{color:var(--c400);margin-left:auto;font-size:11px}
+  .slots{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+  .slot{border:1.5px solid var(--line);border-radius:12px;padding:10px;display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600}
+  .slot.empty-s{border-style:dashed;color:var(--c400);justify-content:center}
+  .slot .ini{width:24px;height:24px;font-size:10px}
+  .summary{display:flex;align-items:center;gap:12px;background:#EEF0F8;border-radius:12px;padding:12px 16px;font-size:12.5px;color:var(--c700)}
+  .summary svg{color:var(--c600)}
+  .btn-lg{padding:12px 20px;font-size:14px}
+  .btn-ok{background:var(--ok);color:#fff} .btn-ok:hover{filter:brightness(1.06)}
+
+  /* Drawer comanda */
+  .drawer{position:fixed;top:0;right:0;height:100vh;width:min(880px,96vw);background:var(--surface);z-index:60;display:flex;box-shadow:-20px 0 60px rgba(18,20,31,.25);transform:translateX(100%);transition:transform .28s ease}
+  .drawer.show{transform:none}
+  .cat{flex:1.25;display:flex;flex-direction:column;border-right:1px solid var(--line);background:var(--soft)}
+  .ord{flex:1;display:flex;flex-direction:column}
+  .d-head{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;background:var(--surface)}
+  .d-head h3{font-size:16px} .d-head p{font-size:12px;color:var(--c400)}
+  .ctabs{display:flex;gap:6px;padding:14px 22px 0;flex-wrap:wrap}
+  .ctab{padding:7px 12px;border-radius:20px;font-size:12px;font-weight:600;background:var(--surface);border:1px solid var(--line);color:var(--c600);display:flex;align-items:center;gap:6px}
+  .ctab svg{width:14px;height:14px}
+  .ctab.active{background:var(--c800);color:#fff;border-color:var(--c800)}
+  .assign{padding:14px 22px 0;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--c400);flex-wrap:wrap}
+  .who{padding:5px 10px;border-radius:20px;border:1.5px solid var(--line);background:var(--surface);font-size:12px;font-weight:600;color:var(--c700)}
+  .who.sel{background:var(--c600);border-color:var(--c600);color:#fff}
+  .prods{padding:16px 22px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;overflow-y:auto}
+  .prod{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:left;display:flex;flex-direction:column;gap:8px;transition:.15s}
+  .prod:hover{border-color:var(--c400);transform:translateY(-2px);box-shadow:0 8px 18px rgba(56,62,92,.1)}
+  .prod .pi{width:36px;height:36px;border-radius:10px;background:var(--c100);color:var(--c600);display:grid;place-items:center}
+  .prod b{font-size:13px;color:var(--c900)} .prod span{font-size:13px;font-weight:700;color:var(--c600)}
+  .prod small{font-size:11px;color:var(--c400)} .prod small.low{color:var(--busy);font-weight:600}
+  .mini-timer{margin-left:auto;font-family:'JetBrains Mono';font-weight:700;background:var(--c800);color:#fff;padding:6px 10px;border-radius:8px;font-size:14px}
+  .lines{flex:1;overflow-y:auto;padding:8px 22px}
+  .line{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .line .li{flex:1} .line b{font-size:13px;display:block} .line small{font-size:11px;color:var(--c400)}
+  .qty{display:flex;align-items:center;gap:6px}
+  .qty button{width:26px;height:26px;border-radius:7px;background:var(--soft);border:1px solid var(--line);color:var(--c600);display:grid;place-items:center}
+  .qty button svg{width:13px;height:13px}
+  .qty span{font-weight:700;width:18px;text-align:center;font-size:13px}
+  .lp{width:70px;text-align:right;font-weight:700;font-size:13px}
+  .del{color:var(--c400);background:none;width:26px;height:26px;display:grid;place-items:center;border-radius:7px}
+  .del:hover{background:var(--busy-bg);color:var(--busy)}
+  .del svg{width:15px;height:15px}
+  .tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:var(--c100);color:var(--c600);margin-left:4px}
+  .d-tot{padding:16px 22px;border-top:1px solid var(--line);background:var(--soft);display:flex;flex-direction:column;gap:6px}
+  .d-actions{display:flex;gap:8px;padding:0 22px 18px;background:var(--soft)}
+  .d-actions .a{padding:12px}
+
+  /* Cobro */
+  .ptabs{display:flex;background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:4px}
+  .ptab{flex:1;padding:10px;border-radius:9px;background:none;font-size:13px;font-weight:600;color:var(--c400);display:flex;align-items:center;justify-content:center;gap:8px}
+  .ptab.active{background:var(--surface);color:var(--c800);box-shadow:0 2px 8px rgba(56,62,92,.12)}
+  .split{width:100%;border-collapse:collapse;font-size:13px}
+  .split th{text-align:left;font-size:11px;color:var(--c400);text-transform:uppercase;letter-spacing:.6px;font-weight:600;padding:8px 6px;border-bottom:1px solid var(--line)}
+  .split td{padding:10px 6px;border-bottom:1px solid var(--line)}
+  .split td:last-child,.split th:last-child{text-align:right}
+  .split tr.paid td{color:var(--c400);text-decoration:line-through}
+  .st{font-size:11px;font-weight:700;padding:3px 8px;border-radius:10px;text-decoration:none!important;display:inline-block}
+  .st.ok{background:var(--ok-bg);color:var(--ok)} .st.pend{background:var(--warn-bg);color:#B07A0C}
+  .pays{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+  .pay{border:1.5px solid var(--line);border-radius:12px;padding:12px 6px;background:var(--surface);display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--c700)}
+  .pay svg{width:22px;height:22px;color:var(--c600)}
+  .pay.sel{border-color:var(--c600);background:#EEF0F8;box-shadow:0 0 0 3px rgba(79,85,128,.12)}
+  .pay small{font-size:10px;color:var(--c400);font-weight:500}
+  .cash{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  .field{border:1.5px solid var(--line);border-radius:12px;padding:10px 14px}
+  .field label{font-size:11px;color:var(--c400);font-weight:600;text-transform:uppercase;letter-spacing:.6px}
+  .field div{font-size:20px;font-weight:800;font-family:'JetBrains Mono';margin-top:2px}
+  .field.hl{background:var(--ok-bg);border-color:transparent} .field.hl div{color:var(--ok)}
+  .quick{display:flex;gap:6px;margin-top:8px}
+  .quick button{padding:6px 10px;border-radius:8px;background:var(--soft);border:1px solid var(--line);font-size:12px;font-weight:600;color:var(--c600)}
+  .big-total{display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,var(--c800),var(--c700));color:#fff;border-radius:14px;padding:16px 20px}
+  .big-total span{font-size:12px;color:var(--c300);text-transform:uppercase;letter-spacing:.8px;font-weight:600}
+  .big-total b{font-size:28px;font-family:'JetBrains Mono'}
+  .tables-pick{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+</style>
+</head>
+<body>
+
+<!-- ============ SIDEBAR ============ -->
+<aside class="sidebar">
+  <div class="brand">
+    <div class="logo"><i data-lucide="circle-dot"></i></div>
+    <div><h1>BILLAR CHAMO</h1><small>Sistema de control</small></div>
+  </div>
+
+  <div class="nav-label">Operación</div>
+  <ul class="nav">
+    <li class="active"><i data-lucide="layout-grid"></i>Mapa de mesas<span class="count">3</span></li>
+    <li><i data-lucide="receipt"></i>Ventas y comandas</li>
+    <li><i data-lucide="users"></i>Clientes y fiados</li>
+    <li><i data-lucide="package"></i>Inventario</li>
+    <li><i data-lucide="wallet"></i>Caja y arqueo</li>
+    <li><i data-lucide="trophy"></i>Campeonatos</li>
+  </ul>
+
+  <div class="nav-label">Administración</div>
+  <ul class="nav">
+    <li><i data-lucide="bar-chart-3"></i>Reportes<span class="end"><i data-lucide="lock"></i></span></li>
+    <li><i data-lucide="settings"></i>Usuarios y tarifas<span class="end"><i data-lucide="lock"></i></span></li>
+  </ul>
+
+  <div class="user">
+    <div class="avatar">AA</div>
+    <div><h4>Andrés Ardila</h4><p>Administrador · Turno abierto</p></div>
+    <button class="icon-btn" title="Cerrar sesión"><i data-lucide="log-out"></i></button>
+  </div>
+</aside>
+
+<!-- ============ MAIN ============ -->
+<div class="main">
+  <header class="topbar">
+    <div class="title">
+      <h2>Mapa de mesas</h2>
+      <p>Lunes 9 de noviembre · Tiempos, marcadores y cuentas en vivo</p>
+    </div>
+    <div class="status" title="Operación local sin internet · Autoguardado cada 5 s">
+      <span class="dot"></span>Red local · Autoguardado
+    </div>
+    <div class="spacer"></div>
+    <div class="alert">
+      <i data-lucide="bell-ring" class="bell"></i>
+      Mesa 1 solicita 3× Cerveza Poker
+      <button>Atender</button>
+    </div>
+    <button class="btn btn-ghost"><i data-lucide="plus"></i>Nueva mesa</button>
+    <button class="btn btn-primary"><i data-lucide="shopping-cart"></i>Venta en barra</button>
+  </header>
+
+  <main class="content">
+    <!-- KPIs del turno -->
+    <section class="kpis">
+      <div class="kpi"><div class="kpi-ic"><i data-lucide="activity"></i></div><div><span>Mesas en juego</span><b>2 / 3</b></div></div>
+      <div class="kpi"><div class="kpi-ic"><i data-lucide="clock"></i></div><div><span>Horas jugadas hoy</span><b>9 h 40 min</b></div></div>
+      <div class="kpi"><div class="kpi-ic"><i data-lucide="beer"></i></div><div><span>Consumo en mesas</span><b>$56.000</b></div></div>
+      <div class="kpi"><div class="kpi-ic"><i data-lucide="trending-up"></i></div><div><span>Ventas del turno</span><b>$412.500</b></div></div>
+    </section>
+
+    <div class="toolbar">
+      <div class="tabs">
+        <button class="tab active" onclick="filt('all',this)">Todas</button>
+        <button class="tab" onclick="filt('busy',this)"><span class="sd" style="background:var(--busy)"></span>En juego</button>
+        <button class="tab" onclick="filt('free',this)"><span class="sd" style="background:var(--ok)"></span>Disponibles</button>
+        <button class="tab" onclick="filt('warn',this)"><span class="sd" style="background:var(--warn)"></span>Reservadas / Pausa</button>
+      </div>
+      <div class="rate"><i data-lucide="tag"></i>Tarifa tres bandas: <b>$18.000 / hora</b></div>
+    </div>
+
+    <section class="grid">
+
+      <!-- MESA 1 · TIEMPO LIBRE -->
+      <article class="card busy" data-s="busy">
+        <div class="c-head">
+          <div class="c-title"><div class="c-num">01</div><div><h3>Mesa 1</h3><small>Tres bandas</small></div></div>
+          <span class="pill busy"><i data-lucide="play"></i>EN JUEGO</span>
+        </div>
+        <div class="c-body">
+          <div class="timer">
+            <div><label><i data-lucide="timer"></i>Tiempo libre</label><div class="digits" id="t1">01:24:18</div></div>
+            <div class="hw">
+              <span class="chip"><span class="on"></span><i data-lucide="monitor"></i>Táctil activa</span>
+              <span class="chip"><span class="rec"></span><i data-lucide="video"></i>VAR grabando</span>
+            </div>
+          </div>
+          <div>
+            <div class="sec"><span><i data-lucide="users"></i>Jugadores 4/4</span><span>Entradas 22</span></div>
+            <div class="players">
+              <div class="player lead"><span class="ini">CH</span><span class="n">El Chamo</span><span class="s">18</span></div>
+              <div class="player"><span class="ini">CM</span><span class="n">Carlos M.</span><span class="s">15</span></div>
+              <div class="player"><span class="ini">AA</span><span class="n">Andrés A.</span><span class="s">14</span></div>
+              <div class="player"><span class="ini">JJ</span><span class="n">Jhon Jairo</span><span class="s">11</span></div>
+            </div>
+          </div>
+          <div class="bill">
+            <div class="row"><span><i data-lucide="clock"></i>Tiempo · 84 min</span><span>$25.200</span></div>
+            <div class="row"><span><i data-lucide="beer"></i>Bar · 9 productos</span><span>$44.000</span></div>
+            <div class="total"><span>Total</span><b>$69.200</b></div>
+          </div>
+        </div>
+        <div class="c-foot">
+          <button class="a a-sec"><i data-lucide="plus"></i>Producto</button>
+          <button class="a a-ic" title="Pausar"><i data-lucide="pause"></i></button>
+          <button class="a a-ic" title="Trasladar"><i data-lucide="arrow-left-right"></i></button>
+          <button class="a a-pri"><i data-lucide="credit-card"></i>Cobrar</button>
+        </div>
+      </article>
+
+      <!-- MESA 2 · LIBRE -->
+      <article class="card free" data-s="free">
+        <div class="c-head">
+          <div class="c-title"><div class="c-num">02</div><div><h3>Mesa 2</h3><small>Tres bandas</small></div></div>
+          <span class="pill free"><i data-lucide="check"></i>DISPONIBLE</span>
+        </div>
+        <div class="c-body">
+          <div class="timer">
+            <div><label><i data-lucide="timer-off"></i>Sin tiempo</label><div class="digits off">00:00:00</div></div>
+            <div class="hw">
+              <span class="chip"><i data-lucide="monitor-off"></i>Táctil en reposo</span>
+              <span class="chip"><i data-lucide="video-off"></i>VAR en espera</span>
+            </div>
+          </div>
+          <div class="empty">
+            <div class="ic"><i data-lucide="circle-play"></i></div>
+            <h4>Mesa lista para jugar</h4>
+            <p>Al abrirla, la pantalla táctil de la mesa se desbloquea automáticamente.</p>
+          </div>
+          <div class="bill">
+            <div class="row"><span><i data-lucide="history"></i>Último cierre · hace 18 min</span><span>$54.000</span></div>
+          </div>
+        </div>
+        <div class="c-foot">
+          <button class="a a-go"><i data-lucide="play"></i>Abrir mesa</button>
+        </div>
+      </article>
+
+      <!-- MESA 3 · PREPAGO POR VENCER -->
+      <article class="card warn" data-s="busy">
+        <div class="c-head">
+          <div class="c-title"><div class="c-num">03</div><div><h3>Mesa 3</h3><small>Tres bandas</small></div></div>
+          <span class="pill warn"><i data-lucide="alert-triangle"></i>QUEDAN 4 MIN</span>
+        </div>
+        <div class="c-body">
+          <div class="timer">
+            <div><label><i data-lucide="hourglass"></i>Prepago · 1 hora</label><div class="digits warn" id="t3">00:04:12</div></div>
+            <div class="hw">
+              <span class="chip"><span class="on"></span><i data-lucide="monitor"></i>Táctil activa</span>
+              <span class="chip"><span class="rec"></span><i data-lucide="video"></i>VAR grabando</span>
+            </div>
+          </div>
+          <div>
+            <div class="sec"><span><i data-lucide="users"></i>Jugadores 2/4</span><span>Entradas 19</span></div>
+            <div class="players">
+              <div class="player lead"><span class="ini">DM</span><span class="n">Don Mario</span><span class="s">24</span></div>
+              <div class="player"><span class="ini">EZ</span><span class="n">El Zurdo</span><span class="s">21</span></div>
+            </div>
+          </div>
+          <div class="bill">
+            <div class="row"><span><i data-lucide="clock"></i>Bloque prepago · 1 h</span><span>$18.000</span></div>
+            <div class="row"><span><i data-lucide="beer"></i>Bar · 2 productos</span><span>$12.000</span></div>
+            <div class="total"><span>Total</span><b>$30.000</b></div>
+          </div>
+        </div>
+        <div class="c-foot">
+          <button class="a a-sec"><i data-lucide="plus"></i>Producto</button>
+          <button class="a a-ic" title="Agregar tiempo"><i data-lucide="alarm-clock-plus"></i></button>
+          <button class="a a-ic" title="Trasladar"><i data-lucide="arrow-left-right"></i></button>
+          <button class="a a-pri"><i data-lucide="credit-card"></i>Cobrar</button>
+        </div>
+      </article>
+
+    </section>
+  </main>
+</div>
+
+
+<!-- =================== PIEZA 1.2 =================== -->
+
+<!-- 1. ABRIR MESA -->
+<div class="overlay" id="mOpen">
+  <div class="modal">
+    <div class="m-head">
+      <div class="c-num">02</div>
+      <div><h3>Abrir Mesa 2</h3><p>Tres bandas · $18.000 / hora</p></div>
+      <button class="x" onclick="closeAll()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="m-body">
+      <div>
+        <div class="step"><i>1</i>Tipo de tiempo</div>
+        <div class="opts">
+          <button class="opt sel" onclick="pick(this,'.opt');blocks.style.display='none'">
+            <div class="oi"><i data-lucide="timer"></i></div>
+            <div><h4>Tiempo libre</h4><p>Cronómetro abierto. Se cobra por minuto al cerrar.</p></div>
+          </button>
+          <button class="opt" onclick="pick(this,'.opt');blocks.style.display='flex'">
+            <div class="oi"><i data-lucide="hourglass"></i></div>
+            <div><h4>Prepago</h4><p>Bloque fijo con alerta al terminar el tiempo.</p></div>
+          </button>
+        </div>
+        <div class="blocks" id="blocks" style="display:none">
+          <button class="blk" onclick="pick(this,'.blk')">30 min<small>$9.000</small></button>
+          <button class="blk sel" onclick="pick(this,'.blk')">1 hora<small>$18.000</small></button>
+          <button class="blk" onclick="pick(this,'.blk')">2 horas<small>$36.000</small></button>
+          <button class="blk" onclick="pick(this,'.blk')">Otro<small>Personalizado</small></button>
+        </div>
+      </div>
+      <div>
+        <div class="step"><i>2</i>Jugadores (1 a 4)</div>
+        <div class="search"><i data-lucide="search"></i><input value="Fe" placeholder="Buscar cliente por nombre o apodo..."><button class="btn btn-ghost" style="padding:6px 10px"><i data-lucide="user-plus"></i>Nuevo</button></div>
+        <div class="sugg">
+          <div><span class="ini">FR</span>Fernando Ríos <b>"El Profe"</b><small>Última visita: ayer</small></div>
+          <div><span class="ini">FG</span>Felipe Gómez<small>12 visitas</small></div>
+        </div>
+        <div class="slots">
+          <div class="slot"><span class="ini">CH</span>El Chamo</div>
+          <div class="slot"><span class="ini">LP</span>Luis P.</div>
+          <div class="slot empty-s"><i data-lucide="plus"></i>Jugador 3</div>
+          <div class="slot empty-s"><i data-lucide="plus"></i>Jugador 4</div>
+        </div>
+      </div>
+      <div class="summary"><i data-lucide="monitor-check"></i>Al iniciar, la pantalla táctil y la cámara VAR de la Mesa 2 se activan automáticamente.</div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-ghost btn-lg" onclick="closeAll()">Cancelar</button>
+      <button class="btn btn-ok btn-lg" onclick="closeAll()"><i data-lucide="play"></i>Iniciar partida</button>
+    </div>
+  </div>
+</div>
+
+<!-- 2. COMANDA (DRAWER) -->
+<div class="overlay" id="mDrawerBg" onclick="closeAll()"></div>
+<aside class="drawer" id="drawer">
+  <section class="cat">
+    <div class="d-head"><i data-lucide="store"></i><div><h3>Catálogo del bar</h3><p>Clic para agregar a la cuenta</p></div></div>
+    <div class="ctabs">
+      <button class="ctab active"><i data-lucide="beer"></i>Cervezas</button>
+      <button class="ctab"><i data-lucide="wine"></i>Licores</button>
+      <button class="ctab"><i data-lucide="cup-soda"></i>Gaseosas</button>
+      <button class="ctab"><i data-lucide="cookie"></i>Mecato</button>
+      <button class="ctab"><i data-lucide="cigarette"></i>Cigarrillos</button>
+    </div>
+    <div class="assign">Asignar a:
+      <button class="who sel" onclick="pick(this,'.who')">Mesa (compartido)</button>
+      <button class="who" onclick="pick(this,'.who')">El Chamo</button>
+      <button class="who" onclick="pick(this,'.who')">Carlos M.</button>
+      <button class="who" onclick="pick(this,'.who')">Andrés A.</button>
+      <button class="who" onclick="pick(this,'.who')">Jhon J.</button>
+    </div>
+    <div class="prods">
+      <button class="prod"><div class="pi"><i data-lucide="beer"></i></div><b>Poker</b><span>$5.000</span><small>Stock 86</small></button>
+      <button class="prod"><div class="pi"><i data-lucide="beer"></i></div><b>Águila</b><span>$5.000</span><small>Stock 64</small></button>
+      <button class="prod"><div class="pi"><i data-lucide="beer"></i></div><b>Club Colombia</b><span>$6.000</span><small>Stock 40</small></button>
+      <button class="prod"><div class="pi"><i data-lucide="beer"></i></div><b>Corona</b><span>$9.000</span><small class="low">Quedan 4</small></button>
+      <button class="prod"><div class="pi"><i data-lucide="beer"></i></div><b>Costeña</b><span>$4.500</span><small>Stock 52</small></button>
+      <button class="prod"><div class="pi"><i data-lucide="beer"></i></div><b>Heineken</b><span>$8.000</span><small>Stock 18</small></button>
+      <button class="prod"><div class="pi"><i data-lucide="package"></i></div><b>Canasta Poker ×30</b><span>$135.000</span><small>Stock 2</small></button>
+      <button class="prod"><div class="pi"><i data-lucide="beer"></i></div><b>Pilsen</b><span>$4.500</span><small class="low">Quedan 3</small></button>
+    </div>
+  </section>
+  <section class="ord">
+    <div class="d-head">
+      <div class="c-num">01</div>
+      <div><h3>Comanda · Mesa 1</h3><p>4 jugadores · Tiempo libre</p></div>
+      <span class="mini-timer">01:24:18</span>
+      <button class="x icon-btn" style="margin-left:6px;background:var(--soft);color:var(--c600)" onclick="closeAll()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="lines">
+      <div class="line"><div class="li"><b>Poker <span class="tag">Mesa</span></b><small>8:12 p.m. · Cargó: Andrés</small></div>
+        <div class="qty"><button><i data-lucide="minus"></i></button><span>6</span><button><i data-lucide="plus"></i></button></div><div class="lp">$30.000</div><button class="del" title="Anular (requiere motivo)"><i data-lucide="trash-2"></i></button></div>
+      <div class="line"><div class="li"><b>Club Colombia <span class="tag">El Chamo</span></b><small>8:40 p.m. · Cargó: Andrés</small></div>
+        <div class="qty"><button><i data-lucide="minus"></i></button><span>2</span><button><i data-lucide="plus"></i></button></div><div class="lp">$12.000</div><button class="del"><i data-lucide="trash-2"></i></button></div>
+      <div class="line"><div class="li"><b>Papas Margarita <span class="tag">Carlos M.</span></b><small>9:05 p.m. · Pedido desde mesa</small></div>
+        <div class="qty"><button><i data-lucide="minus"></i></button><span>1</span><button><i data-lucide="plus"></i></button></div><div class="lp">$2.000</div><button class="del"><i data-lucide="trash-2"></i></button></div>
+      <div class="line" style="opacity:.55"><div class="li"><b style="text-decoration:line-through">Águila</b><small>Anulado · Motivo: "Se cargó dos veces" · Andrés</small></div><div class="lp">$0</div></div>
+    </div>
+    <div class="d-tot">
+      <div class="row"><span><i data-lucide="clock"></i>Tiempo · 84 min</span><span>$25.200</span></div>
+      <div class="row"><span><i data-lucide="beer"></i>Bar · 9 productos</span><span>$44.000</span></div>
+      <div class="total"><span>Total</span><b>$69.200</b></div>
+    </div>
+    <div class="d-actions">
+      <button class="a a-ic" title="Pausar"><i data-lucide="pause"></i></button>
+      <button class="a a-sec" onclick="openM('mMove')"><i data-lucide="arrow-left-right"></i>Trasladar</button>
+      <button class="a a-pri" onclick="openM('mPay')"><i data-lucide="credit-card"></i>Cobrar $69.200</button>
+    </div>
+  </section>
+</aside>
+
+<!-- 3. COBRAR -->
+<div class="overlay" id="mPay">
+  <div class="modal" style="width:min(780px,94vw)">
+    <div class="m-head">
+      <div class="c-num">01</div>
+      <div><h3>Liquidar cuenta · Mesa 1</h3><p>84 min de juego · 9 productos · 4 jugadores</p></div>
+      <button class="x" onclick="closeAll()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="m-body">
+      <div class="ptabs">
+        <button class="ptab" onclick="payMode(this,'pTotal')"><i data-lucide="user"></i>Pago total</button>
+        <button class="ptab" onclick="payMode(this,'pEq')"><i data-lucide="divide"></i>Partes iguales</button>
+        <button class="ptab active" onclick="payMode(this,'pDet')"><i data-lucide="list-checks"></i>Discriminado</button>
+      </div>
+
+      <div id="pTotal" class="pm" style="display:none">
+        <div class="big-total"><span>Paga una sola persona</span><b>$69.200</b></div>
+      </div>
+      <div id="pEq" class="pm" style="display:none">
+        <div class="big-total"><span>$69.200 ÷ 4 jugadores</span><b>$17.300 c/u</b></div>
+      </div>
+      <div id="pDet" class="pm">
+        <table class="split">
+          <tr><th>Jugador</th><th>Tiempo (1/4)</th><th>Consumo propio</th><th>Compartido (1/4)</th><th>Estado</th><th>Total</th></tr>
+          <tr class="paid"><td>El Chamo</td><td>$6.300</td><td>$12.000</td><td>$7.500</td><td><span class="st ok">Pagado · Nequi</span></td><td>$25.800</td></tr>
+          <tr><td><b>Carlos M.</b></td><td>$6.300</td><td>$2.000</td><td>$7.500</td><td><span class="st pend">Cobrando</span></td><td><b>$15.800</b></td></tr>
+          <tr><td>Andrés A.</td><td>$6.300</td><td>$0</td><td>$7.500</td><td><span class="st pend">Pendiente</span></td><td>$13.800</td></tr>
+          <tr><td>Jhon Jairo</td><td>$6.300</td><td>$0</td><td>$7.500</td><td><span class="st pend">Pendiente</span></td><td>$13.800</td></tr>
+        </table>
+      </div>
+
+      <div>
+        <div class="step"><i>$</i>Medio de pago · Carlos M.</div>
+        <div class="pays">
+          <button class="pay sel" onclick="pick(this,'.pay')"><i data-lucide="banknote"></i>Efectivo</button>
+          <button class="pay" onclick="pick(this,'.pay')"><i data-lucide="smartphone"></i>Nequi</button>
+          <button class="pay" onclick="pick(this,'.pay')"><i data-lucide="smartphone"></i>Daviplata</button>
+          <button class="pay" onclick="pick(this,'.pay')"><i data-lucide="credit-card"></i>Tarjeta</button>
+          <button class="pay" onclick="pick(this,'.pay')"><i data-lucide="notebook-pen"></i>Fiado<small>Cupo $80.000</small></button>
+        </div>
+      </div>
+      <div>
+        <div class="cash">
+          <div class="field"><label>A cobrar</label><div>$15.800</div></div>
+          <div class="field"><label>Recibido</label><div>$20.000</div></div>
+          <div class="field hl"><label>Vueltas</label><div>$4.200</div></div>
+        </div>
+        <div class="quick"><button>Exacto</button><button>$20.000</button><button>$50.000</button><button>$100.000</button></div>
+      </div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-ghost btn-lg"><i data-lucide="printer"></i>Imprimir recibo</button>
+      <button class="btn btn-ok btn-lg" onclick="closeAll()"><i data-lucide="check"></i>Registrar pago</button>
+    </div>
+  </div>
+</div>
+
+<!-- 4. VENTA RÁPIDA EN BARRA -->
+<div class="overlay" id="mBar">
+  <div class="modal" style="width:min(820px,94vw)">
+    <div class="m-head">
+      <div class="kpi-ic"><i data-lucide="shopping-cart"></i></div>
+      <div><h3>Venta rápida en barra</h3><p>Cliente sin mesa · Se descuenta del inventario al cobrar</p></div>
+      <button class="x" onclick="closeAll()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="m-body" style="flex-direction:row;gap:18px">
+      <div style="flex:1.4">
+        <div class="search" style="margin-bottom:12px"><i data-lucide="search"></i><input placeholder="Buscar producto o escanear código..."></div>
+        <div class="prods" style="padding:0;grid-template-columns:repeat(3,1fr)">
+          <button class="prod"><div class="pi"><i data-lucide="beer"></i></div><b>Poker</b><span>$5.000</span></button>
+          <button class="prod"><div class="pi"><i data-lucide="cup-soda"></i></div><b>Coca-Cola</b><span>$4.000</span></button>
+          <button class="prod"><div class="pi"><i data-lucide="cigarette"></i></div><b>Marlboro</b><span>$1.000</span></button>
+          <button class="prod"><div class="pi"><i data-lucide="wine"></i></div><b>Aguardiente ½</b><span>$45.000</span></button>
+          <button class="prod"><div class="pi"><i data-lucide="cookie"></i></div><b>Maní</b><span>$2.000</span></button>
+          <button class="prod"><div class="pi"><i data-lucide="droplet"></i></div><b>Agua</b><span>$2.500</span></button>
+        </div>
+      </div>
+      <div style="flex:1;border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column">
+        <div style="padding:12px 16px;font-weight:700;font-size:13px;border-bottom:1px solid var(--line)">Carrito</div>
+        <div class="lines" style="padding:0 16px">
+          <div class="line"><div class="li"><b>Poker</b><small>$5.000 c/u</small></div><div class="qty"><button><i data-lucide="minus"></i></button><span>2</span><button><i data-lucide="plus"></i></button></div><div class="lp">$10.000</div></div>
+          <div class="line"><div class="li"><b>Marlboro</b><small>$1.000 c/u</small></div><div class="qty"><button><i data-lucide="minus"></i></button><span>3</span><button><i data-lucide="plus"></i></button></div><div class="lp">$3.000</div></div>
+        </div>
+        <div style="padding:14px 16px;border-top:1px solid var(--line)">
+          <div class="total"><span>Total</span><b>$13.000</b></div>
+          <div class="pays" style="grid-template-columns:repeat(3,1fr);margin-top:10px">
+            <button class="pay sel" onclick="pick(this,'.pay')"><i data-lucide="banknote"></i>Efectivo</button>
+            <button class="pay" onclick="pick(this,'.pay')"><i data-lucide="smartphone"></i>Nequi</button>
+            <button class="pay" onclick="pick(this,'.pay')"><i data-lucide="credit-card"></i>Tarjeta</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-ghost btn-lg" onclick="closeAll()">Cancelar</button>
+      <button class="btn btn-ok btn-lg" onclick="closeAll()"><i data-lucide="check"></i>Cobrar $13.000</button>
+    </div>
+  </div>
+</div>
+
+<!-- 5. TRASLADAR MESA -->
+<div class="overlay" id="mMove" style="z-index:70">
+  <div class="modal" style="width:min(520px,94vw)">
+    <div class="m-head">
+      <div class="kpi-ic"><i data-lucide="arrow-left-right"></i></div>
+      <div><h3>Trasladar Mesa 1</h3><p>Se conservan los minutos jugados y los productos</p></div>
+      <button class="x" onclick="closeAll()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="m-body">
+      <div class="step"><i>→</i>Mesa destino</div>
+      <div class="tables-pick">
+        <button class="opt" disabled style="opacity:.45"><div><h4>Mesa 1</h4><p>Actual</p></div></button>
+        <button class="opt sel"><div><h4>Mesa 2</h4><p style="color:var(--ok)">Disponible</p></div></button>
+        <button class="opt" disabled style="opacity:.45"><div><h4>Mesa 3</h4><p style="color:var(--busy)">Ocupada</p></div></button>
+      </div>
+      <div class="summary"><i data-lucide="info"></i>Se trasladan 01:24:18 de juego, 9 productos ($44.000) y los marcadores de los 4 jugadores.</div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-ghost btn-lg" onclick="closeAll()">Cancelar</button>
+      <button class="btn btn-primary btn-lg" onclick="closeAll()"><i data-lucide="check"></i>Confirmar traslado</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  lucide.createIcons();
+  let s1=5058, s3=252;
+  const f=t=>[t/3600|0,(t%3600)/60|0,t%60].map(v=>String(v).padStart(2,'0')).join(':');
+  setInterval(()=>{s1++; if(s3>0)s3--; t1.textContent=f(s1); t3.textContent=f(s3);},1000);
+  function filt(s,b){
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+    document.querySelectorAll('.card').forEach(c=>{
+      const ok = s==='all' || c.dataset.s===s || (s==='warn' && c.classList.contains('warn'));
+      c.style.display = ok?'flex':'none';
+    });
+  }
+
+  /* ===== Pieza 1.2: interacción de modales ===== */
+  const $=id=>document.getElementById(id);
+  function openM(id){ $(id).classList.add('show'); }
+  function openDrawer(){ $('mDrawerBg').classList.add('show'); $('drawer').classList.add('show'); }
+  function closeAll(){ document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('show')); $('drawer').classList.remove('show'); }
+  function pick(el,sel){ el.parentElement.querySelectorAll(sel).forEach(x=>x.classList.remove('sel')); el.classList.add('sel'); }
+  function payMode(el,id){ document.querySelectorAll('.ptab').forEach(x=>x.classList.remove('active')); el.classList.add('active');
+    document.querySelectorAll('.pm').forEach(x=>x.style.display='none'); $(id).style.display='block'; }
+  document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{ if(e.target===o) closeAll(); }));
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeAll(); });
+  // Conectar botones de las tarjetas
+  document.querySelectorAll('.card .a-go').forEach(b=>b.onclick=()=>openM('mOpen'));
+  document.querySelectorAll('.card .a-sec').forEach(b=>b.onclick=openDrawer);
+  document.querySelectorAll('.card .a-pri').forEach(b=>b.onclick=()=>openM('mPay'));
+  document.querySelectorAll('.card [title="Trasladar"]').forEach(b=>b.onclick=()=>openM('mMove'));
+  document.querySelector('.topbar .btn-primary').onclick=()=>openM('mBar');
+  document.querySelector('.alert button').onclick=openDrawer;
+</script>
+</body>
+</html>
