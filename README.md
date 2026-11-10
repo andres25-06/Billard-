@@ -74,21 +74,39 @@ Billard-/
 │   │   ├── app/
 │   │   │   ├── globals.css              # Estilos globales y paleta de colores "Groza"
 │   │   │   ├── layout.tsx               # Plantilla raíz
-│   │   │   └── page.tsx                 # Entorno 1: PC de Control (Mapa de Mesas y Caja)
+│   │   │   └── page.tsx                 # Entorno 1: PC de Control (Controlador de vistas)
+│   │   ├── components/
+│   │   │   ├── layout/
+│   │   │   │   ├── Sidebar.tsx          # Menú lateral con badges en tiempo real y bloqueo PIN
+│   │   │   │   └── Topbar.tsx           # Cabecera dinámica con estado local y alertas
+│   │   │   ├── views/
+│   │   │   │   ├── ViewMesas.tsx        # Módulo 1: Mapa interactivo de mesas y cronometraje
+│   │   │   │   ├── ViewPedidos.tsx      # Módulo 2: Despacho y estado de órdenes
+│   │   │   │   ├── ViewInventario.tsx   # Módulo 3: Catálogo, existencias y ajuste de stock
+│   │   │   │   ├── ViewCaja.tsx         # Módulo 4: Turnos, base y arqueo de caja
+│   │   │   │   ├── ViewTorneos.tsx      # Módulo 5: Grupos y llaves eliminatorias 1 vs 1
+│   │   │   │   ├── ViewReportes.tsx     # Módulo 6: Métricas y facturación
+│   │   │   │   └── ViewConfiguracion.tsx# Módulo 7: Tarifas por hora y personal
+│   │   │   ├── drawers/
+│   │   │   │   └── DrawerPedidos.tsx    # Carrito lateral de ventas de bar y barra
+│   │   │   └── modals/
+│   │   │       └── ModalPIN.tsx         # Modal numérico de desbloqueo rápido con PIN
 │   │   └── lib/
 │   │       └── api.ts                   # Cliente HTTP para conectar con la API
 │   ├── tailwind.config.js               # Configuración de diseño y colores
 │   └── package.json                     # Dependencias de Node.js
+│
+├── Documentacion/                       # Archivos de requerimientos y mockups originales
+│   ├── mockup_entorno1.html             # Diseño PC de Control
+│   ├── mockup_entorno2_mesa.html        # Diseño Tablet de Mesa
+│   ├── mockup_entorno3_tv.html          # Diseño Pantalla Smart TV
+│   └── Requerimientos_Sistema_Billar.xlsx # Especificaciones de negocio
 │
 ├── database/migrations/                 # Scripts SQL para PostgreSQL local
 │   └── 001_initial_schema.sql           # Esquema versión 1.0.0 (Tablas, Índices y Seeds)
 │
 ├── supabase/migrations/                 # Migraciones listas para migración futura a Supabase
 │   └── 20261109000000_initial_schema.sql
-│
-├── mockup_entorno1.html                  # Diseño de referencia PC de Control
-├── mockup_entorno2_mesa.html            # Diseño de referencia Tablet de Mesa
-├── mockup_entorno3_tv.html              # Diseño de referencia Pantalla Smart TV
 │
 ├── iniciar.bat                          # Script de arranque automático en 1 clic para Windows
 ├── EJECUCION.md                         # Guía paso a paso de instalación y configuración
@@ -120,24 +138,33 @@ La base de datos `Billard` cuenta con **13 tablas relacionales** organizadas por
 ## 🗺️ 5. Hoja de Ruta (Roadmap)
 
 - [x] **Fase 1: Base de Datos y Entorno Local**
-  - [x] Creación del esquema relacional en PostgreSQL local.
+  - [x] Creación del esquema relacional en PostgreSQL local (`Billard`).
   - [x] Tabla de versionamiento (`versiones_bd`).
   - [x] Poblado de datos semilla (5 mesas, categorías y productos iniciales).
 - [x] **Fase 2: Núcleo Backend y Conexión**
   - [x] Endpoints de mesas, cronómetros y sesiones en FastAPI.
   - [x] Endpoints de pedidos, inventario, caja y alertas.
-- [x] **Fase 3: Entorno 1 (PC de Control)**
-  - [x] Mapa de mesas en vivo con cronómetros calculados.
-  - [x] Modal de apertura (Tiempo libre vs Prepago).
-  - [x] Drawer de ventas y pedidos con descuento de inventario.
-  - [x] Modal de liquidación y cobro de mesa.
-  - [x] Lanzador automático `iniciar.bat`.
-- [ ] **Fase 4: Vistas Complementarias del Entorno 1**
-  - [ ] Módulo detallado de Arqueo y Cuadre de Caja.
-  - [ ] Módulo de Gestión de Inventario y Kardex.
-  - [ ] Módulo de Torneos y Brackets 1 vs 1.
+  - [x] Endpoint centralizado `GET /api/stats-sidebar` para badges en tiempo real.
+- [x] **Fase 3: Entorno 1 (Estructura y Navegación Modular)**
+  - [x] Barra lateral (`Sidebar.tsx`) con badges en tiempo real (mesas activas, pedidos pendientes, stock bajo, estado de caja).
+  - [x] Cabecera dinámica (`Topbar.tsx`) con estado de conexión y timbre de alertas.
+  - [x] Sistema de bloqueo de pantalla por PIN numérico (`ModalPIN.tsx`).
+  - [x] Estructuración de las 7 vistas modulares (`ViewMesas`, `ViewPedidos`, `ViewInventario`, `ViewCaja`, `ViewTorneos`, `ViewReportes`, `ViewConfiguracion`).
+  - [x] Drawer lateral de ventas y pedidos de bar (`DrawerPedidos.tsx`).
+- [ ] **Fase 4: Profundización Módulo por Módulo (Entorno 1)**
+  - [ ] Pulir Módulo 1: Mapa de Mesas (división de cuenta por jugador, pausas y reanudaciones).
+  - [ ] Pulir Módulo 2: Ventas y Pedidos (historial de órdenes, tiempos de entrega e impresión de tickets).
+  - [ ] Pulir Módulo 3: Inventario Bar (kardex completo, mermas y entradas de proveedores).
+  - [ ] Pulir Módulo 4: Caja y Arqueo (cálculo de cambio, billetes, reporte de cuadre y egresos).
+  - [ ] Pulir Módulo 5: Campeonatos (sorteos en vivo, emparejamientos y tablas de posiciones).
 - [ ] **Fase 5: Entorno 2 (Tablet Kiosco de Mesa)**
   - [ ] Interfaz táctil de 14" para cliente.
+  - [ ] Marcador táctil de carambolas y pedido directo a barra.
+- [ ] **Fase 6: Entorno 3 (Smart TV)**
+  - [ ] Tablero gigante para TV HDMI con actualización en vivo.
+- [ ] **Fase 7: Migración a Supabase y Empaquetado de App**
+  - [ ] Habilitar Supabase Realtime para WebSockets en la nube.
+  - [ ] Empaquetado de la PC de control con Tauri/Electron.
   - [ ] Marcador táctil de carambolas y pedido directo a barra.
 - [ ] **Fase 6: Entorno 3 (Smart TV)**
   - [ ] Tablero gigante para TV HDMI con actualización en vivo.

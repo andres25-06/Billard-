@@ -96,3 +96,10 @@ export async function atenderAlerta(alertaId: string) {
   if (!res.ok) throw new Error("Error al atender alerta");
   return res.json();
 }
+
+export async function fetchSidebarStats() {
+  const res = await fetch(`${API_BASE}/stats-sidebar`, { cache: 'no-store' });
+  if (!res.ok) throw new Error("Error al obtener estadísticas del sidebar");
+  return res.json();
+}
+
