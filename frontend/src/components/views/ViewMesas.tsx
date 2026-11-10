@@ -51,7 +51,6 @@ export interface Mesa {
   tipo: string;
   tarifa_por_hora: number;
   estado: string;
-  luz_encendida: boolean;
   sesion?: SesionMesa | null;
 }
 
@@ -59,8 +58,6 @@ interface ViewMesasProps {
   mesas: Mesa[];
   onAbrirMesa: (mesaId: string, data: any) => Promise<void>;
   onCerrarMesa: (mesaId: string, metodoPago: string) => Promise<void>;
-  onToggleLuz: (mesaId: string) => Promise<void>;
-  onCarambola: (jugadorId: string, delta: number) => Promise<void>;
   onAbrirPedidoMesa: (mesaId: string) => void;
 }
 
@@ -68,8 +65,6 @@ export default function ViewMesas({
   mesas,
   onAbrirMesa,
   onCerrarMesa,
-  onToggleLuz,
-  onCarambola,
   onAbrirPedidoMesa,
 }: ViewMesasProps) {
   const [filtro, setFiltro] = useState<'all' | 'busy' | 'free' | 'warn'>('all');
@@ -79,14 +74,11 @@ export default function ViewMesas({
   // Formulario apertura
   const [modalidadTiempo, setModalidadTiempo] = useState<'libre' | 'prepago'>('libre');
   const [bloquePrepago, setBloquePrepago] = useState<number>(60);
-  const [jugadoresApertura, setJugadoresApertura] = useState<string[]>([
-    'El Chamo',
-    'Carlos M.',
-    'Andrés A.',
-    'Jhon Jairo'
-  ]);
+  const [jugadoresCuenta, setJugadoresCuenta] = useState<string[]>(['Jugador 1']);
+  const [nuevoJugadorInput, setNuevoJugadorInput] = useState<string>('');
 
   // Formulario cobro
+  const [modoLiquidacion, setModoLiquidacion] = useState<'total' | 'iguales' | 'discriminado'>('total');
   const [metodoPagoSeleccionado, setMetodoPagoSeleccionado] = useState<string>('efectivo');
   const [efectivoRecibido, setEfectivoRecibido] = useState<number>(0);
 
@@ -121,13 +113,28 @@ export default function ViewMesas({
 
   const handleConfirmarApertura = async () => {
     if (!modalAbrir) return;
-    const jugadoresLimpios = jugadoresApertura.filter((j) => j.trim() !== '');
+    const jugadoresLimpios = jugadoresCuenta.map(j => j.trim()).filter(j => j !== '');
     await onAbrirMesa(modalAbrir.id, {
       modalidad_tiempo: modalidadTiempo,
       minutos_prepago: modalidadTiempo === 'prepago' ? bloquePrepago : 0,
-      jugadores: jugadoresLimpios.length > 0 ? jugadoresLimpios : ['Jugador 1', 'Jugador 2'],
+      jugadores: jugadoresLimpios.length > 0 ? jugadoresLimpios : ['General Mesa'],
     });
     setModalAbrir(null);
+  };
+
+  const agregarJugadorCuenta = (nombre: string) => {
+    const limpio = nombre.trim();
+    if (!limpio) return;
+    if (jugadoresCuenta.length >= 6) return;
+    if (!jugadoresCuenta.includes(limpio)) {
+      setJugadoresCuenta([...jugadoresCuenta, limpio]);
+    }
+    setNuevoJugadorInput('');
+  };
+
+  const eliminarJugadorCuenta = (index: number) => {
+    if (jugadoresCuenta.length <= 1) return;
+    setJugadoresCuenta(jugadoresCuenta.filter((_, idx) => idx !== index));
   };
 
   const handleConfirmarCobro = async () => {
@@ -243,18 +250,6 @@ export default function ViewMesas({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => onToggleLuz(mesa.id)}
-                    title={mesa.luz_encendida ? 'Luz encendida' : 'Luz apagada'}
-                    className={`p-1.5 rounded-lg border transition ${
-                      mesa.luz_encendida
-                        ? 'bg-amber-100 border-amber-300 text-amber-700'
-                        : 'bg-slate-50 border-slate-200 text-slate-400 hover:text-slate-700'
-                    }`}
-                  >
-                    <Lightbulb className="w-3.5 h-3.5" />
-                  </button>
-
                   {enJuego ? (
                     esPrepago ? (
                       <span className="pill warn">
@@ -299,12 +294,12 @@ export default function ViewMesas({
                       </div>
                     </div>
 
-                    {/* Marcador de jugadores */}
+                    {/* Lista de clientes para llevar la cuenta */}
                     {sesion.jugadores && sesion.jugadores.length > 0 && (
                       <div className="space-y-1.5">
                         <div className="sec">
-                          <span><Users className="w-3 h-3" />Marcador ({sesion.jugadores.length})</span>
-                          <span>Carambolas</span>
+                          <span><Users className="w-3 h-3" />Cuentas individuales ({sesion.jugadores.length})</span>
+                          <span>Estado</span>
                         </div>
                         <div className="players">
                           {sesion.jugadores.map((j, idx) => (
@@ -313,23 +308,9 @@ export default function ViewMesas({
                                 {j.nombre.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
                               </span>
                               <span className="n">{j.nombre}</span>
-                              <div className="flex items-center gap-1 ml-auto">
-                                <span className="s">{j.puntos_carambolas}</span>
-                                <div className="flex flex-col">
-                                  <button
-                                    onClick={() => onCarambola(j.id, 1)}
-                                    className="w-4 h-3.5 rounded bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[9px] flex items-center justify-center"
-                                  >
-                                    +
-                                  </button>
-                                  <button
-                                    onClick={() => onCarambola(j.id, -1)}
-                                    className="w-4 h-3.5 rounded bg-slate-300 hover:bg-slate-400 text-slate-800 font-bold text-[9px] flex items-center justify-center mt-0.5"
-                                  >
-                                    -
-                                  </button>
-                                </div>
-                              </div>
+                              <span className="text-[11px] font-bold text-slate-500 ml-auto">
+                                Activo
+                              </span>
                             </div>
                           ))}
                         </div>
@@ -369,10 +350,8 @@ export default function ViewMesas({
                         <b>Libre o Prepago</b>
                       </div>
                       <div className="empty-info-item text-right">
-                        <span>Luz:</span>
-                        <b className={mesa.luz_encendida ? 'text-amber-600' : 'text-slate-400'}>
-                          {mesa.luz_encendida ? 'Encendida' : 'Apagada'}
-                        </b>
+                        <span>Estado:</span>
+                        <b className="text-emerald-600">Disponible</b>
                       </div>
                     </div>
                   </div>
@@ -419,17 +398,14 @@ export default function ViewMesas({
       </section>
 
       {/* ================= MODALES ================= */}
-      {/* Modal Abrir Mesa */}
+      {/* 1. Modal Abrir Mesa (Diseño fiel a mockup_entorno1.html) */}
       {modalAbrir && (
-        <div className="overlay">
+        <div className="overlay show">
           <div className="modal">
             <div className="m-head">
               <div className="c-num">{String(modalAbrir.numero).padStart(2, '0')}</div>
               <div>
-                <div className="flex items-center gap-1.5">
-                  <h3>Abrir {modalAbrir.nombre}</h3>
-                  <BilliardTableIcon size={18} className="text-indigo-600" />
-                </div>
+                <h3>Abrir {modalAbrir.nombre}</h3>
                 <p>{modalAbrir.tipo.replace('_', ' ')} · ${Number(modalAbrir.tarifa_por_hora).toLocaleString('es-CO')} / hora</p>
               </div>
               <button className="x" onClick={() => setModalAbrir(null)}>
@@ -438,8 +414,9 @@ export default function ViewMesas({
             </div>
 
             <div className="m-body">
+              {/* Paso 1: Tipo de tiempo */}
               <div>
-                <div className="step"><i>1</i>Modalidad de tiempo</div>
+                <div className="step"><i>1</i>Tipo de tiempo</div>
                 <div className="opts">
                   <button
                     className={`opt ${modalidadTiempo === 'libre' ? 'sel' : ''}`}
@@ -448,7 +425,7 @@ export default function ViewMesas({
                     <div className="oi"><Timer className="w-5 h-5" /></div>
                     <div>
                       <h4>Tiempo libre</h4>
-                      <p>Cronómetro abierto. Se liquida por minuto al finalizar.</p>
+                      <p>Cronómetro abierto. Se cobra por minuto al cerrar.</p>
                     </div>
                   </button>
 
@@ -458,8 +435,8 @@ export default function ViewMesas({
                   >
                     <div className="oi"><Hourglass className="w-5 h-5" /></div>
                     <div>
-                      <h4>Tiempo prepago</h4>
-                      <p>Bloque fijo de tiempo con aviso de finalización.</p>
+                      <h4>Prepago</h4>
+                      <p>Bloque fijo con alerta al terminar el tiempo.</p>
                     </div>
                   </button>
                 </div>
@@ -467,17 +444,16 @@ export default function ViewMesas({
                 {modalidadTiempo === 'prepago' && (
                   <div className="blocks">
                     {[
-                      { mins: 30, precio: `$${(Number(modalAbrir.tarifa_por_hora) * 0.5).toLocaleString('es-CO')}` },
-                      { mins: 60, precio: `$${Number(modalAbrir.tarifa_por_hora).toLocaleString('es-CO')}` },
-                      { mins: 90, precio: `$${(Number(modalAbrir.tarifa_por_hora) * 1.5).toLocaleString('es-CO')}` },
-                      { mins: 120, precio: `$${(Number(modalAbrir.tarifa_por_hora) * 2).toLocaleString('es-CO')}` },
+                      { mins: 30, label: '30 min', precio: `$${(Number(modalAbrir.tarifa_por_hora) * 0.5).toLocaleString('es-CO')}` },
+                      { mins: 60, label: '1 hora', precio: `$${Number(modalAbrir.tarifa_por_hora).toLocaleString('es-CO')}` },
+                      { mins: 120, label: '2 horas', precio: `$${(Number(modalAbrir.tarifa_por_hora) * 2).toLocaleString('es-CO')}` },
                     ].map((b) => (
                       <button
                         key={b.mins}
                         className={`blk ${bloquePrepago === b.mins ? 'sel' : ''}`}
                         onClick={() => setBloquePrepago(b.mins)}
                       >
-                        {b.mins} min
+                        {b.label}
                         <small>{b.precio}</small>
                       </button>
                     ))}
@@ -485,58 +461,94 @@ export default function ViewMesas({
                 )}
               </div>
 
+              {/* Paso 2: Cuentas individuales */}
               <div>
-                <div className="step"><i>2</i>Jugadores asignados</div>
+                <div className="step"><i>2</i>Cuentas individuales para pedidos (Opcional)</div>
+                <div className="search">
+                  <Users className="w-4 h-4 text-slate-400" />
+                  <input
+                    value={nuevoJugadorInput}
+                    onChange={(e) => setNuevoJugadorInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        agregarJugadorCuenta(nuevoJugadorInput);
+                      }
+                    }}
+                    placeholder="Agregar nombre para llevar cuenta (ej: El Chamo, Carlos M.)..."
+                  />
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    style={{ padding: '6px 12px' }}
+                    onClick={() => agregarJugadorCuenta(nuevoJugadorInput)}
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Agregar
+                  </button>
+                </div>
+
+                {/* Slots de cuentas activas */}
                 <div className="slots">
-                  {jugadoresApertura.map((nombre, i) => (
+                  {jugadoresCuenta.map((nombre, i) => (
                     <div key={i} className="slot">
-                      <span className="ini">J{i + 1}</span>
-                      <input
-                        type="text"
-                        value={nombre}
-                        onChange={(e) => {
-                          const copia = [...jugadoresApertura];
-                          copia[i] = e.target.value;
-                          setJugadoresApertura(copia);
-                        }}
-                        className="bg-transparent border-none outline-none text-xs font-semibold w-full text-slate-800"
-                        placeholder={`Jugador ${i + 1}`}
-                      />
+                      <span className="ini">
+                        {nombre.slice(0, 2).toUpperCase()}
+                      </span>
+                      <span className="truncate">{nombre}</span>
+                      {jugadoresCuenta.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => eliminarJugadorCuenta(i)}
+                          className="ml-auto text-slate-400 hover:text-red-500"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      )}
                     </div>
                   ))}
+                  {jugadoresCuenta.length < 4 && (
+                    <div
+                      className="slot empty-s cursor-pointer"
+                      onClick={() => agregarJugadorCuenta(`Cliente ${jugadoresCuenta.length + 1}`)}
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      Cuenta {jugadoresCuenta.length + 1}
+                    </div>
+                  )}
                 </div>
               </div>
 
               <div className="summary">
                 <BilliardTableIcon size={18} className="text-indigo-600 flex-shrink-0" />
-                <span>La luz del relé de la mesa se encenderá automáticamente y el cronómetro comenzará a contar.</span>
+                <span>Al iniciar, el cronómetro de la mesa empezará a contar y podrás cargar pedidos a nombre de cada cuenta.</span>
               </div>
             </div>
 
             <div className="m-foot">
-              <button className="btn btn-ghost" onClick={() => setModalAbrir(null)}>
+              <button className="btn btn-ghost btn-lg" onClick={() => setModalAbrir(null)}>
                 Cancelar
               </button>
-              <button className="btn btn-ok" onClick={handleConfirmarApertura}>
+              <button className="btn btn-ok btn-lg" onClick={handleConfirmarApertura}>
                 <Play className="w-4 h-4 fill-white" />
-                Abrir Mesa y Activar Relé
+                Iniciar partida
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal Cobrar Mesa */}
+      {/* 2. Modal Cobrar Mesa (Diseño fiel a mockup_entorno1.html) */}
       {modalCobrar && modalCobrar.sesion && (
-        <div className="overlay">
+        <div className="overlay show">
           <div className="modal" style={{ width: 'min(780px, 94vw)' }}>
             <div className="m-head">
               <div className="c-num">{String(modalCobrar.numero).padStart(2, '0')}</div>
               <div>
                 <h3>Liquidar cuenta · {modalCobrar.nombre}</h3>
                 <p>
-                  {modalCobrar.sesion.minutos_transcurridos} min jugados · Consumo bar: $
-                  {modalCobrar.sesion.total_pedidos.toLocaleString('es-CO')}
+                  {modalCobrar.sesion.minutos_transcurridos} min de juego · Consumo bar: $
+                  {modalCobrar.sesion.total_pedidos.toLocaleString('es-CO')} · {modalCobrar.sesion.jugadores?.length || 1} cuentas
                 </p>
               </div>
               <button className="x" onClick={() => setModalCobrar(null)}>
@@ -545,25 +557,103 @@ export default function ViewMesas({
             </div>
 
             <div className="m-body">
-              <div className="big-total">
-                <div>
-                  <span>Total Liquidación Mesa</span>
-                  <p className="text-xs text-slate-300 mt-1">
-                    Tiempo (${modalCobrar.sesion.costo_tiempo.toLocaleString('es-CO')}) + Bar ($
-                    {modalCobrar.sesion.total_pedidos.toLocaleString('es-CO')})
-                  </p>
-                </div>
-                <b>${modalCobrar.sesion.total_acumulado.toLocaleString('es-CO')}</b>
+              {/* Pestañas de modo de liquidación idénticas al mockup */}
+              <div className="ptabs">
+                <button
+                  className={`ptab ${modoLiquidacion === 'total' ? 'active' : ''}`}
+                  onClick={() => setModoLiquidacion('total')}
+                >
+                  <Users className="w-4 h-4" />
+                  Pago total
+                </button>
+                <button
+                  className={`ptab ${modoLiquidacion === 'iguales' ? 'active' : ''}`}
+                  onClick={() => setModoLiquidacion('iguales')}
+                >
+                  <CreditCard className="w-4 h-4" />
+                  Partes iguales
+                </button>
+                <button
+                  className={`ptab ${modoLiquidacion === 'discriminado' ? 'active' : ''}`}
+                  onClick={() => setModoLiquidacion('discriminado')}
+                >
+                  <Clock className="w-4 h-4" />
+                  Discriminado
+                </button>
               </div>
 
+              {/* Vista Pago Total */}
+              {modoLiquidacion === 'total' && (
+                <div className="big-total">
+                  <div>
+                    <span className="text-sm text-slate-200">Paga una sola persona la cuenta completa</span>
+                    <small className="block text-slate-300 text-xs mt-0.5">
+                      Tiempo (${modalCobrar.sesion.costo_tiempo.toLocaleString('es-CO')}) + Bar ($
+                      {modalCobrar.sesion.total_pedidos.toLocaleString('es-CO')})
+                    </small>
+                  </div>
+                  <b>${modalCobrar.sesion.total_acumulado.toLocaleString('es-CO')}</b>
+                </div>
+              )}
+
+              {/* Vista Partes Iguales */}
+              {modoLiquidacion === 'iguales' && (
+                <div className="big-total">
+                  <div>
+                    <span className="text-sm text-slate-200">
+                      ${modalCobrar.sesion.total_acumulado.toLocaleString('es-CO')} ÷ {Math.max(1, modalCobrar.sesion.jugadores?.length || 1)} cuentas
+                    </span>
+                    <small className="block text-slate-300 text-xs mt-0.5">Monto por cada persona</small>
+                  </div>
+                  <b>
+                    $
+                    {Math.round(
+                      modalCobrar.sesion.total_acumulado / Math.max(1, modalCobrar.sesion.jugadores?.length || 1)
+                    ).toLocaleString('es-CO')}{' '}
+                    c/u
+                  </b>
+                </div>
+              )}
+
+              {/* Vista Discriminada */}
+              {modoLiquidacion === 'discriminado' && (
+                <div>
+                  <table className="split">
+                    <thead>
+                      <tr>
+                        <th>Cuenta</th>
+                        <th>Tiempo (fracción)</th>
+                        <th>Consumo Bar</th>
+                        <th style={{ textAlign: 'right' }}>Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(modalCobrar.sesion.jugadores || []).map((j, idx) => {
+                        const cant = Math.max(1, modalCobrar.sesion?.jugadores?.length || 1);
+                        const fraccTiempo = Math.round((modalCobrar.sesion?.costo_tiempo || 0) / cant);
+                        const fraccBar = Math.round((modalCobrar.sesion?.total_pedidos || 0) / cant);
+                        const totalJ = fraccTiempo + fraccBar;
+                        return (
+                          <tr key={j.id || idx}>
+                            <td><b>{j.nombre}</b></td>
+                            <td>${fraccTiempo.toLocaleString('es-CO')}</td>
+                            <td>${fraccBar.toLocaleString('es-CO')}</td>
+                            <td><b>${totalJ.toLocaleString('es-CO')}</b></td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* Medios de pago */}
               <div>
-                <label className="text-xs font-bold text-slate-600 uppercase tracking-wider block mb-2">
-                  Método de Pago
-                </label>
+                <div className="step"><i>$</i>Medio de pago</div>
                 <div className="pays">
                   {[
-                    { id: 'efectivo', nombre: 'Efectivo', desc: 'Con vuelto', icon: DollarSign },
-                    { id: 'nequi', nombre: 'Nequi', desc: 'Transferencia', icon: Smartphone },
+                    { id: 'efectivo', nombre: 'Efectivo', desc: 'Billetes/Monedas', icon: DollarSign },
+                    { id: 'nequi', nombre: 'Nequi', desc: 'QR / Transferencia', icon: Smartphone },
                     { id: 'daviplata', nombre: 'Daviplata', desc: 'Transferencia', icon: Smartphone },
                     { id: 'tarjeta_debito', nombre: 'Tarjeta', desc: 'Datáfono POS', icon: CreditCard },
                   ].map((p) => {
@@ -571,6 +661,7 @@ export default function ViewMesas({
                     return (
                       <button
                         key={p.id}
+                        type="button"
                         className={`pay ${metodoPagoSeleccionado === p.id ? 'sel' : ''}`}
                         onClick={() => setMetodoPagoSeleccionado(p.id)}
                       >
@@ -583,15 +674,16 @@ export default function ViewMesas({
                 </div>
               </div>
 
+              {/* Caja y cálculo de vueltas para efectivo */}
               {metodoPagoSeleccionado === 'efectivo' && (
                 <div>
                   <div className="cash">
                     <div className="field">
-                      <label>Total a pagar</label>
+                      <label>A cobrar</label>
                       <div>${modalCobrar.sesion.total_acumulado.toLocaleString('es-CO')}</div>
                     </div>
                     <div className="field">
-                      <label>Efectivo recibido</label>
+                      <label>Recibido</label>
                       <input
                         type="number"
                         value={efectivoRecibido || ''}
@@ -600,7 +692,7 @@ export default function ViewMesas({
                       />
                     </div>
                     <div className="field hl">
-                      <label>Cambio / Vueltas</label>
+                      <label>Vueltas</label>
                       <div>
                         $
                         {Math.max(
@@ -612,29 +704,26 @@ export default function ViewMesas({
                   </div>
 
                   <div className="quick">
-                    <span className="text-xs font-bold text-slate-400 self-center mr-1">Billetes:</span>
-                    {[20000, 50000, 100000].map((b) => (
-                      <button key={b} onClick={() => setEfectivoRecibido(b)}>
-                        ${(b / 1000).toFixed(0)}k
-                      </button>
-                    ))}
-                    <button
-                      onClick={() => setEfectivoRecibido(modalCobrar.sesion?.total_acumulado || 0)}
-                    >
+                    <button type="button" onClick={() => setEfectivoRecibido(modalCobrar.sesion?.total_acumulado || 0)}>
                       Exacto
                     </button>
+                    {[20000, 50000, 100000].map((b) => (
+                      <button key={b} type="button" onClick={() => setEfectivoRecibido(b)}>
+                        ${b.toLocaleString('es-CO')}
+                      </button>
+                    ))}
                   </div>
                 </div>
               )}
             </div>
 
             <div className="m-foot">
-              <button className="btn btn-ghost" onClick={() => setModalCobrar(null)}>
+              <button className="btn btn-ghost btn-lg" onClick={() => setModalCobrar(null)}>
                 Cancelar
               </button>
-              <button className="btn btn-primary" onClick={handleConfirmarCobro}>
+              <button className="btn btn-ok btn-lg" onClick={handleConfirmarCobro}>
                 <Check className="w-4 h-4" />
-                Confirmar Cobro e Imprimir Ticket
+                Registrar pago
               </button>
             </div>
           </div>

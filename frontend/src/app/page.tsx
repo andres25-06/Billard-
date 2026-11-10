@@ -197,8 +197,6 @@ export default function PCControlPage() {
               mesas={mesas}
               onAbrirMesa={handleAbrirMesa}
               onCerrarMesa={handleCerrarMesa}
-              onToggleLuz={handleToggleLuz}
-              onCarambola={handleCarambola}
               onAbrirPedidoMesa={(mesaId) => {
                 setMesaPedidoSeleccionada(mesaId);
                 setDrawerPedidos(true);

@@ -152,7 +152,8 @@ La base de datos `Billard` cuenta con **13 tablas relacionales** organizadas por
   - [x] Cabecera idéntica (`.topbar`, `.status`, `.dot`, `.alert-banner`).
   - [x] Módulo Mapa de Mesas (`.kpis`, `.toolbar`, `.tabs`, `.card.busy`, `.card.free`, `.card.warn`, `.c-num`, `.timer`, `.hw`, `.chip`, `.players`, `.bill`, `.c-foot`).
   - [x] Tarjetas de mesa compactas y optimizadas con icono SVG personalizado de billar (`BilliardTableIcon`).
-  - [x] Modal de apertura y modal de liquidación/cobro con desglose y calculadora de vueltas idénticos.
+  - [x] Eliminado control de luz del entorno 1 y simplificada la gestión de jugadores (exclusivo para imputación y división de cuentas).
+  - [x] Modal de apertura y modal de liquidación/cobro (`#mOpen` y `#mPay`) calcados exactamente del diseño de `mockup_entorno1.html`.
   - [x] Drawer lateral de catálogo de productos y comanda.
 - [ ] **Fase 4: Perfeccionamiento del Módulo de Mapa de Mesas**
   - [ ] Sincronización de pausas de cronómetro en base de datos.
