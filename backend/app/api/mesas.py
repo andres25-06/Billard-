@@ -9,9 +9,12 @@ router = APIRouter(prefix="/api/mesas", tags=["Mesas"])
 class AbrirMesaRequest(BaseModel):
     modalidad_tiempo: str = "libre"  # 'libre' o 'prepago'
     minutos_prepago: Optional[int] = 0
-    jugadores: List[str] = ["Jugador 1", "Jugador 2"]
+    jugadores: List[str] = ["Mesa"]
     nota: Optional[str] = None
     usuario_id: Optional[str] = None
+
+class AgregarCuentaMesaRequest(BaseModel):
+    nombre: str
 
 class ActualizarPuntosRequest(BaseModel):
     jugador_id: str
@@ -22,10 +25,65 @@ class CerrarMesaRequest(BaseModel):
     usuario_id: Optional[str] = None
     metodo_pago: str = "efectivo"
 
+_MESAS_CONFIGURADAS = False
+
+def _asegurar_configuracion_mesas(cur):
+    global _MESAS_CONFIGURADAS
+    if _MESAS_CONFIGURADAS:
+        return
+    # Asegurar tabla clientes para persistencia real de jugadores
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS clientes (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            nombre VARCHAR(100) NOT NULL UNIQUE,
+            apodo VARCHAR(100),
+            telefono VARCHAR(50),
+            visitas INT DEFAULT 1,
+            activo BOOLEAN DEFAULT true,
+            creado_el TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+        );
+        ALTER TABLE clientes ADD COLUMN IF NOT EXISTS activo BOOLEAN DEFAULT true;
+    """)
+    # Configurar exactamente 3 mesas de Tres Bandas y 1 mesa de Pool
+    mesas_oficiales = [
+        (1, "Mesa 1 - Tres Bandas", "tres_bandas", 18000.00, 1),
+        (2, "Mesa 2 - Tres Bandas", "tres_bandas", 18000.00, 2),
+        (3, "Mesa 3 - Tres Bandas", "tres_bandas", 18000.00, 3),
+        (4, "Mesa 4 - Pool", "pool", 14000.00, 4),
+    ]
+    for numero, nombre, tipo, tarifa, orden in mesas_oficiales:
+        cur.execute("""
+            INSERT INTO mesas (numero, nombre, tipo, tarifa_por_hora, estado, luz_encendida, orden_visual)
+            VALUES (%s, %s, %s, %s, 'disponible', false, %s)
+            ON CONFLICT (numero) DO UPDATE SET
+                nombre = EXCLUDED.nombre,
+                tipo = EXCLUDED.tipo,
+                tarifa_por_hora = EXCLUDED.tarifa_por_hora,
+                orden_visual = EXCLUDED.orden_visual
+        """, (numero, nombre, tipo, tarifa, orden))
+
+    # Eliminar mesas sobrantes (ej. antigua Mesa 5) limpiando referencias si existen
+    cur.execute("SELECT id FROM mesas WHERE numero > 4")
+    sobrantes = [r["id"] for r in cur.fetchall()]
+    for m_id in sobrantes:
+        cur.execute("""
+            UPDATE pedidos SET mesa_id = NULL, sesion_id = NULL
+            WHERE mesa_id = %s OR sesion_id IN (SELECT id FROM sesiones_mesa WHERE mesa_id = %s)
+        """, (m_id, m_id))
+        cur.execute("""
+            UPDATE movimientos_caja SET sesion_id = NULL
+            WHERE sesion_id IN (SELECT id FROM sesiones_mesa WHERE mesa_id = %s)
+        """, (m_id,))
+        cur.execute("DELETE FROM sesiones_mesa WHERE mesa_id = %s", (m_id,))
+        cur.execute("DELETE FROM mesas WHERE id = %s", (m_id,))
+
+    _MESAS_CONFIGURADAS = True
+
 @router.get("")
 def listar_mesas():
     with get_db() as conn:
         with conn.cursor() as cur:
+            _asegurar_configuracion_mesas(cur)
             cur.execute("""
                 SELECT 
                     m.id, m.numero, m.nombre, m.tipo, m.tarifa_por_hora, 
@@ -58,7 +116,7 @@ def listar_mesas():
                     tarifa_hora = float(sesion["tarifa_hora_aplicada"])
                     costo_tiempo = round((minutos / 60.0) * tarifa_hora, 2)
 
-                    # Obtener jugadores
+                    # Obtener jugadores/cuentas de la sesión
                     cur.execute("""
                         SELECT id, nombre, puntos_carambolas, posicion
                         FROM jugadores_sesion
@@ -67,15 +125,49 @@ def listar_mesas():
                     """, (sesion["sesion_id"],))
                     jugadores = cur.fetchall()
 
-                    # Obtener total de productos pedidos en esta sesión
+                    # Asegurar que la cuenta base 'Mesa' siempre exista en la sesión
+                    if not any(j["nombre"].strip().lower() == "mesa" for j in jugadores):
+                        cur.execute("""
+                            INSERT INTO jugadores_sesion (sesion_id, posicion, nombre, puntos_carambolas)
+                            VALUES (%s, 0, 'Mesa', 0)
+                            RETURNING id, nombre, puntos_carambolas, posicion
+                        """, (sesion["sesion_id"],))
+                        nueva_mesa_cuenta = cur.fetchone()
+                        jugadores = [nueva_mesa_cuenta] + list(jugadores)
+
+                    # Obtener detalle de productos pedidos en esta sesión para calcular consumo real por cuenta
                     cur.execute("""
-                        SELECT COALESCE(SUM(dp.subtotal), 0) as total_pedidos
+                        SELECT dp.jugador_id, dp.nota, dp.subtotal
                         FROM pedidos p
                         JOIN detalle_pedidos dp ON dp.pedido_id = p.id
                         WHERE p.sesion_id = %s AND p.estado != 'cancelado'
                     """, (sesion["sesion_id"],))
-                    pedidos_res = cur.fetchone()
-                    total_pedidos = float(pedidos_res["total_pedidos"] if pedidos_res else 0.0)
+                    detalles_sesion = cur.fetchall()
+
+                    consumo_por_id = {str(j["id"]): 0.0 for j in jugadores}
+                    mapa_nombre_a_id = {j["nombre"].strip().lower(): str(j["id"]) for j in jugadores}
+                    id_cuenta_mesa = mapa_nombre_a_id.get("mesa")
+
+                    total_pedidos = 0.0
+                    for d in detalles_sesion:
+                        sub = float(d["subtotal"] or 0.0)
+                        total_pedidos += sub
+                        j_id = str(d["jugador_id"]) if d["jugador_id"] else None
+                        if j_id and j_id in consumo_por_id:
+                            consumo_por_id[j_id] += sub
+                        else:
+                            nota_str = (d["nota"] or "").strip()
+                            asignado = False
+                            if nota_str.lower().startswith("cuenta:"):
+                                nom_cuenta = nota_str.split(":", 1)[1].strip().lower()
+                                if nom_cuenta in mapa_nombre_a_id:
+                                    consumo_por_id[mapa_nombre_a_id[nom_cuenta]] += sub
+                                    asignado = True
+                            if not asignado and id_cuenta_mesa:
+                                consumo_por_id[id_cuenta_mesa] += sub
+
+                    for j in jugadores:
+                        j["consumo_bar"] = round(consumo_por_id.get(str(j["id"]), 0.0), 2)
 
                     mesa["sesion"] = {
                         **sesion,
@@ -94,6 +186,7 @@ def listar_mesas():
 def abrir_mesa(mesa_id: str, req: AbrirMesaRequest):
     with get_db() as conn:
         with conn.cursor() as cur:
+            _asegurar_configuracion_mesas(cur)
             cur.execute("SELECT id, tarifa_por_hora, estado FROM mesas WHERE id = %s", (mesa_id,))
             mesa = cur.fetchone()
             if not mesa:
@@ -112,12 +205,25 @@ def abrir_mesa(mesa_id: str, req: AbrirMesaRequest):
             nueva_sesion = cur.fetchone()
             sesion_id = nueva_sesion["id"]
 
-            # Registrar jugadores
-            for idx, nombre in enumerate(req.jugadores, start=1):
+            # Garantizar que 'Mesa' sea siempre la primera cuenta y registrar jugadores únicos
+            nombres_finales = ["Mesa"]
+            for raw_nombre in req.jugadores:
+                limpio = (raw_nombre or "").strip()
+                if limpio and not any(n.lower() == limpio.lower() for n in nombres_finales):
+                    nombres_finales.append(limpio)
+
+            for idx, nombre in enumerate(nombres_finales, start=1):
                 cur.execute("""
                     INSERT INTO jugadores_sesion (sesion_id, posicion, nombre, puntos_carambolas)
                     VALUES (%s, %s, %s, 0)
-                """, (sesion_id, idx, nombre.strip() or f"Jugador {idx}"))
+                """, (sesion_id, idx, nombre))
+                # Si no es la cuenta genérica 'Mesa', guardar/actualizar en directorio de clientes
+                if nombre.lower() != "mesa" and not nombre.lower().startswith("cuenta "):
+                    cur.execute("""
+                        INSERT INTO clientes (nombre, visitas)
+                        VALUES (%s, 1)
+                        ON CONFLICT (nombre) DO UPDATE SET visitas = clientes.visitas + 1
+                    """, (nombre,))
 
             # Actualizar estado de la mesa a 'en_juego' y encender luz
             cur.execute("""
@@ -127,6 +233,76 @@ def abrir_mesa(mesa_id: str, req: AbrirMesaRequest):
             """, (mesa_id,))
 
             return {"message": "Mesa abierta con éxito", "sesion_id": sesion_id}
+
+@router.post("/{mesa_id}/cuentas")
+def agregar_cuenta_sesion(mesa_id: str, req: AgregarCuentaMesaRequest):
+    nombre_limpio = (req.nombre or "").strip()
+    if not nombre_limpio:
+        raise HTTPException(status_code=400, detail="El nombre de la cuenta es obligatorio")
+
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT id FROM sesiones_mesa
+                WHERE mesa_id = %s AND estado IN ('activa', 'pausada')
+                ORDER BY hora_inicio DESC LIMIT 1
+            """, (mesa_id,))
+            sesion = cur.fetchone()
+            if not sesion:
+                raise HTTPException(status_code=404, detail="No hay sesión activa en esta mesa")
+
+            sesion_id = sesion["id"]
+            cur.execute("""
+                SELECT id, nombre, puntos_carambolas, posicion
+                FROM jugadores_sesion
+                WHERE sesion_id = %s AND LOWER(nombre) = LOWER(%s)
+            """, (sesion_id, nombre_limpio))
+            existente = cur.fetchone()
+            if existente:
+                return {"jugador": existente}
+
+            cur.execute("SELECT COALESCE(MAX(posicion), 0) + 1 as prox FROM jugadores_sesion WHERE sesion_id = %s", (sesion_id,))
+            prox = cur.fetchone()["prox"]
+
+            cur.execute("""
+                INSERT INTO jugadores_sesion (sesion_id, posicion, nombre, puntos_carambolas)
+                VALUES (%s, %s, %s, 0)
+                RETURNING id, nombre, puntos_carambolas, posicion
+            """, (sesion_id, prox, nombre_limpio))
+            nuevo = cur.fetchone()
+
+            if nombre_limpio.lower() != "mesa" and not nombre_limpio.lower().startswith("cuenta "):
+                cur.execute("""
+                    INSERT INTO clientes (nombre, visitas)
+                    VALUES (%s, 1)
+                    ON CONFLICT (nombre) DO UPDATE SET visitas = clientes.visitas + 1
+                """, (nombre_limpio,))
+
+            return {"jugador": nuevo}
+
+@router.delete("/{mesa_id}/cuentas/{nombre_cuenta}")
+def eliminar_cuenta_sesion(mesa_id: str, nombre_cuenta: str):
+    nombre_limpio = (nombre_cuenta or "").strip()
+    if nombre_limpio.lower() == "mesa":
+        raise HTTPException(status_code=400, detail="La cuenta principal 'Mesa' no se puede eliminar")
+
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT id FROM sesiones_mesa
+                WHERE mesa_id = %s AND estado IN ('activa', 'pausada')
+                ORDER BY hora_inicio DESC LIMIT 1
+            """, (mesa_id,))
+            sesion = cur.fetchone()
+            if not sesion:
+                raise HTTPException(status_code=404, detail="No hay sesión activa en esta mesa")
+
+            sesion_id = sesion["id"]
+            cur.execute("""
+                DELETE FROM jugadores_sesion
+                WHERE sesion_id = %s AND LOWER(nombre) = LOWER(%s)
+            """, (sesion_id, nombre_limpio))
+            return {"message": "Cuenta eliminada de la sesión"}
 
 @router.post("/{mesa_id}/cerrar")
 def cerrar_mesa(mesa_id: str, req: CerrarMesaRequest):

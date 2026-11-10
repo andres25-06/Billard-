@@ -247,15 +247,18 @@ INSERT INTO usuarios (nombre, email, pin_acceso, rol)
 VALUES ('Andrés Ardila', 'admin@billar.com', '1234', 'admin')
 ON CONFLICT DO NOTHING;
 
--- Mesas Iniciales (según mockups)
+-- Mesas Iniciales (3 de Tres Bandas y 1 de Pool)
 INSERT INTO mesas (numero, nombre, tipo, tarifa_por_hora, estado, luz_encendida, orden_visual)
 VALUES
 (1, 'Mesa 1 - Tres Bandas', 'tres_bandas', 18000.00, 'disponible', false, 1),
 (2, 'Mesa 2 - Tres Bandas', 'tres_bandas', 18000.00, 'disponible', false, 2),
-(3, 'Mesa 3 - Pool Máster',  'pool',        14000.00, 'disponible', false, 3),
-(4, 'Mesa 4 - Pool Clásico', 'pool',        14000.00, 'disponible', false, 4),
-(5, 'Mesa 5 - Libre/Carambola', 'libre',    12000.00, 'disponible', false, 5)
-ON CONFLICT (numero) DO NOTHING;
+(3, 'Mesa 3 - Tres Bandas', 'tres_bandas', 18000.00, 'disponible', false, 3),
+(4, 'Mesa 4 - Pool',        'pool',        14000.00, 'disponible', false, 4)
+ON CONFLICT (numero) DO UPDATE SET
+    nombre = EXCLUDED.nombre,
+    tipo = EXCLUDED.tipo,
+    tarifa_por_hora = EXCLUDED.tarifa_por_hora,
+    orden_visual = EXCLUDED.orden_visual;
 
 -- Categorías de Productos
 INSERT INTO categorias_producto (nombre, icono, color, orden)

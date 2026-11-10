@@ -64,7 +64,7 @@ export async function fetchCategorias() {
 export async function crearPedido(data: {
   mesa_id?: string;
   origen: string;
-  items: Array<{ producto_id: string; cantidad: number; nota?: string }>;
+  items: Array<{ producto_id: string; cantidad: number; nota?: string; jugador_id?: string }>;
   nota?: string;
 }) {
   const res = await fetch(`${API_BASE}/pedidos`, {
@@ -75,6 +75,30 @@ export async function crearPedido(data: {
   if (!res.ok) {
     const err = await res.json();
     throw new Error(err.detail || "Error al crear pedido");
+  }
+  return res.json();
+}
+
+export async function agregarCuentaSesionMesa(mesaId: string, nombre: string) {
+  const res = await fetch(`${API_BASE}/mesas/${mesaId}/cuentas`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nombre }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || "Error al agregar cuenta a la sesión");
+  }
+  return res.json();
+}
+
+export async function eliminarCuentaSesionMesa(mesaId: string, nombre: string) {
+  const res = await fetch(`${API_BASE}/mesas/${mesaId}/cuentas/${encodeURIComponent(nombre)}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || "Error al eliminar cuenta de la sesión");
   }
   return res.json();
 }
@@ -94,6 +118,64 @@ export async function fetchAlertasActivas() {
 export async function atenderAlerta(alertaId: string) {
   const res = await fetch(`${API_BASE}/alertas/${alertaId}/atender`, { method: "POST" });
   if (!res.ok) throw new Error("Error al atender alerta");
+  return res.json();
+}
+
+export async function editarPedido(pedidoId: string, data: {
+  items: Array<{ producto_id: string; cantidad: number; nota?: string; jugador_id?: string }>;
+  nota?: string;
+  estado?: string;
+}) {
+  const res = await fetch(`${API_BASE}/pedidos/${pedidoId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.detail || "Error al editar pedido");
+  }
+  return res.json();
+}
+
+export async function eliminarPedido(pedidoId: string) {
+  const res = await fetch(`${API_BASE}/pedidos/${pedidoId}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.detail || "Error al eliminar pedido");
+  }
+  return res.json();
+}
+
+export async function fetchClientes() {
+  const res = await fetch(`${API_BASE}/clientes`, { cache: 'no-store' });
+  if (!res.ok) throw new Error("Error al obtener clientes");
+  return res.json();
+}
+
+export async function guardarCliente(nombre: string, apodo?: string, telefono?: string) {
+  const res = await fetch(`${API_BASE}/clientes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nombre, apodo, telefono }),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.detail || "Error al guardar cliente");
+  }
+  return res.json();
+}
+
+export async function eliminarCliente(clienteId: string) {
+  const res = await fetch(`${API_BASE}/clientes/${clienteId}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.detail || "Error al eliminar cliente");
+  }
   return res.json();
 }
 

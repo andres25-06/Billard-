@@ -28,6 +28,13 @@ import {
   fetchSidebarStats,
 } from '@/lib/api';
 
+export interface ItemPedidoCanasta {
+  productoId: string;
+  cuenta: string;
+  cantidad: number;
+  jugadorId?: string;
+}
+
 export default function PCControlPage() {
   const [moduloActivo, setModuloActivo] = useState<ModuloId>('mesas');
   const [mesas, setMesas] = useState<Mesa[]>([]);
@@ -48,7 +55,7 @@ export default function PCControlPage() {
   const [drawerPedidos, setDrawerPedidos] = useState<boolean>(false);
   const [mesaPedidoSeleccionada, setMesaPedidoSeleccionada] = useState<string>('');
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<string>('');
-  const [canasta, setCanasta] = useState<{ [productoId: string]: number }>({});
+  const [canasta, setCanasta] = useState<{ [itemKey: string]: ItemPedidoCanasta }>({});
 
   // Modal PIN
   const [modalPinAbierto, setModalPinAbierto] = useState<boolean>(false);
@@ -118,26 +125,49 @@ export default function PCControlPage() {
   };
 
   // Manejadores de Canasta / Pedido
-  const handleAgregarACanasta = (prodId: string) => {
-    setCanasta((prev) => ({ ...prev, [prodId]: (prev[prodId] || 0) + 1 }));
+  const handleAgregarACanasta = (prodId: string, cuenta: string = 'Mesa', jugadorId?: string) => {
+    const itemKey = `${prodId}:::${cuenta}`;
+    setCanasta((prev) => ({
+      ...prev,
+      [itemKey]: {
+        productoId: prodId,
+        cuenta,
+        cantidad: (prev[itemKey]?.cantidad || 0) + 1,
+        jugadorId,
+      },
+    }));
   };
 
-  const handleQuitarDeCanasta = (prodId: string) => {
+  const handleQuitarDeCanasta = (itemKey: string) => {
     setCanasta((prev) => {
       const copy = { ...prev };
-      if (copy[prodId] > 1) {
-        copy[prodId] -= 1;
+      if (!copy[itemKey]) return copy;
+      if (copy[itemKey].cantidad > 1) {
+        copy[itemKey] = {
+          ...copy[itemKey],
+          cantidad: copy[itemKey].cantidad - 1,
+        };
       } else {
-        delete copy[prodId];
+        delete copy[itemKey];
       }
       return copy;
     });
   };
 
+  const handleEliminarItemCanasta = (itemKey: string) => {
+    setCanasta((prev) => {
+      const copy = { ...prev };
+      delete copy[itemKey];
+      return copy;
+    });
+  };
+
   const handleEnviarPedido = async () => {
-    const items = Object.entries(canasta).map(([producto_id, cantidad]) => ({
-      producto_id,
-      cantidad,
+    const items = Object.values(canasta).map((item) => ({
+      producto_id: item.productoId,
+      cantidad: item.cantidad,
+      nota: item.cuenta ? `Cuenta: ${item.cuenta}` : undefined,
+      jugador_id: item.jugadorId,
     }));
     if (items.length === 0) return;
 
@@ -227,6 +257,7 @@ export default function PCControlPage() {
         canasta={canasta}
         onAgregarACanasta={handleAgregarACanasta}
         onQuitarDeCanasta={handleQuitarDeCanasta}
+        onEliminarItemCanasta={handleEliminarItemCanasta}
         onEnviarPedido={handleEnviarPedido}
       />
 

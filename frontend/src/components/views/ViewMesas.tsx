@@ -20,15 +20,19 @@ import {
   DollarSign,
   Smartphone,
   Minus,
-  Sparkles
+  Sparkles,
+  Search,
+  Printer
 } from 'lucide-react';
 import BilliardTableIcon from '../icons/BilliardTableIcon';
+import { fetchClientes, guardarCliente } from '@/lib/api';
 
 interface Jugador {
   id: string;
   nombre: string;
   puntos_carambolas: number;
   posicion: number;
+  consumo_bar?: number;
 }
 
 interface SesionMesa {
@@ -74,8 +78,32 @@ export default function ViewMesas({
   // Formulario apertura
   const [modalidadTiempo, setModalidadTiempo] = useState<'libre' | 'prepago'>('libre');
   const [bloquePrepago, setBloquePrepago] = useState<number>(60);
-  const [jugadoresCuenta, setJugadoresCuenta] = useState<string[]>(['Jugador 1']);
+  const [jugadoresCuenta, setJugadoresCuenta] = useState<string[]>(['Mesa']);
   const [nuevoJugadorInput, setNuevoJugadorInput] = useState<string>('');
+  const [clientesBD, setClientesBD] = useState<Array<{ id: string; nombre: string; apodo?: string; visitas?: number }>>([]);
+
+  useEffect(() => {
+    fetchClientes()
+      .then((res) => setClientesBD(res.clientes || []))
+      .catch((err) => console.error('Error cargando clientes de BD:', err));
+  }, [modalAbrir]);
+
+  const getInitials = (nombre: string) => {
+    if (!nombre) return 'ME';
+    const clean = nombre.trim();
+    if (clean.toLowerCase() === 'mesa') return 'ME';
+    const parts = clean.split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return clean.slice(0, 2).toUpperCase();
+  };
+
+  const clientesSugeridos = clientesBD.map((c) => ({
+    nombre: c.nombre,
+    ini: getInitials(c.nombre),
+    detalle: `${c.visitas || 1} ${(c.visitas || 1) === 1 ? 'visita registrada' : 'visitas registradas'}`,
+  }));
 
   // Formulario cobro
   const [modoLiquidacion, setModoLiquidacion] = useState<'total' | 'iguales' | 'discriminado'>('total');
@@ -111,30 +139,68 @@ export default function ViewMesas({
     return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   };
 
+  const formatearHoraInicio = (isoString?: string) => {
+    if (!isoString) return '--:--';
+    const fecha = new Date(isoString);
+    if (isNaN(fecha.getTime())) return '--:--';
+    return fecha.toLocaleTimeString('es-CO', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+  };
+
   const handleConfirmarApertura = async () => {
     if (!modalAbrir) return;
     const jugadoresLimpios = jugadoresCuenta.map(j => j.trim()).filter(j => j !== '');
     await onAbrirMesa(modalAbrir.id, {
       modalidad_tiempo: modalidadTiempo,
       minutos_prepago: modalidadTiempo === 'prepago' ? bloquePrepago : 0,
-      jugadores: jugadoresLimpios.length > 0 ? jugadoresLimpios : ['General Mesa'],
+      jugadores: jugadoresLimpios.length > 0 ? jugadoresLimpios : ['Mesa'],
     });
     setModalAbrir(null);
   };
 
-  const agregarJugadorCuenta = (nombre: string) => {
-    const limpio = nombre.trim();
-    if (!limpio) return;
-    if (jugadoresCuenta.length >= 6) return;
-    if (!jugadoresCuenta.includes(limpio)) {
-      setJugadoresCuenta([...jugadoresCuenta, limpio]);
+  const agregarJugadorCuenta = async (nombre?: string) => {
+    const raw = typeof nombre === 'string' ? nombre : nuevoJugadorInput;
+    const limpio = raw.trim();
+    const nombreBase = limpio || `Cuenta ${jugadoresCuenta.length + 1}`;
+
+    if (jugadoresCuenta.length >= 10) return;
+
+    // Evitar duplicados exactos asignando numeración
+    let nombreFinal = nombreBase;
+    let contador = 2;
+    while (jugadoresCuenta.some(j => j.toLowerCase() === nombreFinal.toLowerCase())) {
+      nombreFinal = `${nombreBase} (${contador})`;
+      contador++;
     }
+
+    setJugadoresCuenta(prev => [...prev, nombreFinal]);
     setNuevoJugadorInput('');
+
+    // Guardar en la base de datos de clientes si es un nombre personalizado
+    if (limpio && limpio.toLowerCase() !== 'mesa') {
+      try {
+        const res = await guardarCliente(limpio);
+        if (res?.cliente) {
+          setClientesBD((prev) => {
+            if (!prev.some((c) => c.nombre.toLowerCase() === limpio.toLowerCase())) {
+              return [...prev, res.cliente];
+            }
+            return prev;
+          });
+        }
+      } catch (e) {
+        console.error('Error guardando cliente en BD:', e);
+      }
+    }
   };
 
   const eliminarJugadorCuenta = (index: number) => {
-    if (jugadoresCuenta.length <= 1) return;
-    setJugadoresCuenta(jugadoresCuenta.filter((_, idx) => idx !== index));
+    const cuenta = jugadoresCuenta[index];
+    if (cuenta === 'Mesa') return; // 'Mesa' siempre permanece fija
+    setJugadoresCuenta(prev => prev.filter((_, idx) => idx !== index));
   };
 
   const handleConfirmarCobro = async () => {
@@ -238,18 +304,20 @@ export default function ViewMesas({
             <article key={mesa.id} className={`card ${cardClass}`}>
               {/* Cabecera Compacta */}
               <div className="c-head">
-                <div className="c-title">
+                <div className="c-title min-w-0">
                   <div className="c-num">{String(mesa.numero).padStart(2, '0')}</div>
-                  <div>
+                  <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <h3>{mesa.nombre}</h3>
-                      <BilliardTableIcon size={16} className="text-slate-400" />
+                      <h3 className="truncate">Mesa {mesa.numero}</h3>
+                      <BilliardTableIcon size={15} className="text-slate-400 flex-shrink-0" />
                     </div>
-                    <small className="capitalize">{mesa.tipo.replace('_', ' ')} · ${Number(mesa.tarifa_por_hora).toLocaleString('es-CO')}/h</small>
+                    <small className="capitalize block truncate">
+                      {mesa.tipo.replace('_', ' ')} · ${Number(mesa.tarifa_por_hora).toLocaleString('es-CO')}/h
+                    </small>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-shrink-0">
                   {enJuego ? (
                     esPrepago ? (
                       <span className="pill warn">
@@ -285,47 +353,61 @@ export default function ViewMesas({
                         <div className={`digits ${esPrepago ? 'warn' : ''}`}>
                           {formatearTiempo(sesion.minutos_transcurridos, segundosExtra)}
                         </div>
+                        <div className="text-[11px] text-slate-300 font-medium mt-1 flex items-center gap-1">
+                          <Clock className="w-3 h-3 text-emerald-400" />
+                          <span>Inició: <b className="text-white font-mono">{formatearHoraInicio(sesion.hora_inicio)}</b></span>
+                        </div>
                       </div>
                       <div className="text-right">
-                        <label>Costo tiempo</label>
-                        <div className="font-mono font-bold text-lg text-white">
+                        <label className="justify-end">Costo tiempo</label>
+                        <div className="font-mono font-bold text-lg text-white mt-0.5">
                           ${sesion.costo_tiempo.toLocaleString('es-CO')}
                         </div>
                       </div>
                     </div>
 
-                    {/* Lista de clientes para llevar la cuenta */}
+                    {/* Cuentas activas de la mesa */}
                     {sesion.jugadores && sesion.jugadores.length > 0 && (
-                      <div className="space-y-1.5">
+                      <div>
                         <div className="sec">
-                          <span><Users className="w-3 h-3" />Cuentas individuales ({sesion.jugadores.length})</span>
-                          <span>Estado</span>
+                          <span><Users className="w-3 h-3" />Cuentas en mesa ({sesion.jugadores.length})</span>
+                          <span className="text-[10px] text-emerald-600 font-bold">● En curso</span>
                         </div>
-                        <div className="players">
-                          {sesion.jugadores.map((j, idx) => (
-                            <div key={j.id} className={`player ${idx === 0 ? 'lead' : ''}`}>
-                              <span className="ini">
-                                {j.nombre.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
-                              </span>
-                              <span className="n">{j.nombre}</span>
-                              <span className="text-[11px] font-bold text-slate-500 ml-auto">
-                                Activo
-                              </span>
-                            </div>
-                          ))}
+                        <div className="flex flex-wrap gap-1.5">
+                          {sesion.jugadores.map((j, idx) => {
+                            const consumo = Number(j.consumo_bar || 0);
+                            return (
+                              <div
+                                key={j.id || idx}
+                                className={`player !py-1.5 !px-2.5 flex-1 min-w-[130px] ${idx === 0 ? 'lead' : ''}`}
+                              >
+                                <span className="ini !w-6 !h-6 !text-[10px]">
+                                  {getInitials(j.nombre)}
+                                </span>
+                                <span className="n text-xs">
+                                  {j.nombre === 'Mesa' ? 'Mesa (General)' : j.nombre}
+                                </span>
+                                {consumo > 0 ? (
+                                  <span className="text-[11px] font-mono font-bold text-indigo-700 ml-auto">
+                                    ${consumo.toLocaleString('es-CO')}
+                                  </span>
+                                ) : null}
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     )}
 
                     {/* Desglose de cuenta */}
-                    <div className="bill">
+                    <div className="bill mt-auto">
                       <div className="row">
                         <span><Clock className="w-3.5 h-3.5" />Tiempo ({sesion.minutos_transcurridos} min)</span>
-                        <span>${sesion.costo_tiempo.toLocaleString('es-CO')}</span>
+                        <span className="font-mono font-semibold">${sesion.costo_tiempo.toLocaleString('es-CO')}</span>
                       </div>
                       <div className="row">
                         <span><Beer className="w-3.5 h-3.5" />Consumo Bar</span>
-                        <span>${sesion.total_pedidos.toLocaleString('es-CO')}</span>
+                        <span className="font-mono font-semibold">${sesion.total_pedidos.toLocaleString('es-CO')}</span>
                       </div>
                       <div className="total">
                         <span>Total cuenta</span>
@@ -335,26 +417,39 @@ export default function ViewMesas({
                   </>
                 ) : (
                   /* ================= ESTADO DISPONIBLE COMPACTO ================= */
-                  <div className="empty-compact">
-                    <div className="empty-compact-badge">
-                      <BilliardTableIcon size={24} className="text-emerald-600" />
-                      <div>
-                        <h4>Mesa Lista para Juego</h4>
-                        <p>Tarifa hora: <b>${Number(mesa.tarifa_por_hora).toLocaleString('es-CO')}</b> (${(Number(mesa.tarifa_por_hora)/60).toFixed(0)}/min)</p>
+                  <>
+                    <div className="empty-compact flex-1 justify-center">
+                      <div className="empty-compact-badge">
+                        <BilliardTableIcon size={24} className="text-emerald-600 flex-shrink-0" />
+                        <div>
+                          <h4>Mesa Lista para Juego</h4>
+                          <p>Tarifa hora: <b>${Number(mesa.tarifa_por_hora).toLocaleString('es-CO')}</b> (${(Number(mesa.tarifa_por_hora)/60).toFixed(0)}/min)</p>
+                        </div>
+                      </div>
+
+                      <div className="empty-compact-info">
+                        <div className="empty-info-item">
+                          <span>Modalidades:</span>
+                          <b>Libre o Prepago</b>
+                        </div>
+                        <div className="empty-info-item text-right">
+                          <span>Estado:</span>
+                          <b className="text-emerald-600">Disponible</b>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="empty-compact-info">
-                      <div className="empty-info-item">
-                        <span>Modalidades:</span>
-                        <b>Libre o Prepago</b>
+                    <div className="bill mt-auto">
+                      <div className="row">
+                        <span><Clock className="w-3.5 h-3.5" />Cronómetro</span>
+                        <span className="font-mono text-slate-400">00:00:00</span>
                       </div>
-                      <div className="empty-info-item text-right">
-                        <span>Estado:</span>
-                        <b className="text-emerald-600">Disponible</b>
+                      <div className="total">
+                        <span>Tarifa base</span>
+                        <b className="!text-lg !text-slate-600">${Number(mesa.tarifa_por_hora).toLocaleString('es-CO')}/h</b>
                       </div>
                     </div>
-                  </div>
+                  </>
                 )}
               </div>
 
@@ -385,6 +480,8 @@ export default function ViewMesas({
                       setModalAbrir(mesa);
                       setModalidadTiempo('libre');
                       setBloquePrepago(60);
+                      setJugadoresCuenta(['Mesa']);
+                      setNuevoJugadorInput('');
                     }}
                   >
                     <Play className="w-4 h-4 fill-white" />
@@ -461,11 +558,11 @@ export default function ViewMesas({
                 )}
               </div>
 
-              {/* Paso 2: Cuentas individuales */}
+              {/* Paso 2: Cuentas individuales para pedidos */}
               <div>
                 <div className="step"><i>2</i>Cuentas individuales para pedidos (Opcional)</div>
                 <div className="search">
-                  <Users className="w-4 h-4 text-slate-400" />
+                  <Search className="w-4 h-4 text-slate-400 flex-shrink-0" />
                   <input
                     value={nuevoJugadorInput}
                     onChange={(e) => setNuevoJugadorInput(e.target.value)}
@@ -475,12 +572,12 @@ export default function ViewMesas({
                         agregarJugadorCuenta(nuevoJugadorInput);
                       }
                     }}
-                    placeholder="Agregar nombre para llevar cuenta (ej: El Chamo, Carlos M.)..."
+                    placeholder="Buscar o escribir nombre para llevar cuenta (ej: Carlos M., El Chamo)..."
                   />
                   <button
                     type="button"
-                    className="btn btn-ghost"
-                    style={{ padding: '6px 12px' }}
+                    className="btn btn-ghost select-none cursor-pointer"
+                    style={{ padding: '6px 14px' }}
                     onClick={() => agregarJugadorCuenta(nuevoJugadorInput)}
                   >
                     <Plus className="w-3.5 h-3.5" />
@@ -488,32 +585,66 @@ export default function ViewMesas({
                   </button>
                 </div>
 
+                {/* Sugerencias desplegables idénticas al mockup */}
+                {nuevoJugadorInput.trim().length > 0 && (
+                  <div className="sugg">
+                    {clientesSugeridos
+                      .filter(
+                        (c) =>
+                          c.nombre.toLowerCase().includes(nuevoJugadorInput.toLowerCase()) &&
+                          !jugadoresCuenta.includes(c.nombre)
+                      )
+                      .slice(0, 3)
+                      .map((c, idx) => (
+                        <div
+                          key={idx}
+                          onClick={() => {
+                            agregarJugadorCuenta(c.nombre);
+                          }}
+                        >
+                          <span className="ini">{c.ini}</span>
+                          <span className="font-semibold text-slate-800 text-xs">{c.nombre}</span>
+                          <small>{c.detalle}</small>
+                        </div>
+                      ))}
+                  </div>
+                )}
+
                 {/* Slots de cuentas activas */}
                 <div className="slots">
                   {jugadoresCuenta.map((nombre, i) => (
-                    <div key={i} className="slot">
-                      <span className="ini">
-                        {nombre.slice(0, 2).toUpperCase()}
+                    <div
+                      key={i}
+                      className={`slot ${nombre === 'Mesa' ? 'bg-indigo-50/50 border-indigo-200' : ''}`}
+                    >
+                      <span className={`ini ${nombre === 'Mesa' ? '!bg-indigo-600 !text-white' : ''}`}>
+                        {getInitials(nombre)}
                       </span>
-                      <span className="truncate">{nombre}</span>
-                      {jugadoresCuenta.length > 1 && (
+                      <span className="truncate flex-1 text-xs font-semibold">
+                        {nombre}
+                        {nombre === 'Mesa' && (
+                          <span className="text-[10px] text-indigo-500 font-normal ml-1">(Principal)</span>
+                        )}
+                      </span>
+                      {nombre !== 'Mesa' && (
                         <button
                           type="button"
                           onClick={() => eliminarJugadorCuenta(i)}
-                          className="ml-auto text-slate-400 hover:text-red-500"
+                          className="ml-auto text-slate-400 hover:text-red-500 transition-colors p-0.5"
+                          title="Eliminar cuenta"
                         >
-                          <X className="w-3 h-3" />
+                          <X className="w-3.5 h-3.5" />
                         </button>
                       )}
                     </div>
                   ))}
-                  {jugadoresCuenta.length < 4 && (
+                  {jugadoresCuenta.length < 10 && (
                     <div
                       className="slot empty-s cursor-pointer"
-                      onClick={() => agregarJugadorCuenta(`Cliente ${jugadoresCuenta.length + 1}`)}
+                      onClick={() => agregarJugadorCuenta()}
                     >
                       <Plus className="w-3.5 h-3.5" />
-                      Cuenta {jugadoresCuenta.length + 1}
+                      <span>Nueva cuenta</span>
                     </div>
                   )}
                 </div>
@@ -521,7 +652,7 @@ export default function ViewMesas({
 
               <div className="summary">
                 <BilliardTableIcon size={18} className="text-indigo-600 flex-shrink-0" />
-                <span>Al iniciar, el cronómetro de la mesa empezará a contar y podrás cargar pedidos a nombre de cada cuenta.</span>
+                <span>Al iniciar, el cronómetro de la mesa empezará a contar y podrás cargar pedidos del bar individualmente a cada cuenta.</span>
               </div>
             </div>
 
@@ -631,11 +762,14 @@ export default function ViewMesas({
                       {(modalCobrar.sesion.jugadores || []).map((j, idx) => {
                         const cant = Math.max(1, modalCobrar.sesion?.jugadores?.length || 1);
                         const fraccTiempo = Math.round((modalCobrar.sesion?.costo_tiempo || 0) / cant);
-                        const fraccBar = Math.round((modalCobrar.sesion?.total_pedidos || 0) / cant);
+                        const fraccBar =
+                          typeof j.consumo_bar === 'number'
+                            ? Math.round(j.consumo_bar)
+                            : Math.round((modalCobrar.sesion?.total_pedidos || 0) / cant);
                         const totalJ = fraccTiempo + fraccBar;
                         return (
                           <tr key={j.id || idx}>
-                            <td><b>{j.nombre}</b></td>
+                            <td><b>{j.nombre === 'Mesa' ? 'Mesa (General)' : j.nombre}</b></td>
                             <td>${fraccTiempo.toLocaleString('es-CO')}</td>
                             <td>${fraccBar.toLocaleString('es-CO')}</td>
                             <td><b>${totalJ.toLocaleString('es-CO')}</b></td>
@@ -682,14 +816,53 @@ export default function ViewMesas({
                       <label>A cobrar</label>
                       <div>${modalCobrar.sesion.total_acumulado.toLocaleString('es-CO')}</div>
                     </div>
-                    <div className="field">
-                      <label>Recibido</label>
-                      <input
-                        type="number"
-                        value={efectivoRecibido || ''}
-                        onChange={(e) => setEfectivoRecibido(Number(e.target.value))}
-                        placeholder="0"
-                      />
+                    <div
+                      className="field transition-all focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/15 bg-white cursor-text"
+                      onClick={() => {
+                        const el = document.getElementById('input-efectivo-recibido') as HTMLInputElement | null;
+                        if (el) el.focus();
+                      }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <label className="cursor-text">Recibido</label>
+                        {efectivoRecibido > 0 && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEfectivoRecibido(0);
+                              const el = document.getElementById('input-efectivo-recibido') as HTMLInputElement | null;
+                              if (el) el.focus();
+                            }}
+                            className="text-[10px] font-semibold text-slate-400 hover:text-red-500 transition-colors"
+                            title="Borrar para escribir otro valor"
+                          >
+                            Limpiar
+                          </button>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-0.5">
+                        <span className="text-slate-900 font-mono font-extrabold text-[20px] select-none">$</span>
+                        <input
+                          id="input-efectivo-recibido"
+                          type="text"
+                          inputMode="numeric"
+                          value={efectivoRecibido > 0 ? efectivoRecibido.toLocaleString('es-CO') : ''}
+                          onFocus={(e) => e.target.select()}
+                          onKeyDown={(e) => {
+                            if (['-', '+', 'e', 'E', '.', ','].includes(e.key)) {
+                              e.preventDefault();
+                            }
+                          }}
+                          onChange={(e) => {
+                            const soloPositivos = e.target.value.replace(/[^0-9]/g, '');
+                            const valorNumerico = soloPositivos ? parseInt(soloPositivos, 10) : 0;
+                            setEfectivoRecibido(Math.max(0, valorNumerico));
+                          }}
+                          placeholder="0"
+                          className="w-full !mt-0"
+                        />
+                      </div>
                     </div>
                     <div className="field hl">
                       <label>Vueltas</label>
@@ -703,21 +876,39 @@ export default function ViewMesas({
                     </div>
                   </div>
 
-                  <div className="quick">
-                    <button type="button" onClick={() => setEfectivoRecibido(modalCobrar.sesion?.total_acumulado || 0)}>
+                  <div className="quick flex-wrap items-center">
+                    <button
+                      type="button"
+                      onClick={() => setEfectivoRecibido(modalCobrar.sesion?.total_acumulado || 0)}
+                    >
                       Exacto
                     </button>
-                    {[20000, 50000, 100000].map((b) => (
+                    {[10000, 20000, 50000, 100000].map((b) => (
                       <button key={b} type="button" onClick={() => setEfectivoRecibido(b)}>
                         ${b.toLocaleString('es-CO')}
                       </button>
                     ))}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEfectivoRecibido(0);
+                        const el = document.getElementById('input-efectivo-recibido') as HTMLInputElement | null;
+                        if (el) el.focus();
+                      }}
+                      className="!border-dashed !border-indigo-300 !text-indigo-600 hover:!bg-indigo-50"
+                    >
+                      Escribir otro valor
+                    </button>
                   </div>
                 </div>
               )}
             </div>
 
             <div className="m-foot">
+              <button className="btn btn-ghost btn-lg" onClick={() => window.print()}>
+                <Printer className="w-4 h-4" />
+                Imprimir recibo
+              </button>
               <button className="btn btn-ghost btn-lg" onClick={() => setModalCobrar(null)}>
                 Cancelar
               </button>

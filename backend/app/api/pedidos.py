@@ -149,3 +149,99 @@ def actualizar_estado(pedido_id: str, req: ActualizarEstadoPedidoRequest):
             if not row:
                 raise HTTPException(status_code=404, detail="Pedido no encontrado")
             return {"message": "Estado actualizado", "pedido": row}
+
+class EditarPedidoRequest(BaseModel):
+    items: List[DetalleItemRequest]
+    nota: Optional[str] = None
+    estado: Optional[str] = None
+
+@router.put("/{pedido_id}")
+def editar_pedido(pedido_id: str, req: EditarPedidoRequest):
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT id, estado FROM pedidos WHERE id = %s", (pedido_id,))
+            pedido = cur.fetchone()
+            if not pedido:
+                raise HTTPException(status_code=404, detail="Pedido no encontrado")
+
+            # Devolver stock anterior
+            cur.execute("""
+                SELECT dp.producto_id, dp.cantidad, pr.permite_inventario
+                FROM detalle_pedidos dp
+                JOIN productos pr ON pr.id = dp.producto_id
+                WHERE dp.pedido_id = %s
+            """, (pedido_id,))
+            items_anteriores = cur.fetchall()
+            for it in items_anteriores:
+                if it["permite_inventario"]:
+                    cur.execute("""
+                        UPDATE productos
+                        SET stock_actual = stock_actual + %s
+                        WHERE id = %s
+                    """, (it["cantidad"], it["producto_id"]))
+
+            # Limpiar detalles anteriores
+            cur.execute("DELETE FROM detalle_pedidos WHERE pedido_id = %s", (pedido_id,))
+
+            total_nuevo = 0.0
+            for item in req.items:
+                cur.execute("SELECT id, precio_venta, permite_inventario FROM productos WHERE id = %s", (item.producto_id,))
+                prod = cur.fetchone()
+                if prod:
+                    sub = float(prod["precio_venta"]) * item.cantidad
+                    total_nuevo += sub
+                    cur.execute("""
+                        INSERT INTO detalle_pedidos (pedido_id, producto_id, jugador_id, cantidad, precio_unitario, subtotal, nota)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    """, (pedido_id, prod["id"], item.jugador_id, item.cantidad, prod["precio_venta"], sub, item.nota))
+
+                    if prod["permite_inventario"]:
+                        cur.execute("""
+                            UPDATE productos
+                            SET stock_actual = stock_actual - %s
+                            WHERE id = %s
+                        """, (item.cantidad, prod["id"]))
+
+            estado_clause = ", estado = %s" if req.estado else ""
+            params = [total_nuevo, req.nota]
+            if req.estado:
+                params.append(req.estado)
+            params.append(pedido_id)
+
+            cur.execute(f"""
+                UPDATE pedidos
+                SET total_pedido = %s, nota = %s {estado_clause}
+                WHERE id = %s
+            """, tuple(params))
+
+            return {"message": "Pedido actualizado", "total": total_nuevo}
+
+@router.delete("/{pedido_id}")
+def eliminar_pedido(pedido_id: str):
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT dp.producto_id, dp.cantidad, p.estado, pr.permite_inventario
+                FROM detalle_pedidos dp
+                JOIN pedidos p ON p.id = dp.pedido_id
+                JOIN productos pr ON pr.id = dp.producto_id
+                WHERE dp.pedido_id = %s
+            """, (pedido_id,))
+            items = cur.fetchall()
+
+            cur.execute("SELECT id FROM pedidos WHERE id = %s", (pedido_id,))
+            if not cur.fetchone():
+                raise HTTPException(status_code=404, detail="Pedido no encontrado")
+
+            for item in items:
+                if item["permite_inventario"] and item["estado"] != "cancelado":
+                    cur.execute("""
+                        UPDATE productos
+                        SET stock_actual = stock_actual + %s
+                        WHERE id = %s
+                    """, (item["cantidad"], item["producto_id"]))
+
+            cur.execute("DELETE FROM detalle_pedidos WHERE pedido_id = %s", (pedido_id,))
+            cur.execute("DELETE FROM pedidos WHERE id = %s", (pedido_id,))
+
+            return {"message": "Pedido eliminado exitosamente"}
