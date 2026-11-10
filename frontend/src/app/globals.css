@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --c900: #12141F;
+  --c800: #232739;
+  --c700: #383E5C;
+  --c600: #4F5580;
+  --c400: #7B81A8;
+  --c300: #AFB4CE;
+  --c100: #E4E6F0;
+  --line: #D6D9E8;
+  --surface: #FFFFFF;
+  --soft: #F3F4F9;
+  --ok: #1FA37A;
+  --ok-bg: rgba(31, 163, 122, 0.10);
+  --busy: #E0535F;
+  --busy-bg: rgba(224, 83, 95, 0.10);
+  --warn: #D99A1E;
+  --warn-bg: rgba(217, 154, 30, 0.12);
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: linear-gradient(160deg, #EEF0F8 0%, #DDE1F0 55%, #C9CEE4 100%);
+  color: var(--c900);
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(31, 163, 122, 0.5); }
+  70% { box-shadow: 0 0 0 7px rgba(31, 163, 122, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(31, 163, 122, 0); }
+}
+
+.pulse-dot {
+  animation: pulse-ring 2s infinite;
+}
+
+@keyframes bell-ring {
+  0%, 100% { transform: rotate(0); }
+  10%, 30% { transform: rotate(14deg); }
+  20%, 40% { transform: rotate(-14deg); }
+  50% { transform: rotate(0); }
+}
+
+.bell-ring {
+  animation: bell-ring 1.8s infinite;
+}
