@@ -145,26 +145,21 @@ La base de datos `Billard` cuenta con **13 tablas relacionales** organizadas por
   - [x] Endpoints de mesas, cronómetros y sesiones en FastAPI.
   - [x] Endpoints de pedidos, inventario, caja y alertas.
   - [x] Endpoint centralizado `GET /api/stats-sidebar` para badges en tiempo real.
-- [x] **Fase 3: Entorno 1 (Estructura y Navegación Modular)**
-  - [x] Barra lateral (`Sidebar.tsx`) con badges en tiempo real (mesas activas, pedidos pendientes, stock bajo, estado de caja).
-  - [x] Cabecera dinámica (`Topbar.tsx`) con estado de conexión y timbre de alertas.
-  - [x] Sistema de bloqueo de pantalla por PIN numérico (`ModalPIN.tsx`).
-  - [x] Estructuración de las 7 vistas modulares (`ViewMesas`, `ViewPedidos`, `ViewInventario`, `ViewCaja`, `ViewTorneos`, `ViewReportes`, `ViewConfiguracion`).
-  - [x] Drawer lateral de ventas y pedidos de bar (`DrawerPedidos.tsx`).
-- [ ] **Fase 4: Profundización Módulo por Módulo (Entorno 1)**
-  - [ ] Pulir Módulo 1: Mapa de Mesas (división de cuenta por jugador, pausas y reanudaciones).
-  - [ ] Pulir Módulo 2: Ventas y Pedidos (historial de órdenes, tiempos de entrega e impresión de tickets).
-  - [ ] Pulir Módulo 3: Inventario Bar (kardex completo, mermas y entradas de proveedores).
-  - [ ] Pulir Módulo 4: Caja y Arqueo (cálculo de cambio, billetes, reporte de cuadre y egresos).
-  - [ ] Pulir Módulo 5: Campeonatos (sorteos en vivo, emparejamientos y tablas de posiciones).
+- [x] **Fase 3: Entorno 1 (Diseño Idéntico al Mockup HTML - Paleta Groza)**
+  - [x] Implementación exacta de la paleta "Groza" (#12141F, #232739, #383E5C, #4F5580, #7B81A8, #1FA37A, #E0535F, #D99A1E).
+  - [x] Tipografías oficiales cargadas: `Inter` y `JetBrains Mono` para dígitos de cronómetros y precios.
+  - [x] Barra lateral idéntica (`.sidebar`, `.brand`, `.logo`, `.nav`, `.user-box`).
+  - [x] Cabecera idéntica (`.topbar`, `.status`, `.dot`, `.alert-banner`).
+  - [x] Módulo Mapa de Mesas (`.kpis`, `.toolbar`, `.tabs`, `.card.busy`, `.card.free`, `.card.warn`, `.c-num`, `.timer`, `.hw`, `.chip`, `.players`, `.bill`, `.c-foot`).
+  - [x] Tarjetas de mesa compactas y optimizadas con icono SVG personalizado de billar (`BilliardTableIcon`).
+  - [x] Modal de apertura y modal de liquidación/cobro con desglose y calculadora de vueltas idénticos.
+  - [x] Drawer lateral de catálogo de productos y comanda.
+- [ ] **Fase 4: Perfeccionamiento del Módulo de Mapa de Mesas**
+  - [ ] Sincronización de pausas de cronómetro en base de datos.
+  - [ ] Traslado de cuenta entre mesas (ej. de Mesa 1 a Mesa 3).
+  - [ ] División de cuenta (Split Bill) por jugador individual.
 - [ ] **Fase 5: Entorno 2 (Tablet Kiosco de Mesa)**
   - [ ] Interfaz táctil de 14" para cliente.
-  - [ ] Marcador táctil de carambolas y pedido directo a barra.
-- [ ] **Fase 6: Entorno 3 (Smart TV)**
-  - [ ] Tablero gigante para TV HDMI con actualización en vivo.
-- [ ] **Fase 7: Migración a Supabase y Empaquetado de App**
-  - [ ] Habilitar Supabase Realtime para WebSockets en la nube.
-  - [ ] Empaquetado de la PC de control con Tauri/Electron.
   - [ ] Marcador táctil de carambolas y pedido directo a barra.
 - [ ] **Fase 6: Entorno 3 (Smart TV)**
   - [ ] Tablero gigante para TV HDMI con actualización en vivo.

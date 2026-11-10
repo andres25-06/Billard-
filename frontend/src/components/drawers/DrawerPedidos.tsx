@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { X, ShoppingCart } from 'lucide-react';
+import { X, Beer, Wine, CupSoda, Cookie, Minus, Plus, Trash2, CreditCard } from 'lucide-react';
 import { Mesa } from '../views/ViewMesas';
 
 export interface Producto {
@@ -51,6 +51,7 @@ export default function DrawerPedidos({
 }: DrawerPedidosProps) {
   if (!abierto) return null;
 
+  const mesaActual = mesas.find((m) => m.id === mesaSeleccionada);
   const totalItems = Object.values(canasta).reduce((a, b) => a + b, 0);
   const totalMonto = Object.entries(canasta).reduce((sum, [prodId, qty]) => {
     const prod = productos.find((p) => p.id === prodId);
@@ -62,137 +63,152 @@ export default function DrawerPedidos({
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/40 backdrop-blur-sm">
-      <div className="w-full max-w-2xl bg-white h-full shadow-2xl flex flex-col">
-        {/* Cabecera */}
-        <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-          <div>
-            <h3 className="font-bold text-base text-slate-900">Registrar Pedido / Venta</h3>
-            <p className="text-xs text-slate-500">Selecciona los productos e indica a quién cargarlo</p>
+    <>
+      <div className="overlay" style={{ zIndex: 59 }} onClick={onCerrar}></div>
+      <aside className="drawer">
+        {/* Lado izquierdo: Catálogo de productos */}
+        <section className="cat">
+          <div className="d-head">
+            <div>
+              <h3>Catálogo del bar</h3>
+              <p>Clic para agregar al pedido</p>
+            </div>
           </div>
-          <button onClick={onCerrar} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
 
-        {/* Cargar a Mesa o Barra */}
-        <div className="p-4 bg-slate-50 border-b border-slate-100 flex items-center gap-2 overflow-x-auto">
-          <span className="text-xs font-bold text-slate-500 uppercase flex-shrink-0">Cargar a:</span>
-          <button
-            onClick={() => onSeleccionarMesa('')}
-            className={`px-3 py-1.5 rounded-full text-xs font-bold border transition flex-shrink-0 ${
-              mesaSeleccionada === ''
-                ? 'bg-slate-900 text-white border-slate-900'
-                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'
-            }`}
-          >
-            Venta en Barra
-          </button>
-          {mesas
-            .filter((m) => m.estado === 'en_juego')
-            .map((m) => (
+          <div className="ctabs">
+            <button
+              className={`ctab ${categoriaSeleccionada === '' ? 'active' : ''}`}
+              onClick={() => onSeleccionarCategoria('')}
+            >
+              Todos
+            </button>
+            {categorias.map((c) => (
               <button
-                key={m.id}
-                onClick={() => onSeleccionarMesa(m.id)}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold border transition flex-shrink-0 ${
-                  mesaSeleccionada === m.id
-                    ? 'bg-indigo-600 text-white border-indigo-600'
-                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'
-                }`}
+                key={c.id}
+                className={`ctab ${categoriaSeleccionada === c.id ? 'active' : ''}`}
+                onClick={() => onSeleccionarCategoria(c.id)}
               >
-                Mesa {m.numero}
+                {c.nombre}
               </button>
             ))}
-        </div>
+          </div>
 
-        {/* Selector de Categorías */}
-        <div className="p-3 flex gap-2 border-b border-slate-100 overflow-x-auto">
-          <button
-            onClick={() => onSeleccionarCategoria('')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${
-              categoriaSeleccionada === '' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'
-            }`}
-          >
-            Todos los productos
-          </button>
-          {categorias.map((c) => (
+          <div className="assign">
+            <span style={{ fontSize: '11px', color: 'var(--c400)', marginRight: '6px' }}>Cargar a:</span>
             <button
-              key={c.id}
-              onClick={() => onSeleccionarCategoria(c.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${
-                categoriaSeleccionada === c.id ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'
-              }`}
+              className={`who ${mesaSeleccionada === '' ? 'sel' : ''}`}
+              onClick={() => onSeleccionarMesa('')}
             >
-              {c.nombre}
+              Venta en Barra
             </button>
-          ))}
-        </div>
+            {mesas
+              .filter((m) => m.estado === 'en_juego')
+              .map((m) => (
+                <button
+                  key={m.id}
+                  className={`who ${mesaSeleccionada === m.id ? 'sel' : ''}`}
+                  onClick={() => onSeleccionarMesa(m.id)}
+                >
+                  Mesa {m.numero}
+                </button>
+              ))}
+          </div>
 
-        {/* Lista de Productos */}
-        <div className="flex-1 overflow-y-auto p-4 grid grid-cols-2 gap-3">
-          {productosFiltrados.map((prod) => {
-            const qty = canasta[prod.id] || 0;
-            return (
-              <div
+          <div className="prods">
+            {productosFiltrados.map((prod) => (
+              <button
                 key={prod.id}
-                className="p-3.5 border border-slate-200 rounded-xl flex flex-col justify-between hover:border-indigo-400 transition bg-white shadow-xs"
+                className="prod"
+                onClick={() => onAgregarACanasta(prod.id)}
               >
-                <div>
-                  <h4 className="font-bold text-xs text-slate-900">{prod.nombre}</h4>
-                  <p className="text-xs text-indigo-600 font-mono font-bold mt-0.5">
-                    ${Number(prod.precio_venta).toLocaleString('es-CO')}
-                  </p>
-                  <span className={`text-[10.5px] font-medium ${prod.stock_actual <= 5 ? 'text-rose-500 font-bold' : 'text-slate-400'}`}>
-                    Stock: {prod.stock_actual} {prod.stock_actual <= 5 && '· ¡Bajo!'}
-                  </span>
+                <div className="pi">
+                  <Beer className="w-4 h-4 text-slate-700" />
                 </div>
+                <b>{prod.nombre}</b>
+                <span>${Number(prod.precio_venta).toLocaleString('es-CO')}</span>
+                <small className={prod.stock_actual <= 5 ? 'low' : ''}>
+                  Stock {prod.stock_actual}
+                </small>
+              </button>
+            ))}
+          </div>
+        </section>
 
-                <div className="mt-3 flex items-center justify-between">
-                  <span className="text-xs font-extrabold text-indigo-600 font-mono">
-                    {qty > 0 ? `x${qty}` : ''}
-                  </span>
-                  <div className="flex gap-1.5">
-                    {qty > 0 && (
-                      <button
-                        onClick={() => onQuitarDeCanasta(prod.id)}
-                        className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 font-bold text-xs flex items-center justify-center text-slate-700"
-                      >
-                        -
+        {/* Lado derecho: Comanda / Resumen */}
+        <section className="ord">
+          <div className="d-head">
+            <div className="c-num">{mesaActual ? String(mesaActual.numero).padStart(2, '0') : 'B'}</div>
+            <div>
+              <h3>{mesaActual ? `Comanda · ${mesaActual.nombre}` : 'Venta en Barra'}</h3>
+              <p>{mesaActual ? 'Mesa en juego' : 'Despacho directo'}</p>
+            </div>
+            {mesaActual?.sesion && (
+              <span className="mini-timer">
+                {Math.floor(mesaActual.sesion.minutos_transcurridos / 60)}h {mesaActual.sesion.minutos_transcurridos % 60}m
+              </span>
+            )}
+            <button className="x icon-btn" onClick={onCerrar}>
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="lines">
+            {Object.entries(canasta).length === 0 ? (
+              <p style={{ textAlign: 'center', color: 'var(--c400)', padding: '40px 20px', fontSize: '13px' }}>
+                Selecciona productos del catálogo para armar el pedido
+              </p>
+            ) : (
+              Object.entries(canasta).map(([prodId, qty]) => {
+                const prod = productos.find((p) => p.id === prodId);
+                if (!prod) return null;
+                const sub = Number(prod.precio_venta) * qty;
+
+                return (
+                  <div key={prodId} className="line">
+                    <div className="li">
+                      <b>{prod.nombre}</b>
+                      <small>${Number(prod.precio_venta).toLocaleString('es-CO')} c/u</small>
+                    </div>
+                    <div className="qty">
+                      <button onClick={() => onQuitarDeCanasta(prodId)}>
+                        <Minus className="w-3 h-3" />
                       </button>
-                    )}
-                    <button
-                      onClick={() => onAgregarACanasta(prod.id)}
-                      className="w-7 h-7 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center shadow-xs"
-                    >
-                      +
-                    </button>
+                      <span>{qty}</span>
+                      <button onClick={() => onAgregarACanasta(prodId)}>
+                        <Plus className="w-3 h-3" />
+                      </button>
+                    </div>
+                    <div className="lp">${sub.toLocaleString('es-CO')}</div>
                   </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+                );
+              })
+            )}
+          </div>
 
-        {/* Resumen Canasta y Confirmar */}
-        <div className="p-4 bg-slate-50 border-t border-slate-200 space-y-3">
-          <div className="flex justify-between items-center text-xs">
-            <span className="text-slate-600 font-medium">Unidades en comanda:</span>
-            <span className="font-mono font-bold text-slate-900">{totalItems} unidades</span>
+          <div className="d-tot">
+            <div className="row">
+              <span>Unidades en pedido</span>
+              <b>{totalItems}</b>
+            </div>
+            <div className="total">
+              <span>Total Pedido</span>
+              <b>${totalMonto.toLocaleString('es-CO')}</b>
+            </div>
           </div>
-          <div className="flex justify-between items-center text-sm font-bold">
-            <span className="text-slate-800">Total a cargar:</span>
-            <span className="font-mono text-base text-indigo-600">${totalMonto.toLocaleString('es-CO')}</span>
+
+          <div className="d-actions">
+            <button
+              className="a a-pri"
+              disabled={totalItems === 0}
+              onClick={onEnviarPedido}
+              style={totalItems === 0 ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+            >
+              <CreditCard className="w-4 h-4" />
+              Confirmar y Despachar Pedido
+            </button>
           </div>
-          <button
-            onClick={onEnviarPedido}
-            disabled={totalItems === 0}
-            className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white text-xs font-bold shadow-md transition flex items-center justify-center gap-2"
-          >
-            <ShoppingCart className="w-4 h-4" />
-            Confirmar y Despachar Pedido
-          </button>
-        </div>
-      </div>
-    </div>
+        </section>
+      </aside>
+    </>
   );
 }

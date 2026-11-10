@@ -166,7 +166,7 @@ export default function PCControlPage() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-100 text-slate-900 font-sans">
+    <div className="flex h-screen w-screen overflow-hidden select-none" style={{ width: '100vw', height: '100vh' }}>
       
       {/* 1. Barra Lateral Fija */}
       <Sidebar
@@ -177,7 +177,7 @@ export default function PCControlPage() {
       />
 
       {/* 2. Área Principal */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="main">
         
         {/* Cabecera Superior */}
         <Topbar
@@ -191,7 +191,7 @@ export default function PCControlPage() {
         />
 
         {/* Vista Activa Dinámica */}
-        <main className="flex-1 overflow-y-auto p-8">
+        <main className="content">
           {moduloActivo === 'mesas' && (
             <ViewMesas
               mesas={mesas}
