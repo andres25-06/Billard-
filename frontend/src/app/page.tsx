@@ -214,6 +214,11 @@ export default function PCControlPage() {
           moduloActivo={moduloActivo}
           alertas={alertas}
           onAtenderAlerta={handleAtenderAlerta}
+          onVentaMesa={() => {
+            const primeraEnJuego = mesas.find((m) => m.estado === 'en_juego') || mesas[0];
+            setMesaPedidoSeleccionada(primeraEnJuego ? primeraEnJuego.id : '');
+            setDrawerPedidos(true);
+          }}
           onVentaBarra={() => {
             setMesaPedidoSeleccionada('');
             setDrawerPedidos(true);

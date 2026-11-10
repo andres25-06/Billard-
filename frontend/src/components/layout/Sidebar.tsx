@@ -74,12 +74,7 @@ export default function Sidebar({
           onClick={() => onCambiarModulo('pedidos')}
         >
           <Receipt className="w-4 h-4" />
-          <span>Ventas y pedidos</span>
-          {stats.pedidos_pendientes > 0 && (
-            <span className="count" style={{ background: 'var(--warn)', color: '#fff' }}>
-              {stats.pedidos_pendientes}
-            </span>
-          )}
+          <span>Ventas</span>
         </li>
 
         <li

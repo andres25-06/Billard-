@@ -37,6 +37,28 @@ export interface Categoria {
   nombre: string;
 }
 
+const CATEGORIAS_FALLBACK: Categoria[] = [
+  { id: 'cat-cervezas', nombre: 'Cervezas' },
+  { id: 'cat-licores', nombre: 'Licores' },
+  { id: 'cat-bebidas', nombre: 'Bebidas y Gaseosas' },
+  { id: 'cat-snacks', nombre: 'Snacks y Comida' },
+];
+
+const PRODUCTOS_FALLBACK: Producto[] = [
+  { id: 'pf-1', categoria_id: 'cat-cervezas', nombre: 'Cerveza Poker 330ml', precio_venta: 4500, stock_actual: 48, categoria_nombre: 'Cervezas' },
+  { id: 'pf-2', categoria_id: 'cat-cervezas', nombre: 'Club Colombia Dorada', precio_venta: 5500, stock_actual: 36, categoria_nombre: 'Cervezas' },
+  { id: 'pf-3', categoria_id: 'cat-cervezas', nombre: 'Cerveza Águila Light', precio_venta: 4500, stock_actual: 40, categoria_nombre: 'Cervezas' },
+  { id: 'pf-4', categoria_id: 'cat-cervezas', nombre: 'Coronita 210ml', precio_venta: 7000, stock_actual: 18, categoria_nombre: 'Cervezas' },
+  { id: 'pf-5', categoria_id: 'cat-licores', nombre: 'Media Aguardiente Antioqueño', precio_venta: 48000, stock_actual: 10, categoria_nombre: 'Licores' },
+  { id: 'pf-6', categoria_id: 'cat-licores', nombre: 'Botella Ron Viejo de Caldas', precio_venta: 85000, stock_actual: 6, categoria_nombre: 'Licores' },
+  { id: 'pf-7', categoria_id: 'cat-bebidas', nombre: 'Coca-Cola 400ml', precio_venta: 4000, stock_actual: 24, categoria_nombre: 'Bebidas y Gaseosas' },
+  { id: 'pf-8', categoria_id: 'cat-bebidas', nombre: 'Agua Cristal 600ml', precio_venta: 3000, stock_actual: 30, categoria_nombre: 'Bebidas y Gaseosas' },
+  { id: 'pf-9', categoria_id: 'cat-bebidas', nombre: 'Red Bull Energizante', precio_venta: 9500, stock_actual: 4, categoria_nombre: 'Bebidas y Gaseosas' },
+  { id: 'pf-10', categoria_id: 'cat-snacks', nombre: 'Empanada de Carne', precio_venta: 3500, stock_actual: 15, categoria_nombre: 'Snacks y Comida' },
+  { id: 'pf-11', categoria_id: 'cat-snacks', nombre: 'Papas Margarita Grandes', precio_venta: 4500, stock_actual: 12, categoria_nombre: 'Snacks y Comida' },
+  { id: 'pf-12', categoria_id: 'cat-snacks', nombre: 'Picada Billar (Para 4)', precio_venta: 32000, stock_actual: 5, categoria_nombre: 'Snacks y Comida' },
+];
+
 interface DrawerPedidosProps {
   abierto: boolean;
   onCerrar: () => void;
@@ -99,6 +121,9 @@ export default function DrawerPedidos({
   }, [mesaSeleccionada]);
 
   if (!abierto) return null;
+
+  const categoriasActivas = categorias.length > 0 ? categorias : CATEGORIAS_FALLBACK;
+  const productosActivos = productos.length > 0 ? productos : PRODUCTOS_FALLBACK;
 
   const mesaActual = mesas.find((m) => m.id === mesaSeleccionada);
 
@@ -209,11 +234,11 @@ export default function DrawerPedidos({
   const itemsCanastaArray = Object.entries(canasta);
   const totalItems = itemsCanastaArray.reduce((acc, [, item]) => acc + item.cantidad, 0);
   const totalMonto = itemsCanastaArray.reduce((acc, [, item]) => {
-    const prod = productos.find((p) => p.id === item.productoId);
+    const prod = productosActivos.find((p) => p.id === item.productoId);
     return acc + (prod ? Number(prod.precio_venta) * item.cantidad : 0);
   }, 0);
 
-  const productosFiltrados = productos.filter(
+  const productosFiltrados = productosActivos.filter(
     (p) => !categoriaSeleccionada || p.categoria_id === categoriaSeleccionada
   );
 
@@ -244,7 +269,7 @@ export default function DrawerPedidos({
             </div>
             <div>
               <h3>Catálogo del bar</h3>
-              <p>Clic en un producto para cargarlo al pedido</p>
+              <p>Clic en un producto para cargarlo a la venta</p>
             </div>
           </div>
 
@@ -398,7 +423,7 @@ export default function DrawerPedidos({
             >
               Todos
             </button>
-            {categorias.map((c) => (
+            {categoriasActivas.map((c) => (
               <button
                 key={c.id}
                 type="button"
@@ -438,7 +463,7 @@ export default function DrawerPedidos({
             <div className="c-num">{mesaActual ? String(mesaActual.numero).padStart(2, '0') : 'B'}</div>
             <div className="min-w-0 flex-1">
               <h3 className="truncate">
-                {mesaActual ? `Comanda · Mesa ${mesaActual.numero}` : 'Venta en Barra'}
+                {mesaActual ? `Venta en Mesa ${mesaActual.numero}` : 'Venta en Barra'}
               </h3>
               <p className="truncate">
                 {subtituloMesa}
@@ -470,7 +495,7 @@ export default function DrawerPedidos({
               </div>
             ) : (
               itemsCanastaArray.map(([itemKey, item]) => {
-                const prod = productos.find((p) => p.id === item.productoId);
+                const prod = productosActivos.find((p) => p.id === item.productoId);
                 if (!prod) return null;
                 const sub = Number(prod.precio_venta) * item.cantidad;
 
@@ -519,11 +544,11 @@ export default function DrawerPedidos({
 
           <div className="d-tot">
             <div className="row">
-              <span>Unidades en pedido</span>
+              <span>Unidades en venta</span>
               <b>{totalItems}</b>
             </div>
             <div className="total">
-              <span>Total Pedido</span>
+              <span>Total Venta</span>
               <b>${totalMonto.toLocaleString('es-CO')}</b>
             </div>
           </div>
@@ -537,7 +562,7 @@ export default function DrawerPedidos({
               style={totalItems === 0 ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
             >
               <CreditCard className="w-4 h-4" />
-              Confirmar y Despachar Pedido
+              Registrar Venta
             </button>
           </div>
         </section>

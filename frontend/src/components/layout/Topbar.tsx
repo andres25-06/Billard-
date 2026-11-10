@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Bell, ShoppingCart, Plus } from 'lucide-react';
+import { Bell, ShoppingCart, Utensils } from 'lucide-react';
 import { ModuloId } from './Sidebar';
 
 interface TopbarProps {
@@ -9,6 +9,7 @@ interface TopbarProps {
   alertas: Array<{ id: string; mensaje: string }>;
   onAtenderAlerta: (alertaId: string) => void;
   onVentaBarra: () => void;
+  onVentaMesa?: () => void;
 }
 
 const MODULO_INFO: Record<ModuloId, { titulo: string; subtitulo: string }> = {
@@ -17,8 +18,8 @@ const MODULO_INFO: Record<ModuloId, { titulo: string; subtitulo: string }> = {
     subtitulo: 'Tiempos, marcadores y cuentas en vivo',
   },
   pedidos: {
-    titulo: 'Ventas y comandas',
-    subtitulo: 'Despacho de pedidos, barra y mesas',
+    titulo: 'Ventas',
+    subtitulo: 'Registro de lo vendido · Consultar, editar o eliminar ventas',
   },
   inventario: {
     titulo: 'Inventario del bar',
@@ -47,6 +48,7 @@ export default function Topbar({
   alertas,
   onAtenderAlerta,
   onVentaBarra,
+  onVentaMesa,
 }: TopbarProps) {
   const info = MODULO_INFO[moduloActivo];
 
@@ -73,10 +75,20 @@ export default function Topbar({
         </div>
       )}
 
-      <button className="btn btn-primary" onClick={onVentaBarra}>
-        <ShoppingCart className="w-4 h-4" />
-        Venta en barra
-      </button>
+      {moduloActivo === 'mesas' && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {onVentaMesa && (
+            <button className="btn btn-ghost" onClick={onVentaMesa}>
+              <Utensils className="w-4 h-4" />
+              Venta en mesa
+            </button>
+          )}
+          <button className="btn btn-primary" onClick={onVentaBarra}>
+            <ShoppingCart className="w-4 h-4" />
+            Venta en barra
+          </button>
+        </div>
+      )}
     </header>
   );
 }

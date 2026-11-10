@@ -459,7 +459,7 @@ export default function ViewMesas({
                   <>
                     <button className="a a-sec" onClick={() => onAbrirPedidoMesa(mesa.id)}>
                       <Plus className="w-3.5 h-3.5" />
-                      Pedido
+                      Venta en mesa
                     </button>
                     <button
                       className="a a-pri"
