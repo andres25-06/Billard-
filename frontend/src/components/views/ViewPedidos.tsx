@@ -355,11 +355,42 @@ export default function ViewPedidos() {
     });
   }, [ventas, filtro, busqueda]);
 
+  // Cerrar modal al presionar Escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setVentaSeleccionada(null);
+      }
+    };
+    if (ventaSeleccionada) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [ventaSeleccionada]);
+
   // Al hacer clic en la tarjeta -> Abrir modal mostrando primero 'pedido'
   const handleAbrirTarjeta = (venta: VentaRegistro) => {
     setVentaSeleccionada(venta);
     setVistaModal('pedido');
     setCategoriaActiva('Todos');
+    setMetodoPagoSeleccionado(venta.metodo_pago || 'Efectivo');
+    setEfectivoRecibido(Number(venta.total_pedido));
+    setItemsEdicion(
+      venta.items.map((it) => ({
+        producto_id: it.producto_id || it.id,
+        nombre: it.producto_nombre,
+        cantidad: it.cantidad,
+        precio_unitario: Number(it.precio_unitario),
+        nota: venta.deportista,
+      }))
+    );
+  };
+
+  // Abrir directamente la pestaña de cobro desde la tarjeta
+  const handleAbrirCobro = (e: React.MouseEvent, venta: VentaRegistro) => {
+    e.stopPropagation();
+    setVentaSeleccionada(venta);
+    setVistaModal('cobrar');
     setMetodoPagoSeleccionado(venta.metodo_pago || 'Efectivo');
     setEfectivoRecibido(Number(venta.total_pedido));
     setItemsEdicion(
@@ -522,122 +553,144 @@ export default function ViewPedidos() {
   return (
     <div>
       {/* ================= 1. TARJETAS SUPERIORES DE INDICADORES (KPIs) ================= */}
-      <section className="kpis" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
-        <div className="kpi">
-          <div className="kpi-ic">
-            <TrendingUp className="w-5 h-5" />
-          </div>
-          <div>
-            <span>Total Vendido en el Turno</span>
-            <b>
-              ${kpis.totalVendido.toLocaleString('es-CO')}{' '}
-              <small style={{ fontSize: '11.5px', fontWeight: 500, color: 'var(--c400)' }}>
-                ({ventas.length} cuentas)
-              </small>
-            </b>
-          </div>
-        </div>
-
-        <div className="kpi">
-          <div
-            className="kpi-ic"
-            style={{ background: 'var(--warn-bg)', color: '#B07A0C' }}
-          >
-            <Clock className="w-5 h-5" />
-          </div>
-          <div>
-            <span>Pendiente por Cobrar</span>
-            <b>
-              ${kpis.totalPorCobrar.toLocaleString('es-CO')}{' '}
-              <small style={{ fontSize: '11.5px', fontWeight: 600, color: '#B07A0C' }}>
-                ({kpis.porCobrarCount} abiertas)
-              </small>
-            </b>
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        {/* KPI 1: Total Vendido */}
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-4 flex items-center justify-between hover:shadow-xs hover:-translate-y-0.5 transition-all">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+              <TrendingUp className="w-5 h-5 text-slate-700" />
+            </div>
+            <div>
+              <span className="text-xs font-semibold text-slate-500 block">Total Vendido en el Turno</span>
+              <div className="flex items-baseline gap-2 mt-0.5">
+                <span className="text-xl font-bold font-mono text-slate-900 tracking-tight">
+                  ${kpis.totalVendido.toLocaleString('es-CO')}
+                </span>
+                <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                  {ventas.length} cuentas
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="kpi">
-          <div
-            className="kpi-ic"
-            style={{ background: 'var(--ok-bg)', color: 'var(--ok)' }}
-          >
-            <CheckCircle2 className="w-5 h-5" />
+        {/* KPI 2: Pendiente por Cobrar */}
+        <div className="bg-white rounded-2xl border border-amber-200/90 shadow-2xs p-4 flex items-center justify-between hover:shadow-xs hover:-translate-y-0.5 transition-all bg-gradient-to-br from-white to-amber-50/40">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+              <Clock className="w-5 h-5 text-amber-700" />
+            </div>
+            <div>
+              <span className="text-xs font-semibold text-amber-900 block">Pendiente por Cobrar</span>
+              <div className="flex items-baseline gap-2 mt-0.5">
+                <span className="text-xl font-bold font-mono text-amber-800 tracking-tight">
+                  ${kpis.totalPorCobrar.toLocaleString('es-CO')}
+                </span>
+                <span className="text-[11px] font-bold text-amber-800 bg-amber-100/90 px-2 py-0.5 rounded-full">
+                  {kpis.porCobrarCount} abiertas
+                </span>
+              </div>
+            </div>
           </div>
-          <div>
-            <span>Recaudado / Pagado</span>
-            <b>
-              ${kpis.totalRecaudado.toLocaleString('es-CO')}{' '}
-              <small style={{ fontSize: '11.5px', fontWeight: 600, color: 'var(--ok)' }}>
-                ({kpis.pagadasCount} cobradas)
-              </small>
-            </b>
+        </div>
+
+        {/* KPI 3: Recaudado / Pagado */}
+        <div className="bg-white rounded-2xl border border-emerald-200/90 shadow-2xs p-4 flex items-center justify-between hover:shadow-xs hover:-translate-y-0.5 transition-all bg-gradient-to-br from-white to-[#184A35]/5">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-[#184A35]/10 text-[#184A35] flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-5 h-5 text-[#184A35]" />
+            </div>
+            <div>
+              <span className="text-xs font-semibold text-emerald-950 block">Recaudado / En Caja</span>
+              <div className="flex items-baseline gap-2 mt-0.5">
+                <span className="text-xl font-bold font-mono text-[#184A35] tracking-tight">
+                  ${kpis.totalRecaudado.toLocaleString('es-CO')}
+                </span>
+                <span className="text-[11px] font-bold text-[#184A35] bg-[#184A35]/10 px-2 py-0.5 rounded-full">
+                  {kpis.pagadasCount} cobradas
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* ================= 2. BARRA DE FILTROS Y BÚSQUEDA ================= */}
-      <div className="toolbar" style={{ flexWrap: 'wrap', gap: '12px' }}>
-        <div className="tabs" style={{ flexWrap: 'wrap' }}>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <div className="inline-flex items-center bg-white border border-slate-200/90 rounded-xl p-1 shadow-2xs flex-wrap gap-1">
           <button
             type="button"
             onClick={() => setFiltro('todas')}
-            className={`tab ${filtro === 'todas' ? 'active' : ''}`}
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+              filtro === 'todas'
+                ? 'bg-[#184A35] text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            }`}
           >
             Todas ({ventas.length})
           </button>
           <button
             type="button"
             onClick={() => setFiltro('por_cobrar')}
-            className={`tab ${filtro === 'por_cobrar' ? 'active' : ''}`}
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-all ${
+              filtro === 'por_cobrar'
+                ? 'bg-amber-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            }`}
           >
-            <span className="sd" style={{ background: 'var(--warn)' }} />
+            <span className="w-2 h-2 rounded-full bg-amber-400 inline-block animate-pulse" />
             Por Cobrar ({kpis.porCobrarCount})
           </button>
           <button
             type="button"
             onClick={() => setFiltro('pagadas')}
-            className={`tab ${filtro === 'pagadas' ? 'active' : ''}`}
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-all ${
+              filtro === 'pagadas'
+                ? 'bg-[#184A35] text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            }`}
           >
-            <span className="sd" style={{ background: 'var(--ok)' }} />
+            <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
             Cobradas ({kpis.pagadasCount})
           </button>
           <button
             type="button"
             onClick={() => setFiltro('deportistas')}
-            className={`tab ${filtro === 'deportistas' ? 'active' : ''}`}
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+              filtro === 'deportistas'
+                ? 'bg-[#184A35] text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            }`}
           >
             Deportistas ({kpis.deportistasCount})
           </button>
           <button
             type="button"
             onClick={() => setFiltro('barra')}
-            className={`tab ${filtro === 'barra' ? 'active' : ''}`}
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+              filtro === 'barra'
+                ? 'bg-[#184A35] text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            }`}
           >
             Barra ({kpis.barraCount})
           </button>
         </div>
 
-        <div
-          className="search"
-          style={{
-            width: '300px',
-            padding: '8px 14px',
-            borderRadius: '11px',
-          }}
-        >
-          <Search className="w-4 h-4" />
+        <div className="relative w-full sm:w-72">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            placeholder="Buscar deportista, mesa, barra o código..."
-            style={{ fontSize: '12.5px' }}
+            placeholder="Buscar deportista, mesa o código..."
+            className="w-full bg-white border border-slate-200/90 rounded-xl pl-9 pr-8 py-2 text-xs text-slate-800 placeholder-slate-400 shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#184A35]/30 focus:border-[#184A35]"
           />
           {busqueda && (
             <button
               type="button"
               onClick={() => setBusqueda('')}
-              style={{ color: 'var(--c400)', background: 'transparent' }}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -645,20 +698,17 @@ export default function ViewPedidos() {
         </div>
       </div>
 
-      {/* ================= 3. GRILLA DE TARJETAS COMPACTAS DE VENTAS ================= */}
+      {/* ================= 3. GRILLA DE TARJETAS DE VENTAS ================= */}
       {ventasFiltradas.length === 0 ? (
         <div
-          className="empty"
-          style={{
-            background: 'var(--surface)',
-            padding: '48px 24px',
-          }}
+          className="empty bg-white rounded-2xl border border-slate-200/90 shadow-2xs text-center"
+          style={{ padding: '48px 24px' }}
         >
           <div className="ic" style={{ background: 'var(--c100)', color: 'var(--c600)' }}>
             <Receipt className="w-6 h-6" />
           </div>
-          <h4>No se encontraron cuentas con ese filtro</h4>
-          <p>Prueba seleccionando otra pestaña o buscando otro deportista.</p>
+          <h4 className="text-base font-bold text-slate-800 mt-3">No se encontraron cuentas con ese filtro</h4>
+          <p className="text-xs text-slate-500 mt-1">Prueba seleccionando otra pestaña o buscando otro deportista.</p>
         </div>
       ) : (
         <section
@@ -679,191 +729,128 @@ export default function ViewPedidos() {
               <article
                 key={v.id}
                 onClick={() => handleAbrirTarjeta(v)}
-                className={`card ${esPendiente ? 'warn' : 'free'}`}
-                style={{
-                  cursor: 'pointer',
-                  borderRadius: '15px',
-                }}
+                className={`bg-white rounded-2xl border transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden shadow-2xs hover:shadow-md hover:-translate-y-0.5 group ${
+                  esPendiente
+                    ? 'border-slate-200/90 hover:border-amber-300'
+                    : 'border-slate-200/90 hover:border-[#184A35]/40'
+                }`}
+                style={{ minHeight: '260px' }}
               >
-                {/* Cabecera compacta */}
+                {/* Barra de acento superior */}
                 <div
-                  className="c-head"
-                  style={{
-                    padding: '13px 15px 9px',
-                  }}
-                >
-                  <div className="c-title" style={{ gap: '10px' }}>
+                  className={`h-1.5 w-full ${
+                    esPendiente ? 'bg-amber-400' : 'bg-[#184A35]'
+                  }`}
+                />
+
+                {/* Cabecera */}
+                <div className="p-4 pb-3 flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    {/* Badge Mesa / Barra */}
                     <div
-                      className="c-num"
-                      style={{
-                        width: '34px',
-                        height: '34px',
-                        fontSize: '13px',
-                        borderRadius: '9px',
-                        background: v.mesa_numero ? 'var(--c800)' : 'var(--c600)',
-                      }}
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center font-mono font-bold text-xs shrink-0 shadow-xs text-white ${
+                        v.mesa_numero ? 'bg-[#184A35]' : 'bg-slate-800'
+                      }`}
                     >
                       {v.mesa_numero ? `M${String(v.mesa_numero).padStart(2, '0')}` : 'BAR'}
                     </div>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <h3 style={{ fontSize: '14.5px', lineHeight: 1.2 }}>{v.deportista}</h3>
-                        <span
-                          style={{
-                            fontFamily: 'JetBrains Mono, monospace',
-                            fontSize: '10.5px',
-                            fontWeight: 700,
-                            color: 'var(--c600)',
-                            background: 'var(--soft)',
-                            padding: '1px 6px',
-                            borderRadius: '5px',
-                            border: '1px solid var(--line)',
-                          }}
-                        >
+
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-[14.5px] font-bold text-slate-900 truncate leading-snug group-hover:text-[#184A35] transition-colors">
+                          {v.deportista}
+                        </h3>
+                        <span className="font-mono text-[10.5px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
                           {v.codigo_pedido}
                         </span>
                       </div>
-                      <small style={{ fontSize: '11px', display: 'block', marginTop: '1px' }}>
-                        {v.mesa_numero
-                          ? `Mesa ${v.mesa_numero} · ${v.mesa_tipo}`
-                          : 'Venta en Barra'}{' '}
-                        · {v.hora_registro}
-                      </small>
+                      <p className="text-[11.5px] text-slate-500 font-medium truncate mt-0.5">
+                        {v.mesa_numero ? `Mesa ${v.mesa_numero} · ${v.mesa_tipo || '3 Bandas'}` : 'Venta en Barra'}
+                        <span className="mx-1 text-slate-300">·</span>
+                        <span>{v.hora_registro}</span>
+                      </p>
                     </div>
                   </div>
 
-                  <span
-                    className={`pill ${esPendiente ? 'warn' : 'free'}`}
-                    style={{ padding: '4px 9px', fontSize: '10px' }}
-                  >
-                    <span
-                      className="sd"
-                      style={{
-                        background: esPendiente ? 'var(--warn)' : 'var(--ok)',
-                      }}
-                    />
-                    {esPendiente
-                      ? 'POR COBRAR'
-                      : `PAGADO · ${(v.metodo_pago || 'EFECTIVO').toUpperCase()}`}
-                  </span>
+                  {/* Estado */}
+                  <div className="shrink-0">
+                    {esPendiente ? (
+                      <span className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-800 border border-amber-200/90 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                        Por Cobrar
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-[#184A35] border border-emerald-200/90 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#184A35]" />
+                        Pagado · {(v.metodo_pago || 'Efectivo').toUpperCase()}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
-                {/* Cuerpo compacto */}
-                <div
-                  className="c-body"
-                  style={{
-                    padding: '0 15px 11px',
-                    gap: '8px',
-                  }}
-                >
-                  <div
-                    style={{
-                      background: 'var(--soft)',
-                      border: '1px solid var(--line)',
-                      borderRadius: '10px',
-                      padding: '7px 10px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '3px',
-                    }}
-                  >
+                {/* Resumen de Productos */}
+                <div className="px-4 pb-3 flex-1 flex flex-col justify-between gap-3">
+                  <div className="bg-[#F8FAFC] border border-slate-100 rounded-xl p-2.5 space-y-1.5">
                     {v.items.map((it) => (
-                      <div
-                        key={it.id}
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          fontSize: '12px',
-                          color: 'var(--c800)',
-                        }}
-                      >
-                        <span>
-                          <b
-                            style={{
-                              fontFamily: 'JetBrains Mono, monospace',
-                              color: 'var(--c600)',
-                              marginRight: '5px',
-                            }}
-                          >
+                      <div key={it.id} className="flex items-center justify-between text-xs text-slate-700">
+                        <span className="truncate pr-2 flex items-center">
+                          <span className="font-mono font-bold text-[11px] text-slate-800 bg-white border border-slate-200/90 px-1.5 py-0.5 rounded mr-1.5 shadow-2xs shrink-0">
                             {it.cantidad}×
-                          </b>
-                          {it.producto_nombre}
+                          </span>
+                          <span className="truncate font-medium">{it.producto_nombre}</span>
                         </span>
-                        <span
-                          style={{
-                            fontFamily: 'JetBrains Mono, monospace',
-                            fontWeight: 600,
-                            fontSize: '11.5px',
-                          }}
-                        >
+                        <span className="font-mono font-semibold text-slate-900 shrink-0 text-[11.5px]">
                           ${Number(it.subtotal).toLocaleString('es-CO')}
                         </span>
                       </div>
                     ))}
                   </div>
 
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      paddingTop: '4px',
-                      borderTop: '1px dashed var(--line)',
-                      marginTop: 'auto',
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: '11.5px',
-                        color: 'var(--c400)',
-                        fontWeight: 600,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '5px',
-                      }}
-                    >
-                      <Beer className="w-3.5 h-3.5" />
+                  {/* Fila Total y Unidades */}
+                  <div className="pt-2 border-t border-dashed border-slate-200 flex items-center justify-between">
+                    <span className="text-[11.5px] font-semibold text-slate-500 flex items-center gap-1.5">
+                      <Beer className="w-3.5 h-3.5 text-slate-400" />
                       {totalUnidades} uds.
                     </span>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-                      <span
-                        style={{
-                          fontSize: '10.5px',
-                          color: 'var(--c400)',
-                          fontWeight: 700,
-                          textTransform: 'uppercase',
-                        }}
-                      >
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                         Total:
                       </span>
-                      <b
-                        style={{
-                          fontSize: '18px',
-                          fontWeight: 800,
-                          fontFamily: 'JetBrains Mono, monospace',
-                          color: 'var(--c900)',
-                        }}
-                      >
+                      <span className="text-[18px] font-black font-mono text-slate-900">
                         ${Number(v.total_pedido).toLocaleString('es-CO')}
-                      </b>
+                      </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Pie compacto */}
-                <div
-                  className="c-foot"
-                  style={{
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '8px 15px',
-                    fontSize: '11.5px',
-                    fontWeight: 600,
-                    color: 'var(--c600)',
-                  }}
-                >
-                  <span>Pedido · Detalle · Cobrar</span>
-                  <ChevronRight className="w-4 h-4" />
+                {/* Footer de Acciones Rápidas */}
+                <div className="px-4 py-2.5 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between text-xs font-semibold">
+                  {esPendiente ? (
+                    <>
+                      <span className="text-slate-500 group-hover:text-slate-800 transition-colors flex items-center gap-1">
+                        <span>Editar pedido</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => handleAbrirCobro(e, v)}
+                        className="bg-[#184A35] hover:bg-[#133c2b] text-white text-[11px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-2xs transition-all"
+                      >
+                        <CreditCard className="w-3 h-3" />
+                        <span>Cobrar</span>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-emerald-800 flex items-center gap-1 text-[11px]">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#184A35]" />
+                        <span>Cuenta pagada</span>
+                      </span>
+                      <span className="text-slate-500 group-hover:text-[#184A35] transition-colors flex items-center gap-0.5 text-[11px]">
+                        <span>Ver recibo</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </span>
+                    </>
+                  )}
                 </div>
               </article>
             );
@@ -887,7 +874,7 @@ export default function ViewPedidos() {
               <div
                 className="c-num"
                 style={{
-                  background: ventaSeleccionada.mesa_numero ? 'var(--c800)' : 'var(--c600)',
+                  background: ventaSeleccionada.mesa_numero ? '#184A35' : '#1E293B',
                 }}
               >
                 {ventaSeleccionada.mesa_numero
@@ -934,7 +921,7 @@ export default function ViewPedidos() {
                 <button
                   type="button"
                   onClick={() => setVistaModal('pedido')}
-                  className={`ptab ${vistaModal === 'pedido' ? 'active' : ''}`}
+                  className={`ptab ${vistaModal === 'pedido' ? 'active !bg-[#184A35] !text-white' : ''}`}
                 >
                   <ShoppingBag className="w-4 h-4" />
                   Pedido
@@ -942,7 +929,7 @@ export default function ViewPedidos() {
                 <button
                   type="button"
                   onClick={() => setVistaModal('detalle')}
-                  className={`ptab ${vistaModal === 'detalle' ? 'active' : ''}`}
+                  className={`ptab ${vistaModal === 'detalle' ? 'active !bg-[#184A35] !text-white' : ''}`}
                 >
                   <Receipt className="w-4 h-4" />
                   Detalle
@@ -953,7 +940,7 @@ export default function ViewPedidos() {
                     setEfectivoRecibido(Number(ventaSeleccionada.total_pedido));
                     setVistaModal('cobrar');
                   }}
-                  className={`ptab ${vistaModal === 'cobrar' ? 'active' : ''}`}
+                  className={`ptab ${vistaModal === 'cobrar' ? 'active !bg-[#184A35] !text-white' : ''}`}
                 >
                   <CreditCard className="w-4 h-4" />
                   Cobrar
@@ -1023,6 +1010,7 @@ export default function ViewPedidos() {
                   <button
                     type="button"
                     className="btn btn-ok"
+                    style={{ background: '#184A35' }}
                     onClick={() => {
                       setEfectivoRecibido(Number(ventaSeleccionada.total_pedido));
                       setVistaModal('cobrar');
@@ -1054,7 +1042,7 @@ export default function ViewPedidos() {
                         key={mp.id}
                         type="button"
                         onClick={() => setMetodoPagoSeleccionado(mp.id)}
-                        className={`pay ${metodoPagoSeleccionado === mp.id ? 'sel' : ''}`}
+                        className={`pay ${metodoPagoSeleccionado === mp.id ? 'sel !border-[#184A35] !text-[#184A35] !bg-[#184A35]/5 shadow-xs' : ''}`}
                       >
                         <span>{mp.id}</span>
                         <small>{mp.sub}</small>
@@ -1149,6 +1137,7 @@ export default function ViewPedidos() {
                   <button
                     type="button"
                     className="btn btn-ok"
+                    style={{ background: '#184A35' }}
                     onClick={handleConfirmarCobro}
                   >
                     <Check className="w-4 h-4" />
@@ -1256,7 +1245,7 @@ export default function ViewPedidos() {
                               key={cat}
                               type="button"
                               onClick={() => setCategoriaActiva(cat)}
-                              className={`ctab ${categoriaActiva === cat ? 'active' : ''}`}
+                              className={`ctab ${categoriaActiva === cat ? 'active !bg-[#184A35] !text-white' : ''}`}
                               style={{ padding: '4px 9px', fontSize: '10.5px' }}
                             >
                               {cat}
@@ -1289,8 +1278,8 @@ export default function ViewPedidos() {
                                 padding: '9px 10px',
                                 gap: '4px',
                                 position: 'relative',
-                                borderColor: enLista ? 'var(--c600)' : 'var(--line)',
-                                background: enLista ? '#EEF0F8' : 'var(--surface)',
+                                borderColor: enLista ? '#184A35' : 'var(--line)',
+                                background: enLista ? 'rgba(24, 74, 53, 0.06)' : 'var(--surface)',
                               }}
                             >
                               {enLista && (
@@ -1299,7 +1288,7 @@ export default function ViewPedidos() {
                                     position: 'absolute',
                                     top: '7px',
                                     right: '7px',
-                                    background: 'var(--c600)',
+                                    background: '#184A35',
                                     color: '#fff',
                                     fontSize: '10px',
                                     fontWeight: 700,
@@ -1511,6 +1500,7 @@ export default function ViewPedidos() {
                     disabled={guardandoEdicion}
                     onClick={handleGuardarPedido}
                     className="btn btn-ok"
+                    style={{ background: '#184A35' }}
                   >
                     <Save className="w-4 h-4" />
                     {guardandoEdicion ? 'Guardando...' : 'Guardar Pedido'}
