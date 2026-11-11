@@ -48,10 +48,67 @@ export async function actualizarPuntosJugador(jugadorId: string, delta: number) 
   return res.json();
 }
 
-export async function fetchProductos(categoriaId?: string) {
-  const url = categoriaId ? `${API_BASE}/productos?categoria_id=${categoriaId}` : `${API_BASE}/productos`;
+export async function fetchProductos(categoriaId?: string, incluirInactivos: boolean = true) {
+  const params = new URLSearchParams();
+  if (categoriaId) params.append('categoria_id', categoriaId);
+  if (incluirInactivos) params.append('incluir_inactivos', 'true');
+  const qs = params.toString();
+  const url = qs ? `${API_BASE}/productos?${qs}` : `${API_BASE}/productos`;
   const res = await fetch(url, { cache: 'no-store' });
   if (!res.ok) throw new Error("Error al obtener productos");
+  return res.json();
+}
+
+export async function guardarProducto(data: {
+  nombre: string;
+  categoria_nombre?: string;
+  categoria_id?: string;
+  codigo_barras?: string;
+  precio_venta: number;
+  precio_costo: number;
+  stock_actual?: number;
+  stock_minimo?: number;
+  activo?: boolean;
+}) {
+  const res = await fetch(`${API_BASE}/productos`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || "Error al crear producto");
+  }
+  return res.json();
+}
+
+export async function actualizarProductoApi(productoId: string, data: {
+  nombre: string;
+  precio_venta: number;
+  precio_costo: number;
+  stock_minimo?: number;
+  activo?: boolean;
+}) {
+  const res = await fetch(`${API_BASE}/productos/${productoId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || "Error al actualizar producto");
+  }
+  return res.json();
+}
+
+export async function eliminarProductoApi(productoId: string) {
+  const res = await fetch(`${API_BASE}/productos/${productoId}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || "Error al eliminar producto");
+  }
   return res.json();
 }
 
