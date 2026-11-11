@@ -81,3 +81,4 @@ Para evitar el uso de calculadoras externas y errores humanos, se proveerá un p
   - Desglose por método de pago: Efectivo, Nequi, Daviplata, Tarjetas.
   - Balance de caja: Base inicial, egresos, saldo esperado, saldo contado y diferencia.
   - Espacio de firmas: *Firma Cajero* y *Firma Administrador*.
+

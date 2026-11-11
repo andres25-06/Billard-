@@ -2050,3 +2050,19 @@ button:disabled {
   font-size: 28px;
   font-family: 'JetBrains Mono', monospace;
 }
+
+/* Scrollbar sutil y estilizado para todo el sistema */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.45);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.7);
+}

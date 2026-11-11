@@ -226,8 +226,8 @@ export default function PCControlPage() {
           cajaAbierta={stats.caja_abierta}
         />
 
-        {/* Vista Activa Dinámica con overflow hidden y sin scroll */}
-        <main className="flex-1 overflow-hidden p-4 h-[calc(100vh-65px)]">
+        {/* Vista Activa Dinámica con scroll vertical habilitado */}
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 h-[calc(100vh-65px)]">
           {moduloActivo === 'mesas' && (
             <ViewMesas
               mesas={mesas}
