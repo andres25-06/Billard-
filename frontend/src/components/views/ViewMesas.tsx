@@ -109,6 +109,17 @@ export default function ViewMesas({
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (modalCobrar) setModalCobrar(null);
+        if (modalAbrir) setModalAbrir(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [modalCobrar, modalAbrir]);
+
   const mesasEnJuego = mesas.filter((m) => m.estado === 'en_juego').length;
   const mesaActiva = mesas.find((m) => m.id === mesaSeleccionadaId) || mesas[0];
 
@@ -512,13 +523,13 @@ export default function ViewMesas({
                       gap: '6px',
                       padding: '10px 8px',
                       borderRadius: '12px',
-                      background: '#059669',
+                      background: '#184A35',
                       color: '#FFFFFF',
                       fontWeight: 800,
                       fontSize: '12px',
                       border: 'none',
                       cursor: 'pointer',
-                      boxShadow: '0 2px 6px rgba(5, 150, 105, 0.3)',
+                      boxShadow: '0 2px 6px rgba(24, 74, 53, 0.3)',
                     }}
                   >
                     <CreditCard style={{ width: '15px', height: '15px' }} />
@@ -561,8 +572,14 @@ export default function ViewMesas({
 
       {/* ================= MODALES ================= */}
       {modalAbrir && (
-        <div className="overlay show">
-          <div className="modal">
+        <div
+          onClick={() => setModalAbrir(null)}
+          className="overlay show cursor-pointer"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="modal cursor-default"
+          >
             <div className="m-head">
               <div className="c-num">{String(modalAbrir.numero).padStart(2, '0')}</div>
               <div>
@@ -680,8 +697,12 @@ export default function ViewMesas({
 
       {/* Concepto 2: Panel Lateral Deslizante (Slide-over Drawer POS) Sin Scroll */}
       {modalCobrar && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200">
+        <div
+          onClick={() => setModalCobrar(null)}
+          className="fixed inset-0 z-50 flex justify-end bg-slate-950/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200 cursor-pointer"
+        >
           <aside
+            onClick={(e) => e.stopPropagation()}
             style={{
               width: '440px',
               maxWidth: '92vw',
@@ -695,6 +716,7 @@ export default function ViewMesas({
               position: 'relative',
               animation: 'slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
               overflow: 'hidden',
+              cursor: 'default',
             }}
           >
             {/* Cabecera Compacta del Panel Lateral */}
@@ -714,7 +736,7 @@ export default function ViewMesas({
                       width: '38px',
                       height: '38px',
                       borderRadius: '12px',
-                      background: '#10B981',
+                      background: '#184A35',
                       color: '#FFFFFF',
                       display: 'flex',
                       alignItems: 'center',
@@ -722,7 +744,7 @@ export default function ViewMesas({
                       fontFamily: 'JetBrains Mono',
                       fontWeight: 900,
                       fontSize: '15px',
-                      boxShadow: '0 4px 12px rgba(16, 185, 129, 0.4)',
+                      boxShadow: '0 4px 12px rgba(24, 74, 53, 0.4)',
                     }}
                   >
                     #{String(modalCobrar.numero).padStart(2, '0')}
@@ -980,7 +1002,7 @@ export default function ViewMesas({
                   flex: 2,
                   padding: '12px',
                   borderRadius: '14px',
-                  background: '#059669',
+                  background: '#184A35',
                   color: '#FFFFFF',
                   fontWeight: 800,
                   fontSize: '13px',
@@ -990,7 +1012,7 @@ export default function ViewMesas({
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '6px',
-                  boxShadow: '0 4px 14px rgba(5, 150, 105, 0.4)',
+                  boxShadow: '0 4px 14px rgba(24, 74, 53, 0.4)',
                 }}
               >
                 <Check style={{ width: '16px', height: '16px', strokeWidth: 3 }} />

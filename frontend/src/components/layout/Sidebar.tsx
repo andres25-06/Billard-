@@ -158,30 +158,28 @@ export default function Sidebar({
         className="brand-billar"
         style={{
           fontWeight: 800,
-          fontSize: '22px',
+          fontSize: '17px',
           letterSpacing: '-0.02em',
           margin: '0 0 16px',
           display: 'flex',
           alignItems: 'center',
-          gap: '9px',
+          gap: '10px',
           color: 'var(--ink)',
         }}
       >
-        <svg
-          viewBox="0 0 24 24"
+        <img
+          src="/logo-tocano.jpg"
+          alt="El Encuentro Tocano"
           style={{
-            width: '24px',
-            height: '24px',
-            stroke: 'currentColor',
-            fill: 'none',
-            strokeWidth: 2,
-            strokeLinecap: 'round',
+            width: '32px',
+            height: '32px',
+            borderRadius: '50%',
+            objectFit: 'cover',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+            flexShrink: 0,
           }}
-        >
-          <circle cx="12" cy="12" r="9.5" />
-          <circle cx="12" cy="12" r="3.3" />
-        </svg>
-        Billar Club
+        />
+        <span>El Encuentro Tocano</span>
       </h1>
 
       {/* Profile */}

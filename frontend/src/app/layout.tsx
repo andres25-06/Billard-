@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Billar Club · PC de Control",
+  title: "El Encuentro Tocano · PC de Control",
   description: "Sistema de Control de Mesas, Tiempos, Pedidos y Caja",
 };
 

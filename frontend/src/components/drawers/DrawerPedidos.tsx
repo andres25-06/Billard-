@@ -23,6 +23,8 @@ import {
   Receipt,
   Sparkles,
   Zap,
+  Clock,
+  RotateCcw,
 } from 'lucide-react';
 import { Mesa } from '../views/ViewMesas';
 import { ItemPedidoCanasta } from '@/app/page';
@@ -112,6 +114,19 @@ export default function DrawerPedidos({
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const [cuentasExtra, setCuentasExtra] = useState<{ [mesaId: string]: string[] }>({});
+  const [horaActual, setHoraActual] = useState<string>('');
+
+  useEffect(() => {
+    const actualizarHora = () => {
+      const now = new Date();
+      setHoraActual(
+        now.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true })
+      );
+    };
+    actualizarHora();
+    const interval = setInterval(actualizarHora, 10000);
+    return () => clearInterval(interval);
+  }, [abierto]);
 
   useEffect(() => {
     fetchClientes()
@@ -128,6 +143,17 @@ export default function DrawerPedidos({
     document.addEventListener('mousedown', handleClickAfuera);
     return () => document.removeEventListener('mousedown', handleClickAfuera);
   }, []);
+
+  useEffect(() => {
+    if (!abierto) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onCerrar();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [abierto, onCerrar]);
 
   if (!abierto) return null;
 
@@ -212,13 +238,21 @@ export default function DrawerPedidos({
   // 4 Favoritos / Despacho Rápido
   const productosRapidos = productosActivos.slice(0, 4);
 
+  // Cantidad actual en canasta por producto
+  const getCantidadEnCanasta = (prodId: string) => {
+    return itemsCanastaArray
+      .filter(([, item]) => item.productoId === prodId)
+      .reduce((sum, [, item]) => sum + item.cantidad, 0);
+  };
+
   // Icono dinámico según categoría
   const getCategoriaIcon = (catNombre: string) => {
     const n = catNombre.toLowerCase();
-    if (n.includes('cerveza')) return <Beer className="w-4 h-4" />;
-    if (n.includes('licor')) return <Wine className="w-4 h-4" />;
-    if (n.includes('bebida') || n.includes('gaseosa')) return <CupSoda className="w-4 h-4" />;
-    return <UtensilsCrossed className="w-4 h-4" />;
+    if (n.includes('cerveza')) return <Beer className="w-3.5 h-3.5" />;
+    if (n.includes('licor') || n.includes('botella')) return <Wine className="w-3.5 h-3.5" />;
+    if (n.includes('bebida') || n.includes('gaseosa') || n.includes('agua')) return <CupSoda className="w-3.5 h-3.5" />;
+    if (n.includes('snack') || n.includes('comida') || n.includes('mecato')) return <Flame className="w-3.5 h-3.5" />;
+    return <UtensilsCrossed className="w-3.5 h-3.5" />;
   };
 
   // Badge de color por tipo de producto
@@ -231,55 +265,81 @@ export default function DrawerPedidos({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/50 backdrop-blur-xs transition-opacity animate-in fade-in duration-200 select-none">
+    <div
+      onClick={onCerrar}
+      className="fixed inset-0 z-50 flex justify-end bg-slate-900/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200 select-none cursor-pointer"
+    >
       <div
-        className="h-full w-full max-w-[960px] bg-[#EDF2F7] shadow-2xl flex flex-row overflow-hidden border-l border-slate-300 font-['Urbanist',sans-serif]"
+        onClick={(e) => e.stopPropagation()}
+        className="h-full w-full max-w-[960px] bg-[#EDF2F7] shadow-2xl flex flex-row overflow-hidden border-l border-slate-300 font-['Urbanist',sans-serif] cursor-default"
         style={{ animation: 'slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1)' }}
       >
         {/* ================= LADO IZQUIERDO: TERMINAL DE BAR ================= */}
         <section className="flex-1 flex flex-col h-full bg-[#EDF2F7] border-r border-slate-300 overflow-hidden">
-          {/* Header Superior */}
-          <div className="p-4 bg-white border-b border-slate-300/80 flex items-center justify-between shrink-0 shadow-xs">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#28353E] to-[#45576D] text-white flex items-center justify-center shadow-md">
-                <Store className="w-5 h-5 text-[#AAC7D5]" />
+          {/* Header Superior: Barra & Consumo */}
+          <div className="p-4 bg-white border-b border-slate-200/90 flex items-center justify-between shrink-0 shadow-xs">
+            <div className="flex items-center gap-2.5">
+              {/* Botón Cerrar X al lado del ícono de la copa */}
+              <button
+                type="button"
+                onClick={onCerrar}
+                className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 flex items-center justify-center transition-all shrink-0 active:scale-95 border border-slate-200 shadow-2xs"
+                title="Cerrar ventana (Esc o clic afuera)"
+              >
+                <X className="w-4 h-4 stroke-[2.5]" />
+              </button>
+
+              {/* Ícono de la copa con el color verde billar (#184A35) */}
+              <div className="w-10 h-10 rounded-2xl bg-[#184A35] text-white flex items-center justify-center shadow-sm ring-2 ring-[#184A35]/20 shrink-0">
+                <Wine className="w-5 h-5 text-white" />
               </div>
+
               <div>
-                <h3 className="font-extrabold text-base text-[#28353E] tracking-tight leading-none flex items-center gap-1.5">
-                  Barra & Comandas <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                <h3 className="font-extrabold text-base text-[#184A35] tracking-tight leading-none">
+                  Barra & Consumo
                 </h3>
-                <p className="text-[11px] font-semibold text-slate-500 mt-1">
+                <p className="text-[11px] font-semibold text-slate-400 mt-1">
                   Despacho de licores, bebidas y comida
                 </p>
               </div>
             </div>
 
-            {/* Buscador de Producto */}
-            <div className="relative w-48">
+            {/* Buscador de Producto Limpio */}
+            <div className="relative w-56">
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={busquedaProducto}
                 onChange={(e) => setBusquedaProducto(e.target.value)}
                 placeholder="Buscar cerveza, ron..."
-                className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-100 text-xs font-semibold text-[#28353E] placeholder-slate-400 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#28353E]"
+                className="w-full pl-8 pr-7 py-1.5 rounded-xl bg-slate-100/90 text-xs font-semibold text-slate-800 placeholder-slate-400 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#184A35] focus:bg-white transition-all"
               />
+              {busquedaProducto && (
+                <button
+                  type="button"
+                  onClick={() => setBusquedaProducto('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
             </div>
           </div>
 
           {/* 1. Barra de Herramientas: Destino + Cliente en una sola línea */}
-          <div className="px-5 py-2.5 bg-slate-100/90 border-b border-slate-200 flex items-center justify-between gap-3 shrink-0">
+          <div className="px-5 py-2.5 bg-slate-100/80 border-b border-slate-200/80 flex items-center justify-between gap-3 shrink-0">
             {/* Destino */}
-            <div className="flex items-center gap-1.5 overflow-x-auto">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mr-1 shrink-0">
+            <div className="flex items-center gap-1.5 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+              <span className="text-[10.5px] font-extrabold text-slate-400 uppercase tracking-wider mr-1 shrink-0">
                 Destino:
               </span>
               <button
+                type="button"
                 onClick={() => onSeleccionarMesa('')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all shrink-0 ${
                   mesaSeleccionada === ''
-                    ? 'bg-[#28353E] text-white shadow-xs'
-                    : 'bg-white text-slate-700 hover:bg-slate-200/70 border border-slate-200'
+                    ? 'bg-[#184A35] text-white shadow-xs'
+                    : 'bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-slate-200 shadow-2xs'
                 }`}
               >
                 Barra
@@ -289,11 +349,12 @@ export default function DrawerPedidos({
                 .map((m) => (
                   <button
                     key={m.id}
+                    type="button"
                     onClick={() => onSeleccionarMesa(m.id)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 ${
+                    className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all shrink-0 ${
                       mesaSeleccionada === m.id
-                        ? 'bg-emerald-600 text-white shadow-xs'
-                        : 'bg-white text-slate-700 hover:bg-slate-200/70 border border-slate-200'
+                        ? 'bg-[#184A35] text-white shadow-sm font-black'
+                        : 'bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-slate-200 shadow-2xs'
                     }`}
                   >
                     Mesa {m.numero}
@@ -306,9 +367,9 @@ export default function DrawerPedidos({
               <button
                 type="button"
                 onClick={() => setDropdownClienteAbierto(!dropdownClienteAbierto)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-300 hover:border-slate-400 text-slate-800 text-xs font-bold shadow-xs transition-all"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-slate-200/90 hover:border-slate-300 text-slate-800 text-xs font-extrabold shadow-2xs transition-all"
               >
-                <Users className="w-3.5 h-3.5 text-slate-500" />
+                <Users className="w-3.5 h-3.5 text-emerald-600" />
                 <span>{cuentaActiva === 'Mesa' ? 'Mesa General' : cuentaActiva}</span>
                 <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
               </button>
@@ -377,14 +438,15 @@ export default function DrawerPedidos({
             </div>
           </div>
 
-          {/* 2. Categorías / Filtros limpios */}
-          <div className="px-5 py-2 bg-white border-b border-slate-200 flex items-center gap-2 overflow-x-auto shrink-0">
+          {/* 2. Categorías / Filtros limpios sin scrollbar visible */}
+          <div className="px-5 py-2.5 bg-white border-b border-slate-200/80 flex items-center gap-2 overflow-x-auto shrink-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <button
+              type="button"
               onClick={() => onSeleccionarCategoria('')}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all shrink-0 ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all shrink-0 ${
                 categoriaSeleccionada === ''
-                  ? 'bg-[#28353E] text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  ? 'bg-[#184A35] text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200/80'
               }`}
             >
               Todos ({productosActivos.length})
@@ -392,11 +454,12 @@ export default function DrawerPedidos({
             {categoriasActivas.map((cat) => (
               <button
                 key={cat.id}
+                type="button"
                 onClick={() => onSeleccionarCategoria(cat.id)}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all shrink-0 flex items-center gap-1.5 ${
                   categoriaSeleccionada === cat.id
-                    ? 'bg-[#28353E] text-white shadow-xs'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    ? 'bg-[#184A35] text-white shadow-xs'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200/80'
                 }`}
               >
                 {getCategoriaIcon(cat.nombre)}
@@ -405,94 +468,141 @@ export default function DrawerPedidos({
             ))}
           </div>
 
-          {/* 3. Grid de Productos Limpio y Proporcionado */}
+          {/* 3. Grid de Productos Moderno */}
           <div className="flex-1 p-4 overflow-y-auto">
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5">
-              {productosFiltrados.map((prod) => (
-                <button
-                  key={prod.id}
-                  onClick={() => handleClicProducto(prod.id)}
-                  className="bg-white rounded-xl p-3 border border-slate-200/90 shadow-2xs text-left flex flex-col justify-between hover:border-[#28353E] hover:shadow-xs transition-all active:scale-95 group relative"
-                >
-                  <div className="flex items-start justify-between gap-1 mb-2">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight truncate">
-                      {prod.categoria_nombre || 'Producto'}
-                    </span>
-
-                    <span
-                      className={`text-[9.5px] font-bold px-1.5 py-0.5 rounded-md ${
-                        prod.stock_actual <= 5
-                          ? 'bg-rose-50 text-rose-700 font-extrabold'
-                          : 'bg-slate-100 text-slate-600'
+            {productosFiltrados.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-center p-6 text-slate-400">
+                <Search className="w-8 h-8 text-slate-300 mb-2" />
+                <p className="text-xs font-bold text-slate-600">No se encontraron productos</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">Intenta con otro término o categoría</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5">
+                {productosFiltrados.map((prod) => {
+                  const qtyEnCanasta = getCantidadEnCanasta(prod.id);
+                  return (
+                    <button
+                      key={prod.id}
+                      type="button"
+                      onClick={() => handleClicProducto(prod.id)}
+                      className={`bg-white rounded-2xl p-3 border transition-all active:scale-[0.97] group text-left flex flex-col justify-between shadow-2xs hover:shadow-xs ${
+                        qtyEnCanasta > 0
+                          ? 'border-[#184A35]/80 ring-1 ring-[#184A35]/30 bg-[#184A35]/5'
+                          : 'border-slate-200 hover:border-slate-300'
                       }`}
                     >
-                      Stock {prod.stock_actual}
-                    </span>
-                  </div>
+                      <div className="flex items-start justify-between gap-1 mb-1">
+                        <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-tight truncate">
+                          {prod.categoria_nombre || 'Producto'}
+                        </span>
 
-                  <div>
-                    <h4 className="font-bold text-xs text-slate-800 line-clamp-1 leading-snug group-hover:text-black">
-                      {prod.nombre}
-                    </h4>
-                    <div className="flex items-center justify-between mt-2 pt-1 border-t border-slate-100">
-                      <span className="font-mono font-black text-sm text-[#28353E]">
-                        ${Number(prod.precio_venta).toLocaleString('es-CO')}
-                      </span>
-                      <div className="w-6 h-6 rounded-lg bg-slate-100 text-slate-700 group-hover:bg-[#28353E] group-hover:text-white flex items-center justify-center transition-all">
-                        <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                        <span
+                          className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${
+                            prod.stock_actual <= 5
+                              ? 'bg-rose-50 text-rose-700 border border-rose-200 font-extrabold'
+                              : 'bg-slate-100 text-slate-600'
+                          }`}
+                        >
+                          Stock {prod.stock_actual}
+                        </span>
                       </div>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
+
+                      <div className="my-1">
+                        <h4 className="font-bold text-xs text-slate-800 line-clamp-2 leading-snug group-hover:text-black min-h-[30px] flex items-center">
+                          {prod.nombre}
+                        </h4>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-1.5 border-t border-slate-100">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono font-black text-sm text-[#1E293B]">
+                            ${Number(prod.precio_venta).toLocaleString('es-CO')}
+                          </span>
+                          {qtyEnCanasta > 0 && (
+                            <span className="font-mono font-black text-[10px] px-1.5 py-0.2 rounded-md bg-[#184A35] text-white shadow-2xs">
+                              x{qtyEnCanasta}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="w-6 h-6 rounded-lg bg-slate-100 text-slate-600 group-hover:bg-[#184A35] group-hover:text-white group-hover:shadow-xs flex items-center justify-center transition-all">
+                          <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </section>
 
-        {/* ================= LADO DERECHO: TICKET PERFORADO DE COMANDA ================= */}
-        <section className="w-[370px] bg-white flex flex-col h-full shrink-0 shadow-xl justify-between border-l border-slate-300 relative">
+        {/* ================= LADO DERECHO: TICKET DE COMANDA DE LADO A LADO ================= */}
+        <section className="w-[390px] bg-[#F7F6F2] flex flex-col h-full shrink-0 shadow-2xl justify-between border-l border-slate-300 relative overflow-hidden font-['Urbanist',sans-serif]">
           
-          {/* Cabecera del Ticket */}
-          <div className="p-4 bg-gradient-to-r from-[#28353E] to-[#1E293B] text-white flex items-center justify-between shrink-0 shadow-md">
-            <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-2xl bg-emerald-500 text-white flex items-center justify-center font-mono font-black text-base shadow-sm">
-                {mesaActual ? String(mesaActual.numero).padStart(2, '0') : 'B'}
+          {/* Header Oscuro Superior de Lado a Lado con Bordes Redondeados Sutiles */}
+          <div className="bg-[#18232C] text-white px-5 pt-3 pb-4 relative flex flex-col items-center shrink-0 shadow-md rounded-b-xl">
+            {/* Hora y # Comanda a la derecha */}
+            <div className="absolute right-5 top-4 text-right">
+              <div className="text-[11px] font-semibold text-slate-300 font-mono">
+                {horaActual || '10:45 PM'}
               </div>
-              <div>
-                <h3 className="font-extrabold text-sm text-white tracking-tight leading-none">
-                  {mesaActual ? `Ticket Mesa ${mesaActual.numero}` : 'Venta en Barra'}
-                </h3>
-                <p className="text-[10.5px] font-semibold text-slate-300 mt-1 uppercase tracking-wider">
-                  {mesaActual ? `${mesaActual.tipo.replace('_', ' ')} · Comanda` : 'Despacho directo'}
-                </p>
+              <div className="text-[10px] font-mono font-bold text-slate-400">
+                #CMD-{mesaActual ? String(mesaActual.numero).padStart(2, '0') : '01'}
               </div>
             </div>
 
-            <button
-              onClick={onCerrar}
-              className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition-all"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            {/* Badge Verde Billar Mesa en el centro */}
+            <div className="w-16 h-12 rounded-2xl bg-[#184A35] text-white flex items-center justify-center font-mono font-black text-2xl shadow-lg shadow-[#184A35]/40 mb-2 mt-1 ring-1 ring-white/20">
+              {mesaActual ? String(mesaActual.numero).padStart(2, '0') : 'B'}
+            </div>
+
+            {/* Texto de la mesa debajo del badge */}
+            <span className="text-xs font-bold text-slate-200 tracking-wide">
+              {mesaActual ? `Mesa ${mesaActual.numero} · ${mesaActual.tipo.replace('_', ' ')}` : 'Venta en Barra'}
+            </span>
           </div>
 
-          {/* Borde Perforado Dentado estilo papel térmico */}
-          <div className="w-full h-2 receipt-serrated shrink-0 bg-white" />
+          {/* Membrete del Ticket */}
+          <div className="pt-3 pb-1 flex flex-col items-center justify-center bg-[#F7F6F2] shrink-0">
+            <div className="flex items-center gap-1.5">
+              <img
+                src="/logo-tocano.jpg"
+                alt="El Encuentro Tocano"
+                className="w-5 h-5 rounded-full object-cover shadow-2xs"
+              />
+              <h4 className="font-black text-xs text-[#0F172A] tracking-wider uppercase">
+                EL ENCUENTRO TOCANO
+              </h4>
+            </div>
+            <p className="text-[9.5px] font-bold text-slate-400 tracking-widest uppercase mt-0.5">
+              COMANDA DIGITAL · BILLAR & BAR
+            </p>
+          </div>
 
-          {/* Cuerpo del Recibo: Lista de Ítems */}
-          <div className="flex-1 px-4 py-2 overflow-y-auto flex flex-col gap-2">
+          {/* Muescas laterales de corte superior */}
+          <div className="relative py-2 shrink-0 bg-[#F7F6F2] flex items-center justify-center">
+            <div className="absolute -left-3.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-[#EDF2F7] border border-slate-300/80 shadow-inner" />
+            <div className="w-full border-t border-dashed border-slate-300 mx-6" />
+            <div className="absolute -right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-[#EDF2F7] border border-slate-300/80 shadow-inner" />
+          </div>
+
+          {/* Cuerpo del Recibo de Lado a Lado */}
+          <div className="flex-1 px-5 py-2 overflow-y-auto flex flex-col gap-2.5 bg-[#F7F6F2]">
             {itemsCanastaArray.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-slate-400">
-                <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center mb-3 border border-slate-200 shadow-inner">
-                  <Receipt className="w-7 h-7 text-slate-300" />
+              <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
+                <div className="w-full p-8 rounded-3xl border-2 border-dashed border-slate-300/90 bg-white/70 flex flex-col items-center justify-center shadow-xs">
+                  <div className="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center mb-3 text-slate-500 shadow-inner">
+                    <Receipt className="w-7 h-7 text-slate-400" />
+                  </div>
+                  <b className="text-sm font-extrabold text-[#0F172A]">Ticket Sin Ítems</b>
+                  <span className="text-xs text-slate-500 mt-1 max-w-[220px] leading-relaxed">
+                    Toca bebidas o snacks del menú a la izquierda para agregarlos a esta orden
+                  </span>
                 </div>
-                <b className="text-sm font-bold text-slate-700">Ticket Sin Ítems</b>
-                <span className="text-[11px] text-slate-400 mt-1 max-w-[190px]">
-                  Toca las bebidas del catálogo para incluirlas en la orden
-                </span>
               </div>
             ) : (
-              itemsCanastaArray.map(([itemKey, item]) => {
+              itemsCanastaArray.map(([itemKey, item], index) => {
                 const prod = productosActivos.find((p) => p.id === item.productoId);
                 if (!prod) return null;
                 const sub = Number(prod.precio_venta) * item.cantidad;
@@ -500,85 +610,92 @@ export default function DrawerPedidos({
                 return (
                   <div
                     key={itemKey}
-                    className="flex items-center justify-between p-2.5 rounded-xl bg-[#F8FAFC] border border-slate-200 gap-2 shadow-2xs"
+                    className="p-3 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex flex-col gap-2 hover:shadow-sm transition-all"
                   >
-                    <div className="flex-1 min-w-0">
-                      <h5 className="font-bold text-xs text-[#28353E] truncate leading-tight">
-                        {prod.nombre}
-                      </h5>
-                      <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
-                          {item.cuenta}
+                    {/* Fila Superior: [Index] Nombre ... [- QTY +] */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="w-6 h-6 rounded-lg bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0">
+                          {index + 1}
                         </span>
-                        <span className="font-mono text-[10.5px] text-slate-500">
-                          ${Number(prod.precio_venta).toLocaleString('es-CO')}
+                        <h5 className="font-extrabold text-xs text-slate-900 truncate leading-snug">
+                          {prod.nombre}
+                        </h5>
+                      </div>
+
+                      {/* Pill Stepper [- Qty +] */}
+                      <div className="flex items-center gap-2 border border-slate-200 rounded-xl px-2.5 py-1 bg-slate-50/70 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => onQuitarDeCanasta(itemKey)}
+                          className="text-slate-400 hover:text-slate-900 transition-colors p-0.5 active:scale-90"
+                          title="Restar 1"
+                        >
+                          <Minus className="w-3 h-3 stroke-[2.5]" />
+                        </button>
+                        <span className="font-mono font-black text-xs min-w-[16px] text-center text-slate-900">
+                          {item.cantidad}
                         </span>
+                        <button
+                          type="button"
+                          onClick={() => onAgregarACanasta(item.productoId, item.cuenta, item.jugadorId)}
+                          className="text-slate-400 hover:text-slate-900 transition-colors p-0.5 active:scale-90"
+                          title="Sumar 1"
+                        >
+                          <Plus className="w-3 h-3 stroke-[2.5]" />
+                        </button>
                       </div>
                     </div>
 
-                    {/* Controles + / - */}
-                    <div className="flex items-center gap-1 bg-white px-1.5 py-0.5 rounded-lg border border-slate-300 shrink-0">
-                      <button
-                        onClick={() => onQuitarDeCanasta(itemKey)}
-                        className="w-5 h-5 rounded flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50"
-                      >
-                        <Minus className="w-3 h-3" />
-                      </button>
-                      <span className="font-mono font-black text-xs min-w-[16px] text-center text-[#28353E]">
-                        {item.cantidad}
+                    {/* Fila Inferior: [Píldora Jugador] ... $Precio COP */}
+                    <div className="flex items-center justify-between pt-1 border-t border-slate-100">
+                      <span className="border border-slate-300 rounded-full px-2.5 py-0.5 text-[10px] font-bold text-slate-600 bg-white shadow-2xs">
+                        {item.cuenta}
                       </span>
-                      <button
-                        onClick={() => onAgregarACanasta(item.productoId, item.cuenta, item.jugadorId)}
-                        className="w-5 h-5 rounded flex items-center justify-center text-slate-400 hover:text-emerald-700 hover:bg-emerald-50"
-                      >
-                        <Plus className="w-3 h-3" />
-                      </button>
-                    </div>
 
-                    {/* Subtotal */}
-                    <div className="text-right shrink-0">
-                      <b className="font-mono text-xs font-black text-[#28353E]">
-                        ${sub.toLocaleString('es-CO')}
-                      </b>
+                      <span className="font-mono font-black text-xs text-slate-900">
+                        ${sub.toLocaleString('es-CO')} COP
+                      </span>
                     </div>
-
-                    <button
-                      onClick={() => onEliminarItemCanasta(itemKey)}
-                      className="text-slate-300 hover:text-rose-600 p-1 shrink-0"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
                   </div>
                 );
               })
             )}
           </div>
 
-          {/* Resumen Total y Botón de Envío */}
-          <div className="p-4 bg-[#F8FAFC] border-t border-slate-300 flex flex-col gap-3 shrink-0">
-            <div className="flex justify-between text-xs text-slate-600 font-semibold">
-              <span>Total de unidades:</span>
-              <b className="font-mono text-slate-900">{totalItems}</b>
+          {/* Muescas laterales de corte inferior */}
+          <div className="relative py-2 shrink-0 bg-[#F7F6F2] flex items-center justify-center">
+            <div className="absolute -left-3.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-[#EDF2F7] border border-slate-300/80 shadow-inner" />
+            <div className="w-full border-t border-dashed border-slate-300 mx-6" />
+            <div className="absolute -right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-[#EDF2F7] border border-slate-300/80 shadow-inner" />
+          </div>
+
+          {/* Resumen Total y Botón de Lado a Lado */}
+          <div className="px-5 pt-2 pb-5 bg-[#F7F6F2] flex flex-col gap-2.5 shrink-0 border-t border-slate-200/60">
+            <div className="text-center text-xs font-bold text-slate-500">
+              {totalItems} {totalItems === 1 ? 'Unidad' : 'Unidades'} | Subtotal: ${totalMonto.toLocaleString('es-CO')}
             </div>
 
-            <div className="pt-2 border-t border-slate-200 flex items-center justify-between">
-              <span className="text-xs font-black text-[#28353E] uppercase tracking-wider">Total a Cargar:</span>
-              <span className="text-2xl font-black font-mono text-emerald-700">
-                ${totalMonto.toLocaleString('es-CO')}
+            <div className="text-center py-1">
+              <span className="text-2xl font-black font-mono text-[#0F172A] tracking-tight">
+                TOTAL: ${totalMonto.toLocaleString('es-CO')}
               </span>
             </div>
 
             <button
               disabled={totalItems === 0}
               onClick={onEnviarPedido}
-              className={`w-full py-3.5 px-4 rounded-xl font-black text-xs shadow-md flex items-center justify-center gap-2 transition-all ${
+              className={`w-full py-3.5 px-4 rounded-2xl font-black text-sm shadow-lg flex items-center justify-center gap-2 transition-all ${
                 totalItems > 0
-                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white active:scale-95 shadow-emerald-700/20 cursor-pointer'
-                  : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                  ? 'bg-[#184A35] hover:bg-[#123828] text-white shadow-[#184A35]/35 cursor-pointer active:scale-[0.98]'
+                  : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
               }`}
             >
-              <CreditCard className="w-4 h-4" />
-              <span>Cargar a la Mesa · ${totalMonto.toLocaleString('es-CO')}</span>
+              <span>
+                {mesaActual
+                  ? `Cargar a la Mesa · $${totalMonto.toLocaleString('es-CO')}`
+                  : `Cobrar en Barra · $${totalMonto.toLocaleString('es-CO')}`}
+              </span>
             </button>
           </div>
         </section>
