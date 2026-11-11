@@ -3,21 +3,41 @@
 @tailwind utilities;
 
 :root {
-  /* Paleta "Groza" idéntica al mockup */
-  --c900: #12141F;
-  --c800: #232739;
-  --c700: #383E5C;
-  --c600: #4F5580;
-  --c400: #7B81A8;
-  --c300: #AFB4CE;
-  --c100: #E4E6F0;
-  --line: #D6D9E8;
+  /* Paleta Urbanist Billar Club */
+  --ink: #28353E;
+  --navy: #45576D;
+  --slate: #778B96;
+  --sky: #AAC7D5;
+  --ice: #DFEBF7;
+  --mist: #E7E7E7;
+  --page: #DCE6F0;
+  --panel: #EDF2F7;
+  --text: #28353E;
+  --label: #778B96;
+  --label-hover: #45576D;
+  --card: #28353E;
+  --card-text: #FFFFFF;
+  --card-sub: #AAC7D5;
+  --bar: #28353E;
+  --ring: #FFFFFF;
+  --shadow-out: rgba(120, 140, 160, 0.28);
+  --shadow-in: rgba(255, 255, 255, 0.9);
+
+  /* Compatibilidad con vistas existentes */
+  --c900: #28353E;
+  --c800: #45576D;
+  --c700: #5D7086;
+  --c600: #778B96;
+  --c400: #97A8B3;
+  --c300: #AAC7D5;
+  --c100: #DFEBF7;
+  --line: #D0DCE6;
   --surface: #FFFFFF;
-  --soft: #F3F4F9;
+  --soft: #EDF2F7;
   --ok: #1FA37A;
-  --ok-bg: rgba(31, 163, 122, 0.10);
+  --ok-bg: rgba(31, 163, 122, 0.12);
   --busy: #E0535F;
-  --busy-bg: rgba(224, 83, 95, 0.10);
+  --busy-bg: rgba(224, 83, 95, 0.12);
   --warn: #D99A1E;
   --warn-bg: rgba(217, 154, 30, 0.12);
   --radius: 14px;
@@ -39,14 +59,158 @@ body {
 }
 
 body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background: linear-gradient(160deg, #EEF0F8 0%, #DDE1F0 55%, #C9CEE4 100%);
-  color: var(--c900);
+  font-family: 'Urbanist', system-ui, -apple-system, sans-serif;
+  background: radial-gradient(900px 600px at 20% 10%, var(--ice), transparent 70%), var(--page);
+  color: var(--text);
   display: flex;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Efectos interactivos para Mesa de Billar */
+.billiard-felt {
+  background: radial-gradient(circle at 50% 40%, #1e4d3a 0%, #133427 100%);
+  border: 4px solid #3d2b1f;
+  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.6), 0 4px 12px rgba(0, 0, 0, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.billiard-felt.free {
+  background: radial-gradient(circle at 50% 40%, #204b38 0%, #153526 100%);
+}
+
+.billiard-felt.busy {
+  background: radial-gradient(circle at 50% 30%, #29533f 0%, #112c20 100%);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.7), 0 0 15px rgba(31, 163, 122, 0.25);
+}
+
+.billiard-felt.warn {
+  background: radial-gradient(circle at 50% 30%, #4a4128 0%, #262010 100%);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.7), 0 0 15px rgba(217, 154, 30, 0.25);
+}
+
+/* Bolas de billar interactivas */
+.ball-cue {
+  background: radial-gradient(circle at 35% 35%, #ffffff 0%, #e2e8f0 70%, #94a3b8 100%);
+  box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.4);
+}
+.ball-red {
+  background: radial-gradient(circle at 35% 35%, #f87171 0%, #dc2626 70%, #7f1d1d 100%);
+  box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.4);
+}
+.ball-yellow {
+  background: radial-gradient(circle at 35% 35%, #fde047 0%, #eab308 70%, #854d0e 100%);
+  box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.4);
+}
+.ball-eight {
+  background: radial-gradient(circle at 35% 35%, #475569 0%, #0f172a 70%, #000000 100%);
+  box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* Efecto glow cuando la mesa está en juego */
+@keyframes ambientGlow {
+  0%, 100% { opacity: 0.85; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.02); }
+}
+
+.mesa-glow {
+  animation: ambientGlow 3s ease-in-out infinite;
+}
+
+/* Estilos del Salón de Billar 2D/3D Integrado con la paleta de la aplicación */
+.floor-wood {
+  background-color: var(--panel);
+  background-image: 
+    radial-gradient(circle at 50% 50%, rgba(223, 235, 247, 0.4) 0%, transparent 80%),
+    linear-gradient(rgba(119, 139, 150, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(119, 139, 150, 0.12) 1px, transparent 1px);
+  background-size: 100% 100%, 28px 28px, 28px 28px;
+  position: relative;
+}
+
+/* Efecto haz de luz de lámpara cenital de billar */
+.lamp-beam-active {
+  position: relative;
+}
+.lamp-beam-active::after {
+  content: "";
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle, rgba(250, 204, 21, 0.25) 0%, rgba(250, 204, 21, 0) 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Mesa física de billar en el plano */
+.table-cushion {
+  background: linear-gradient(135deg, #3d2b1f 0%, #24160e 100%);
+  border: 2px solid #5a3d2c;
+  box-shadow: 0 10px 24px var(--shadow-out), inset 0 2px 4px rgba(255, 255, 255, 0.2);
+  border-radius: 14px;
+}
+
+.table-felt-free {
+  background: radial-gradient(circle at 50% 50%, #1e5a40 0%, #0f3625 100%);
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.7);
+}
+
+.table-felt-busy {
+  background: radial-gradient(circle at 50% 50%, #10b981 0%, #065f46 70%, #044432 100%);
+  box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.6), 0 0 20px rgba(16, 185, 129, 0.4);
+}
+
+.table-felt-warn {
+  background: radial-gradient(circle at 50% 50%, #f59e0b 0%, #b45309 70%, #78350f 100%);
+  box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.6), 0 0 20px rgba(245, 158, 11, 0.4);
+}
+
+/* Borde perforado estilo corte de papel térmico para tickets */
+.receipt-serrated {
+  position: relative;
+}
+.receipt-serrated::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background-size: 12px 6px;
+  background-repeat: repeat-x;
+  background-image: linear-gradient(135deg, transparent 50%, #ffffff 50%),
+                    linear-gradient(225deg, transparent 50%, #ffffff 50%);
+}
+
+/* Efecto hover interactivo para productos del catálogo de barra */
+.prod-card-touch {
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.prod-card-touch:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 8px 18px var(--shadow-out);
+  border-color: var(--navy);
+}
+.prod-card-touch:active {
+  transform: scale(0.96);
+}
+.item-billar:hover svg {
+  transform: translateX(3px);
+  stroke: var(--label-hover) !important;
+}
+.item-billar.active svg {
+  transform: translateX(0);
+}
+.hist-billar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 32px var(--shadow-out);
 }
 
 button {

@@ -1,18 +1,6 @@
 'use client';
 
-import React from 'react';
-import {
-  LayoutGrid,
-  Receipt,
-  Package,
-  Wallet,
-  Trophy,
-  BarChart3,
-  Settings,
-  LogOut,
-  CircleDot,
-  Lock,
-} from 'lucide-react';
+import React, { useRef, useEffect, useState } from 'react';
 
 export type ModuloId =
   | 'mesas'
@@ -38,124 +26,414 @@ interface SidebarProps {
   onBloquearTerminal: () => void;
 }
 
+interface MenuItemDef {
+  id: ModuloId;
+  label: string;
+  badge?: number | string | null;
+  badgeType?: 'default' | 'warn';
+  svgPath: React.ReactNode;
+}
+
 export default function Sidebar({
   moduloActivo,
   onCambiarModulo,
   stats,
   onBloquearTerminal,
 }: SidebarProps) {
+  const navRef = useRef<HTMLElement>(null);
+  const activeBtnRef = useRef<HTMLButtonElement>(null);
+  const [barTop, setBarTop] = useState<number>(0);
+
+  const menuItems: MenuItemDef[] = [
+    {
+      id: 'mesas',
+      label: 'Mapa de mesas',
+      badge: stats.mesas_en_juego > 0 ? stats.mesas_en_juego : null,
+      svgPath: (
+        <>
+          <rect x="2.5" y="6" width="19" height="12" rx="3.5" />
+          <circle cx="8" cy="12" r="1.5" />
+          <path d="M13.5 8.5l3.5 7" />
+        </>
+      ),
+    },
+    {
+      id: 'pedidos',
+      label: 'Ventas y pedidos',
+      badge: stats.pedidos_pendientes > 0 ? stats.pedidos_pendientes : null,
+      svgPath: (
+        <>
+          <path d="M6 3h12v18l-3-2-3 2-3-2-3 2z" />
+          <path d="M9 8h6M9 12h6" />
+        </>
+      ),
+    },
+    {
+      id: 'inventario',
+      label: 'Inventario del bar',
+      badge: stats.stock_bajo > 0 ? stats.stock_bajo : null,
+      badgeType: 'warn',
+      svgPath: (
+        <>
+          <path d="M3 8l9-5 9 5v8l-9 5-9-5z" />
+          <path d="M3 8l9 5 9-5M12 13v8" />
+        </>
+      ),
+    },
+    {
+      id: 'caja',
+      label: 'Caja y arqueo',
+      svgPath: (
+        <>
+          <rect x="2.5" y="7" width="19" height="13" rx="3.5" />
+          <path d="M8 7V5.5A2.5 2.5 0 0110.5 3h3A2.5 2.5 0 0116 5.5V7" />
+          <path d="M12 11v5.5M10 13.2c0-1 .9-1.5 2-1.5s2 .5 2 1.4-.9 1.2-2 1.4-2 .5-2 1.4.9 1.5 2 1.5 2-.5 2-1.4" />
+        </>
+      ),
+    },
+    {
+      id: 'torneos',
+      label: 'Torneos',
+      svgPath: (
+        <>
+          <path d="M7 4h10v5a5 5 0 01-10 0z" />
+          <path d="M7 6H4v1a3 3 0 003 3M17 6h3v1a3 3 0 01-3 3M12 14v4M8 21h8" />
+        </>
+      ),
+    },
+    {
+      id: 'reportes',
+      label: 'Reportes',
+      svgPath: (
+        <>
+          <path d="M4 20V11M10 20V4M16 20v-6M22 20H2" />
+        </>
+      ),
+    },
+    {
+      id: 'configuracion',
+      label: 'Ajustes y tarifas',
+      svgPath: (
+        <>
+          <circle cx="12" cy="12" r="3" />
+          <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1" />
+        </>
+      ),
+    },
+  ];
+
+  // Calcular la posición vertical del bar indicador animado dentro del nav
+  useEffect(() => {
+    if (activeBtnRef.current && navRef.current) {
+      const navRect = navRef.current.getBoundingClientRect();
+      const btnRect = activeBtnRef.current.getBoundingClientRect();
+      const y = btnRect.top - navRect.top + (activeBtnRef.current.offsetHeight - 26) / 2;
+      setBarTop(y);
+    }
+  }, [moduloActivo]);
+
   return (
-    <aside className="sidebar">
+    <aside
+      className="panel-billar"
+      style={{
+        width: '280px',
+        maxWidth: '100%',
+        height: '100vh',
+        maxHeight: '100vh',
+        background: 'var(--panel)',
+        padding: '20px 18px 16px 22px',
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'relative',
+        boxSizing: 'border-box',
+        flexShrink: 0,
+        borderRight: '1px solid rgba(120, 140, 160, 0.2)',
+        userSelect: 'none',
+        overflow: 'hidden',
+      }}
+      aria-label="Menú principal"
+    >
       {/* Brand */}
-      <div className="brand">
-        <div className="logo">
-          <CircleDot className="w-5 h-5 text-white" />
-        </div>
-        <div>
-          <h1>BILLAR CHAMO</h1>
-          <small>Sistema de control</small>
-        </div>
+      <h1
+        className="brand-billar"
+        style={{
+          fontWeight: 800,
+          fontSize: '22px',
+          letterSpacing: '-0.02em',
+          margin: '0 0 16px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '9px',
+          color: 'var(--ink)',
+        }}
+      >
+        <svg
+          viewBox="0 0 24 24"
+          style={{
+            width: '24px',
+            height: '24px',
+            stroke: 'currentColor',
+            fill: 'none',
+            strokeWidth: 2,
+            strokeLinecap: 'round',
+          }}
+        >
+          <circle cx="12" cy="12" r="9.5" />
+          <circle cx="12" cy="12" r="3.3" />
+        </svg>
+        Billar Club
+      </h1>
+
+      {/* Profile */}
+      <div
+        className="profile-billar"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          textAlign: 'center',
+          marginBottom: '16px',
+        }}
+      >
+        <svg
+          className="avatar-billar"
+          viewBox="0 0 64 64"
+          aria-hidden="true"
+          style={{
+            width: '48px',
+            height: '48px',
+            borderRadius: '50%',
+            boxShadow: '0 0 0 3px var(--ring), 0 6px 14px var(--shadow-out)',
+            display: 'block',
+          }}
+        >
+          <circle cx="32" cy="32" r="32" fill="#AAC7D5" />
+          <circle cx="32" cy="25" r="10" fill="#F1D5BF" />
+          <path
+            d="M21 24c0-8 6-12 12-11 6 0 10 4 10 11-3-4-8-6-14-5-4 1-6 3-8 5z"
+            fill="#28353E"
+          />
+          <path d="M10 58c2-12 11-18 22-18s20 6 22 18z" fill="#45576D" />
+        </svg>
+        <b
+          style={{
+            fontSize: '17px',
+            fontWeight: 700,
+            marginTop: '8px',
+            letterSpacing: '-0.01em',
+            color: 'var(--text)',
+          }}
+        >
+          Carlos M.
+        </b>
+        <span
+          style={{
+            fontSize: '11.5px',
+            color: 'var(--label)',
+            fontWeight: 500,
+          }}
+        >
+          Cajero · Turno de la tarde
+        </span>
       </div>
 
-      {/* Operación */}
-      <div className="nav-label">Operación</div>
-      <ul className="nav">
-        <li
-          className={moduloActivo === 'mesas' ? 'active' : ''}
-          onClick={() => onCambiarModulo('mesas')}
-        >
-          <LayoutGrid className="w-4 h-4" />
-          <span>Mapa de mesas</span>
-          {stats.mesas_en_juego > 0 && <span className="count">{stats.mesas_en_juego}</span>}
-        </li>
+      {/* Nav List */}
+      <nav
+        ref={navRef}
+        style={{
+          position: 'relative',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '2px',
+          flex: 1,
+          paddingLeft: '10px',
+        }}
+      >
+        {/* Indicador de barra vertical animada situado dentro del nav */}
+        <span
+          className="bar-billar"
+          style={{
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            width: '4px',
+            height: '26px',
+            borderRadius: '0 4px 4px 0',
+            background: 'var(--bar)',
+            transform: `translateY(${barTop}px)`,
+            transition: 'transform 0.25s cubic-bezier(0.3, 0.8, 0.3, 1)',
+          }}
+          aria-hidden="true"
+        />
 
-        <li
-          className={moduloActivo === 'pedidos' ? 'active' : ''}
-          onClick={() => onCambiarModulo('pedidos')}
-        >
-          <Receipt className="w-4 h-4" />
-          <span>Ventas</span>
-        </li>
+        {menuItems.map((item) => {
+          const isActive = moduloActivo === item.id;
+          return (
+            <button
+              key={item.id}
+              ref={isActive ? activeBtnRef : null}
+              type="button"
+              className={`item-billar ${isActive ? 'active' : ''}`}
+              aria-current={isActive ? 'page' : undefined}
+              onClick={() => onCambiarModulo(item.id)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '14px',
+                width: '100%',
+                padding: '8px 6px',
+                border: 0,
+                background: 'none',
+                color: isActive ? 'var(--text)' : 'var(--label)',
+                font: isActive
+                  ? '700 14px "Urbanist", system-ui, sans-serif'
+                  : '600 14px "Urbanist", system-ui, sans-serif',
+                textAlign: 'left',
+                cursor: 'pointer',
+                borderRadius: '8px',
+                transition: 'color 0.15s, transform 0.15s',
+              }}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                style={{
+                  width: '20px',
+                  height: '20px',
+                  flex: 'none',
+                  stroke: isActive ? 'var(--text)' : 'var(--label)',
+                  fill: 'none',
+                  strokeWidth: isActive ? 2 : 1.6,
+                  strokeLinecap: 'round',
+                  strokeLinejoin: 'round',
+                  transition: 'transform 0.15s, stroke 0.15s',
+                }}
+              >
+                {item.svgPath}
+              </svg>
+              <span style={{ flex: 1 }}>{item.label}</span>
 
-        <li
-          className={moduloActivo === 'inventario' ? 'active' : ''}
-          onClick={() => onCambiarModulo('inventario')}
-        >
-          <Package className="w-4 h-4" />
-          <span>Inventario</span>
-          {stats.stock_bajo > 0 && (
-            <span className="count" style={{ background: 'var(--busy)', color: '#fff' }}>
-              {stats.stock_bajo}
-            </span>
-          )}
-        </li>
+              {item.badge && (
+                <span
+                  className={`count-billar ${item.badgeType === 'warn' ? 'warn' : ''}`}
+                  style={{
+                    minWidth: '20px',
+                    height: '20px',
+                    padding: '0 6px',
+                    borderRadius: '99px',
+                    background:
+                      item.badgeType === 'warn' ? '#E3A93F' : 'var(--ink)',
+                    color: item.badgeType === 'warn' ? '#3B2806' : '#fff',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    display: 'grid',
+                    placeItems: 'center',
+                  }}
+                >
+                  {item.badge}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </nav>
 
-        <li
-          className={moduloActivo === 'caja' ? 'active' : ''}
-          onClick={() => onCambiarModulo('caja')}
-        >
-          <Wallet className="w-4 h-4" />
-          <span>Caja y arqueo</span>
-          {stats.caja_abierta && (
-            <span className="count" style={{ background: 'var(--ok)', color: '#fff' }}>
-              Abierto
-            </span>
-          )}
-        </li>
+      {/* Card Inferior: Cerrar Sesión / Bloquear Terminal */}
+      <button
+        className="hist-billar group"
+        type="button"
+        onClick={onBloquearTerminal}
+        style={{
+          marginTop: 'auto',
+          background: 'var(--card)',
+          color: 'var(--card-text)',
+          borderRadius: '18px',
+          padding: '14px 16px',
+          position: 'relative',
+          border: 0,
+          textAlign: 'left',
+          fontFamily: 'inherit',
+          cursor: 'pointer',
+          display: 'block',
+          width: '100%',
+          boxShadow: '0 8px 18px var(--shadow-out)',
+          transition: 'all 0.2s ease',
+        }}
+        title="Cerrar sesión o bloquear terminal de control"
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '10px',
+                background: 'rgba(255, 255, 255, 0.12)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              {/* Icono Cerrar Sesión / Log out */}
+              <svg
+                viewBox="0 0 24 24"
+                style={{
+                  width: '18px',
+                  height: '18px',
+                  stroke: '#FFFFFF',
+                  fill: 'none',
+                  strokeWidth: 2,
+                  strokeLinecap: 'round',
+                  strokeLinejoin: 'round',
+                }}
+              >
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </div>
+            <div>
+              <b
+                style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  color: '#FFFFFF',
+                  lineHeight: 1.2,
+                }}
+              >
+                Cerrar sesión
+              </b>
+              <small
+                style={{
+                  display: 'block',
+                  fontSize: '11px',
+                  color: 'var(--card-sub)',
+                  fontWeight: 500,
+                }}
+              >
+                Bloquear terminal
+              </small>
+            </div>
+          </div>
 
-        <li
-          className={moduloActivo === 'torneos' ? 'active' : ''}
-          onClick={() => onCambiarModulo('torneos')}
-        >
-          <Trophy className="w-4 h-4" />
-          <span>Campeonatos</span>
-          <span className="count" style={{ background: 'var(--ok)', color: '#fff' }}>
-            En vivo
-          </span>
-        </li>
-      </ul>
-
-      {/* Administración */}
-      <div className="nav-label">Administración</div>
-      <ul className="nav">
-        <li
-          className={moduloActivo === 'reportes' ? 'active' : ''}
-          onClick={() => onCambiarModulo('reportes')}
-        >
-          <BarChart3 className="w-4 h-4" />
-          <span>Reportes</span>
-          <span className="end">
-            <Lock className="w-3.5 h-3.5" />
-          </span>
-        </li>
-
-        <li
-          className={moduloActivo === 'configuracion' ? 'active' : ''}
-          onClick={() => onCambiarModulo('configuracion')}
-        >
-          <Settings className="w-4 h-4" />
-          <span>Usuarios y tarifas</span>
-          <span className="end">
-            <Lock className="w-3.5 h-3.5" />
-          </span>
-        </li>
-      </ul>
-
-      {/* Usuario en turno */}
-      <div className="user-box">
-        <div className="avatar">AA</div>
-        <div>
-          <h4>Andrés Ardila</h4>
-          <p>Administrador · Turno {stats.caja_abierta ? 'abierto' : 'cerrado'}</p>
+          {/* Flechita / Indicador */}
+          <svg
+            viewBox="0 0 24 24"
+            style={{
+              width: '16px',
+              height: '16px',
+              stroke: 'var(--card-sub)',
+              fill: 'none',
+              strokeWidth: 2,
+              strokeLinecap: 'round',
+              strokeLinejoin: 'round',
+            }}
+          >
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
         </div>
-        <button
-          className="icon-btn"
-          title="Bloquear / Cerrar sesión (RF-01.3)"
-          onClick={onBloquearTerminal}
-        >
-          <LogOut className="w-4 h-4" />
-        </button>
-      </div>
+      </button>
     </aside>
   );
 }

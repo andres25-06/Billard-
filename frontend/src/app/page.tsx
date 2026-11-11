@@ -196,9 +196,8 @@ export default function PCControlPage() {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden select-none" style={{ width: '100vw', height: '100vh' }}>
-      
-      {/* 1. Barra Lateral Fija */}
+    <div className="w-screen h-screen m-0 p-0 flex flex-row overflow-hidden bg-transparent">
+      {/* 1. Menú lateral izquierdo con el diseño exacto de Billar Club */}
       <Sidebar
         moduloActivo={moduloActivo}
         onCambiarModulo={setModuloActivo}
@@ -206,12 +205,12 @@ export default function PCControlPage() {
         onBloquearTerminal={() => setModalPinAbierto(true)}
       />
 
-      {/* 2. Área Principal */}
-      <div className="main">
-        
-        {/* Cabecera Superior */}
+      {/* 2. Área Principal de Contenido */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden bg-transparent">
+        {/* Cabecera Superior limpia con título del módulo y acciones */}
         <Topbar
           moduloActivo={moduloActivo}
+          onCambiarModulo={setModuloActivo}
           alertas={alertas}
           onAtenderAlerta={handleAtenderAlerta}
           onVentaMesa={() => {
@@ -223,10 +222,12 @@ export default function PCControlPage() {
             setMesaPedidoSeleccionada('');
             setDrawerPedidos(true);
           }}
+          onBloquearTerminal={() => setModalPinAbierto(true)}
+          cajaAbierta={stats.caja_abierta}
         />
 
-        {/* Vista Activa Dinámica */}
-        <main className="content">
+        {/* Vista Activa Dinámica con overflow hidden y sin scroll */}
+        <main className="flex-1 overflow-hidden p-4 h-[calc(100vh-65px)]">
           {moduloActivo === 'mesas' && (
             <ViewMesas
               mesas={mesas}

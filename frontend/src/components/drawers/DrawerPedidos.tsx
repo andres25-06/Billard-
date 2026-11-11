@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   X,
   Beer,
@@ -12,7 +12,17 @@ import {
   Users,
   Search,
   Check,
+  ShoppingCart,
+  ChevronDown,
+  UserCheck,
   UserPlus,
+  Flame,
+  Wine,
+  CupSoda,
+  UtensilsCrossed,
+  Receipt,
+  Sparkles,
+  Zap,
 } from 'lucide-react';
 import { Mesa } from '../views/ViewMesas';
 import { ItemPedidoCanasta } from '@/app/page';
@@ -40,8 +50,8 @@ export interface Categoria {
 const CATEGORIAS_FALLBACK: Categoria[] = [
   { id: 'cat-cervezas', nombre: 'Cervezas' },
   { id: 'cat-licores', nombre: 'Licores' },
-  { id: 'cat-bebidas', nombre: 'Bebidas y Gaseosas' },
-  { id: 'cat-snacks', nombre: 'Snacks y Comida' },
+  { id: 'cat-bebidas', nombre: 'Bebidas' },
+  { id: 'cat-snacks', nombre: 'Snacks' },
 ];
 
 const PRODUCTOS_FALLBACK: Producto[] = [
@@ -51,12 +61,12 @@ const PRODUCTOS_FALLBACK: Producto[] = [
   { id: 'pf-4', categoria_id: 'cat-cervezas', nombre: 'Coronita 210ml', precio_venta: 7000, stock_actual: 18, categoria_nombre: 'Cervezas' },
   { id: 'pf-5', categoria_id: 'cat-licores', nombre: 'Media Aguardiente Antioqueño', precio_venta: 48000, stock_actual: 10, categoria_nombre: 'Licores' },
   { id: 'pf-6', categoria_id: 'cat-licores', nombre: 'Botella Ron Viejo de Caldas', precio_venta: 85000, stock_actual: 6, categoria_nombre: 'Licores' },
-  { id: 'pf-7', categoria_id: 'cat-bebidas', nombre: 'Coca-Cola 400ml', precio_venta: 4000, stock_actual: 24, categoria_nombre: 'Bebidas y Gaseosas' },
-  { id: 'pf-8', categoria_id: 'cat-bebidas', nombre: 'Agua Cristal 600ml', precio_venta: 3000, stock_actual: 30, categoria_nombre: 'Bebidas y Gaseosas' },
-  { id: 'pf-9', categoria_id: 'cat-bebidas', nombre: 'Red Bull Energizante', precio_venta: 9500, stock_actual: 4, categoria_nombre: 'Bebidas y Gaseosas' },
-  { id: 'pf-10', categoria_id: 'cat-snacks', nombre: 'Empanada de Carne', precio_venta: 3500, stock_actual: 15, categoria_nombre: 'Snacks y Comida' },
-  { id: 'pf-11', categoria_id: 'cat-snacks', nombre: 'Papas Margarita Grandes', precio_venta: 4500, stock_actual: 12, categoria_nombre: 'Snacks y Comida' },
-  { id: 'pf-12', categoria_id: 'cat-snacks', nombre: 'Picada Billar (Para 4)', precio_venta: 32000, stock_actual: 5, categoria_nombre: 'Snacks y Comida' },
+  { id: 'pf-7', categoria_id: 'cat-bebidas', nombre: 'Coca-Cola 400ml', precio_venta: 4000, stock_actual: 24, categoria_nombre: 'Bebidas' },
+  { id: 'pf-8', categoria_id: 'cat-bebidas', nombre: 'Agua Cristal 600ml', precio_venta: 3000, stock_actual: 30, categoria_nombre: 'Bebidas' },
+  { id: 'pf-9', categoria_id: 'cat-bebidas', nombre: 'Red Bull Energizante', precio_venta: 9500, stock_actual: 4, categoria_nombre: 'Bebidas' },
+  { id: 'pf-10', categoria_id: 'cat-snacks', nombre: 'Empanada de Carne', precio_venta: 3500, stock_actual: 15, categoria_nombre: 'Snacks' },
+  { id: 'pf-11', categoria_id: 'cat-snacks', nombre: 'Papas Margarita Grandes', precio_venta: 4500, stock_actual: 12, categoria_nombre: 'Snacks' },
+  { id: 'pf-12', categoria_id: 'cat-snacks', nombre: 'Picada Billar (Para 4)', precio_venta: 32000, stock_actual: 5, categoria_nombre: 'Snacks' },
 ];
 
 interface DrawerPedidosProps {
@@ -92,140 +102,95 @@ export default function DrawerPedidos({
   onEliminarItemCanasta,
   onEnviarPedido,
 }: DrawerPedidosProps) {
-  // Cuentas extra añadidas en el drawer
-  const [cuentasExtra, setCuentasExtra] = useState<{ [mesaId: string]: string[] }>({});
-  // Cuentas eliminadas en el drawer
-  const [cuentasEliminadas, setCuentasEliminadas] = useState<{ [mesaId: string]: string[] }>({});
-
-  const [mostrandoInputAgregar, setMostrandoInputAgregar] = useState<boolean>(false);
-  const [nuevoNombreCuenta, setNuevoNombreCuenta] = useState<string>('');
   const [cuentaActiva, setCuentaActiva] = useState<string>('Mesa');
+  const [busquedaProducto, setBusquedaProducto] = useState<string>('');
+  
+  // Dropdown de clientes
+  const [dropdownClienteAbierto, setDropdownClienteAbierto] = useState<boolean>(false);
+  const [busquedaCliente, setBusquedaCliente] = useState<string>('');
+  const [clientesBD, setClientesBD] = useState<Array<{ id: string; nombre: string; apodo?: string; visitas?: number }>>([]);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Clientes/jugadores almacenados en el sistema
-  const [clientesGuardados, setClientesGuardados] = useState<Array<{ id: string; nombre: string; apodo?: string }>>([]);
+  const [cuentasExtra, setCuentasExtra] = useState<{ [mesaId: string]: string[] }>({});
 
   useEffect(() => {
-    if (!abierto) return;
     fetchClientes()
-      .then((data) => {
-        setClientesGuardados(data.clientes || []);
-      })
-      .catch((err) => console.error('Error cargando clientes:', err));
+      .then((res) => setClientesBD(res.clientes || []))
+      .catch((err) => console.error(err));
   }, [abierto]);
 
-  // Al cambiar de mesa, predeterminar 'Mesa'
   useEffect(() => {
-    setCuentaActiva('Mesa');
-    setMostrandoInputAgregar(false);
-    setNuevoNombreCuenta('');
-  }, [mesaSeleccionada]);
+    const handleClickAfuera = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownClienteAbierto(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickAfuera);
+    return () => document.removeEventListener('mousedown', handleClickAfuera);
+  }, []);
 
   if (!abierto) return null;
 
   const categoriasActivas = categorias.length > 0 ? categorias : CATEGORIAS_FALLBACK;
   const productosActivos = productos.length > 0 ? productos : PRODUCTOS_FALLBACK;
-
   const mesaActual = mesas.find((m) => m.id === mesaSeleccionada);
 
-  // Lista consolidada de cuentas de la mesa
-  const eliminadasDeMesa = cuentasEliminadas[mesaSeleccionada] || [];
-  const cuentasMesaActual: { id?: string; nombre: string }[] = [{ nombre: 'Mesa' }];
+  const cuentasSesion =
+    mesaActual?.sesion?.jugadores?.map((j) => ({
+      id: j.id,
+      nombre: j.nombre,
+      puntos: j.puntos_carambolas,
+    })) || [{ id: 'general', nombre: 'Mesa', puntos: 0 }];
 
-  if (mesaActual?.sesion?.jugadores) {
-    mesaActual.sesion.jugadores.forEach((j) => {
-      if (
-        j.nombre &&
-        !eliminadasDeMesa.includes(j.nombre.toLowerCase()) &&
-        !cuentasMesaActual.some((c) => c.nombre.toLowerCase() === j.nombre.toLowerCase())
-      ) {
-        cuentasMesaActual.push({ id: j.id, nombre: j.nombre });
+  const extras = cuentasExtra[mesaSeleccionada] || [];
+  const todasLasCuentasMesa = [
+    ...cuentasSesion,
+    ...extras.map((nombre) => ({ id: `extra-${nombre}`, nombre, puntos: 0 })),
+  ];
+
+  const clientesFiltrados = clientesBD.filter((c) =>
+    c.nombre.toLowerCase().includes(busquedaCliente.toLowerCase())
+  );
+  const existeExacto = clientesBD.some(
+    (c) => c.nombre.toLowerCase() === busquedaCliente.trim().toLowerCase()
+  );
+
+  const handleSeleccionarOCrearCliente = async (nombreCliente: string) => {
+    const limpio = nombreCliente.trim();
+    if (!limpio) return;
+
+    const existe = clientesBD.some((c) => c.nombre.toLowerCase() === limpio.toLowerCase());
+    if (!existe) {
+      try {
+        const res = await guardarCliente(limpio);
+        if (res?.cliente) {
+          setClientesBD((prev) => [res.cliente, ...prev]);
+        }
+      } catch (e) {
+        console.error(e);
       }
-    });
-  }
-
-  (cuentasExtra[mesaSeleccionada] || []).forEach((nombreExtra) => {
-    if (
-      !eliminadasDeMesa.includes(nombreExtra.toLowerCase()) &&
-      !cuentasMesaActual.some((c) => c.nombre.toLowerCase() === nombreExtra.toLowerCase())
-    ) {
-      cuentasMesaActual.push({ nombre: nombreExtra });
-    }
-  });
-
-  const handleGuardarNuevaCuenta = async (nombreAUsar?: string) => {
-    const limpio = (nombreAUsar || nuevoNombreCuenta).trim();
-    if (!limpio) {
-      setMostrandoInputAgregar(false);
-      return;
-    }
-
-    // Quitar de eliminadas si estaba
-    setCuentasEliminadas((prev) => ({
-      ...prev,
-      [mesaSeleccionada]: (prev[mesaSeleccionada] || []).filter((n) => n !== limpio.toLowerCase()),
-    }));
-
-    if (!cuentasMesaActual.some((c) => c.nombre.toLowerCase() === limpio.toLowerCase())) {
-      setCuentasExtra((prev) => ({
-        ...prev,
-        [mesaSeleccionada]: [...(prev[mesaSeleccionada] || []), limpio],
-      }));
-    }
-
-    // Guardar en la base de datos de clientes y en la sesión activa de la mesa
-    try {
-      if (mesaSeleccionada) {
-        await agregarCuentaSesionMesa(mesaSeleccionada, limpio);
-      }
-      const res = await guardarCliente(limpio);
-      if (res?.cliente) {
-        setClientesGuardados((prev) => {
-          if (!prev.some((c) => c.nombre.toLowerCase() === limpio.toLowerCase())) {
-            return [...prev, res.cliente];
-          }
-          return prev;
-        });
-      }
-    } catch (e) {
-      console.error('Error guardando cuenta/cliente en base de datos:', e);
-    }
-
-    setCuentaActiva(limpio);
-    setNuevoNombreCuenta('');
-    setMostrandoInputAgregar(false);
-  };
-
-  const handleEliminarCuenta = async (nombreCuenta: string) => {
-    if (nombreCuenta === 'Mesa') return;
-
-    setCuentasEliminadas((prev) => ({
-      ...prev,
-      [mesaSeleccionada]: [...(prev[mesaSeleccionada] || []), nombreCuenta.toLowerCase()],
-    }));
-
-    setCuentasExtra((prev) => ({
-      ...prev,
-      [mesaSeleccionada]: (prev[mesaSeleccionada] || []).filter(
-        (n) => n.toLowerCase() !== nombreCuenta.toLowerCase()
-      ),
-    }));
-
-    if (cuentaActiva.toLowerCase() === nombreCuenta.toLowerCase()) {
-      setCuentaActiva('Mesa');
     }
 
     if (mesaSeleccionada) {
+      setCuentasExtra((prev) => ({
+        ...prev,
+        [mesaSeleccionada]: Array.from(new Set([...(prev[mesaSeleccionada] || []), limpio])),
+      }));
       try {
-        await eliminarCuentaSesionMesa(mesaSeleccionada, nombreCuenta);
+        await agregarCuentaSesionMesa(mesaSeleccionada, limpio);
       } catch (e) {
-        console.error('Error eliminando cuenta en base de datos:', e);
+        console.error(e);
       }
     }
+
+    setCuentaActiva(limpio);
+    setDropdownClienteAbierto(false);
+    setBusquedaCliente('');
   };
 
   const handleClicProducto = (prodId: string) => {
     const cuentaDestino = mesaSeleccionada ? cuentaActiva : 'Barra';
-    const jugadorObj = cuentasMesaActual.find(
+    const jugadorObj = todasLasCuentasMesa.find(
       (c) => c.nombre.toLowerCase() === cuentaDestino.toLowerCase()
     );
     onAgregarACanasta(prodId, cuentaDestino, jugadorObj?.id);
@@ -238,260 +203,293 @@ export default function DrawerPedidos({
     return acc + (prod ? Number(prod.precio_venta) * item.cantidad : 0);
   }, 0);
 
-  const productosFiltrados = productosActivos.filter(
-    (p) => !categoriaSeleccionada || p.categoria_id === categoriaSeleccionada
-  );
+  const productosFiltrados = productosActivos.filter((p) => {
+    const cumpleCat = !categoriaSeleccionada || p.categoria_id === categoriaSeleccionada;
+    const cumpleBusqueda = !busquedaProducto.trim() || p.nombre.toLowerCase().includes(busquedaProducto.toLowerCase());
+    return cumpleCat && cumpleBusqueda;
+  });
 
-  // Sugerencias de clientes al escribir
-  const sugerenciasClientes = clientesGuardados.filter(
-    (cg) =>
-      cg.nombre.toLowerCase().includes(nuevoNombreCuenta.toLowerCase()) &&
-      !cuentasMesaActual.some((c) => c.nombre.toLowerCase() === cg.nombre.toLowerCase())
-  );
+  // 4 Favoritos / Despacho Rápido
+  const productosRapidos = productosActivos.slice(0, 4);
 
-  const subtituloMesa = mesaActual
-    ? `${(mesaActual.tipo || 'Mesa').replace('_', ' ')} · ${cuentasMesaActual.length} ${cuentasMesaActual.length === 1 ? 'cuenta' : 'cuentas'}`
-    : 'Despacho directo en barra';
+  // Icono dinámico según categoría
+  const getCategoriaIcon = (catNombre: string) => {
+    const n = catNombre.toLowerCase();
+    if (n.includes('cerveza')) return <Beer className="w-4 h-4" />;
+    if (n.includes('licor')) return <Wine className="w-4 h-4" />;
+    if (n.includes('bebida') || n.includes('gaseosa')) return <CupSoda className="w-4 h-4" />;
+    return <UtensilsCrossed className="w-4 h-4" />;
+  };
 
-  const formatoTiempoSesion = mesaActual?.sesion
-    ? `${String(Math.floor(mesaActual.sesion.minutos_transcurridos / 60)).padStart(2, '0')}:${String(mesaActual.sesion.minutos_transcurridos % 60).padStart(2, '0')}`
-    : null;
+  // Badge de color por tipo de producto
+  const getBadgeColor = (prod: Producto) => {
+    const n = prod.categoria_nombre?.toLowerCase() || '';
+    if (n.includes('cerveza')) return 'bg-amber-100 text-amber-800 border-amber-200';
+    if (n.includes('licor')) return 'bg-purple-100 text-purple-800 border-purple-200';
+    if (n.includes('bebida')) return 'bg-blue-100 text-blue-800 border-blue-200';
+    return 'bg-orange-100 text-orange-800 border-orange-200';
+  };
 
   return (
-    <>
-      <div className="overlay" style={{ zIndex: 59 }} onClick={onCerrar}></div>
-      <aside className="drawer">
-        {/* ================= Lado izquierdo: Catálogo de productos ================= */}
-        <section className="cat">
-          <div className="d-head">
-            <div className="kpi-ic" style={{ width: '38px', height: '38px' }}>
-              <Store className="w-5 h-5 text-slate-700" />
+    <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/50 backdrop-blur-xs transition-opacity animate-in fade-in duration-200 select-none">
+      <div
+        className="h-full w-full max-w-[960px] bg-[#EDF2F7] shadow-2xl flex flex-row overflow-hidden border-l border-slate-300 font-['Urbanist',sans-serif]"
+        style={{ animation: 'slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1)' }}
+      >
+        {/* ================= LADO IZQUIERDO: TERMINAL DE BAR ================= */}
+        <section className="flex-1 flex flex-col h-full bg-[#EDF2F7] border-r border-slate-300 overflow-hidden">
+          {/* Header Superior */}
+          <div className="p-4 bg-white border-b border-slate-300/80 flex items-center justify-between shrink-0 shadow-xs">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#28353E] to-[#45576D] text-white flex items-center justify-center shadow-md">
+                <Store className="w-5 h-5 text-[#AAC7D5]" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-base text-[#28353E] tracking-tight leading-none flex items-center gap-1.5">
+                  Barra & Comandas <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                </h3>
+                <p className="text-[11px] font-semibold text-slate-500 mt-1">
+                  Despacho de licores, bebidas y comida
+                </p>
+              </div>
             </div>
-            <div>
-              <h3>Catálogo del bar</h3>
-              <p>Clic en un producto para cargarlo a la venta</p>
+
+            {/* Buscador de Producto */}
+            <div className="relative w-48">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={busquedaProducto}
+                onChange={(e) => setBusquedaProducto(e.target.value)}
+                placeholder="Buscar cerveza, ron..."
+                className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-100 text-xs font-semibold text-[#28353E] placeholder-slate-400 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#28353E]"
+              />
             </div>
           </div>
 
-          {/* 1. Selector de Destino (Venta en Barra o Mesas en juego) */}
-          <div className="assign" style={{ borderBottom: '1px solid var(--line)', background: '#F8F9FD' }}>
-            <span className="assign-label">
-              <Store className="w-3.5 h-3.5" /> Destino:
-            </span>
-            <button
-              type="button"
-              className={`who ${mesaSeleccionada === '' ? 'sel' : ''}`}
-              onClick={() => onSeleccionarMesa('')}
-            >
-              Venta en Barra
-            </button>
-            {mesas
-              .filter((m) => m.estado === 'en_juego')
-              .map((m) => (
-                <button
-                  key={m.id}
-                  type="button"
-                  className={`who ${mesaSeleccionada === m.id ? 'sel' : ''}`}
-                  onClick={() => onSeleccionarMesa(m.id)}
-                >
-                  Mesa {m.numero}
-                </button>
-              ))}
-          </div>
-
-          {/* 2. Selector de Cuenta / Jugador con opción de Quitar y Buscar/Agregar */}
-          {mesaActual ? (
-            <div className="assign relative">
-              <span className="assign-label">
-                <Users className="w-3.5 h-3.5" /> Asignar a:
+          {/* 1. Barra de Herramientas: Destino + Cliente en una sola línea */}
+          <div className="px-5 py-2.5 bg-slate-100/90 border-b border-slate-200 flex items-center justify-between gap-3 shrink-0">
+            {/* Destino */}
+            <div className="flex items-center gap-1.5 overflow-x-auto">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mr-1 shrink-0">
+                Destino:
               </span>
-              {cuentasMesaActual.map((c) => (
-                <div
-                  key={c.nombre}
-                  onClick={() => setCuentaActiva(c.nombre)}
-                  className={`who ${cuentaActiva.toLowerCase() === c.nombre.toLowerCase() ? 'sel' : ''}`}
-                >
-                  <span>{c.nombre === 'Mesa' ? 'Mesa (General)' : c.nombre}</span>
-                  {c.nombre !== 'Mesa' && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEliminarCuenta(c.nombre);
-                      }}
-                      className="ml-1 text-slate-400 hover:text-red-500 rounded-full p-0.5 transition"
-                      title={`Quitar ${c.nombre} de esta comanda`}
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  )}
-                </div>
-              ))}
+              <button
+                onClick={() => onSeleccionarMesa('')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 ${
+                  mesaSeleccionada === ''
+                    ? 'bg-[#28353E] text-white shadow-xs'
+                    : 'bg-white text-slate-700 hover:bg-slate-200/70 border border-slate-200'
+                }`}
+              >
+                Barra
+              </button>
+              {mesas
+                .filter((m) => m.estado === 'en_juego')
+                .map((m) => (
+                  <button
+                    key={m.id}
+                    onClick={() => onSeleccionarMesa(m.id)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 ${
+                      mesaSeleccionada === m.id
+                        ? 'bg-emerald-600 text-white shadow-xs'
+                        : 'bg-white text-slate-700 hover:bg-slate-200/70 border border-slate-200'
+                    }`}
+                  >
+                    Mesa {m.numero}
+                  </button>
+                ))}
+            </div>
 
-              {!mostrandoInputAgregar ? (
-                <button
-                  type="button"
-                  className="who-add"
-                  onClick={() => {
-                    setMostrandoInputAgregar(true);
-                    setNuevoNombreCuenta('');
-                  }}
-                  title="Buscar o agregar nuevo jugador/cliente"
-                >
-                  <Plus className="w-3 h-3" />
-                  Agregar / Buscar jugador
-                </button>
-              ) : (
-                <div className="relative">
-                  <div className="flex items-center gap-1.5 bg-white border border-indigo-400 rounded-full px-3 py-1 shadow-md">
-                    <Search className="w-3.5 h-3.5 text-slate-400" />
+            {/* Selector de Cliente */}
+            <div className="relative shrink-0" ref={dropdownRef}>
+              <button
+                type="button"
+                onClick={() => setDropdownClienteAbierto(!dropdownClienteAbierto)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-300 hover:border-slate-400 text-slate-800 text-xs font-bold shadow-xs transition-all"
+              >
+                <Users className="w-3.5 h-3.5 text-slate-500" />
+                <span>{cuentaActiva === 'Mesa' ? 'Mesa General' : cuentaActiva}</span>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+              </button>
+
+              {dropdownClienteAbierto && (
+                <div className="absolute right-0 top-10 z-50 w-64 bg-white rounded-xl shadow-xl border border-slate-200 p-2 animate-in fade-in duration-150">
+                  <div className="relative mb-2">
+                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
                     <input
                       autoFocus
-                      value={nuevoNombreCuenta}
-                      onChange={(e) => setNuevoNombreCuenta(e.target.value)}
+                      type="text"
+                      value={busquedaCliente}
+                      onChange={(e) => setBusquedaCliente(e.target.value)}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          handleGuardarNuevaCuenta();
-                        } else if (e.key === 'Escape') {
-                          setMostrandoInputAgregar(false);
+                        if (e.key === 'Enter' && busquedaCliente.trim()) {
+                          handleSeleccionarOCrearCliente(busquedaCliente);
                         }
                       }}
-                      placeholder="Buscar o escribir nombre..."
-                      className="text-xs bg-transparent outline-none w-36 text-slate-800"
+                      placeholder="Buscar o registrar..."
+                      className="w-full pl-8 pr-2 py-1.5 rounded-lg bg-slate-50 text-xs font-semibold text-slate-800 placeholder-slate-400 border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#28353E]"
                     />
-                    <button
-                      type="button"
-                      onClick={() => handleGuardarNuevaCuenta()}
-                      className="text-xs font-bold text-emerald-600 hover:text-emerald-700 px-1"
-                      title="Guardar jugador"
-                    >
-                      OK
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setMostrandoInputAgregar(false)}
-                      className="text-slate-400 hover:text-slate-600"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
                   </div>
 
-                  {/* Autocompletado de jugadores almacenados */}
-                  {nuevoNombreCuenta.trim().length > 0 && sugerenciasClientes.length > 0 && (
-                    <div className="absolute top-8 left-0 z-50 bg-white border border-slate-200 rounded-xl shadow-xl w-48 overflow-hidden py-1">
-                      <div className="px-2.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50">
-                        Jugadores guardados:
-                      </div>
-                      {sugerenciasClientes.slice(0, 4).map((cg) => (
-                        <div
-                          key={cg.id}
-                          onClick={() => handleGuardarNuevaCuenta(cg.nombre)}
-                          className="px-3 py-1.5 text-xs text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer flex justify-between items-center"
-                        >
-                          <span className="font-semibold">{cg.nombre}</span>
-                          {cg.apodo && <small className="text-slate-400">"{cg.apodo}"</small>}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <div className="flex flex-col gap-0.5 max-h-48 overflow-y-auto">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCuentaActiva('Mesa');
+                        setDropdownClienteAbierto(false);
+                      }}
+                      className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold text-left transition-all ${
+                        cuentaActiva === 'Mesa' ? 'bg-[#28353E] text-white font-bold' : 'text-slate-700 hover:bg-slate-100'
+                      }`}
+                    >
+                      <span>Mesa General</span>
+                      {cuentaActiva === 'Mesa' && <Check className="w-3.5 h-3.5" />}
+                    </button>
+
+                    {clientesFiltrados.slice(0, 6).map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => handleSeleccionarOCrearCliente(c.nombre)}
+                        className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold text-left transition-all ${
+                          cuentaActiva.toLowerCase() === c.nombre.toLowerCase() ? 'bg-[#28353E] text-white font-bold' : 'text-slate-700 hover:bg-slate-100'
+                        }`}
+                      >
+                        <span className="truncate">{c.nombre}</span>
+                        {cuentaActiva.toLowerCase() === c.nombre.toLowerCase() && <Check className="w-3.5 h-3.5" />}
+                      </button>
+                    ))}
+
+                    {busquedaCliente.trim() && !existeExacto && (
+                      <button
+                        type="button"
+                        onClick={() => handleSeleccionarOCrearCliente(busquedaCliente)}
+                        className="mt-1 flex items-center justify-center gap-1.5 p-2 rounded-lg bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 text-xs font-bold transition-all"
+                      >
+                        <UserPlus className="w-3.5 h-3.5" />
+                        <span>Crear "{busquedaCliente.trim()}"</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
-          ) : (
-            <div className="assign" style={{ fontSize: '11px', color: 'var(--c400)' }}>
-              <span>Despacho directo en mostrador de barra</span>
-            </div>
-          )}
+          </div>
 
-          {/* 3. Indicador visible de a quién se le carga el próximo consumo */}
-          {mesaActual && (
-            <div style={{ padding: '6px 18px 2px', fontSize: '11.5px', color: 'var(--c400)' }}>
-              Cargando productos a:{' '}
-              <span className="font-semibold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-md border border-indigo-100">
-                {cuentaActiva === 'Mesa' ? 'Mesa (Cuenta General)' : cuentaActiva}
-              </span>
-            </div>
-          )}
-
-          {/* 4. Categorías con scroll horizontal */}
-          <div className="ctabs">
+          {/* 2. Categorías / Filtros limpios */}
+          <div className="px-5 py-2 bg-white border-b border-slate-200 flex items-center gap-2 overflow-x-auto shrink-0">
             <button
-              type="button"
-              className={`ctab ${categoriaSeleccionada === '' ? 'active' : ''}`}
               onClick={() => onSeleccionarCategoria('')}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all shrink-0 ${
+                categoriaSeleccionada === ''
+                  ? 'bg-[#28353E] text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
             >
-              Todos
+              Todos ({productosActivos.length})
             </button>
-            {categoriasActivas.map((c) => (
+            {categoriasActivas.map((cat) => (
               <button
-                key={c.id}
-                type="button"
-                className={`ctab ${categoriaSeleccionada === c.id ? 'active' : ''}`}
-                onClick={() => onSeleccionarCategoria(c.id)}
+                key={cat.id}
+                onClick={() => onSeleccionarCategoria(cat.id)}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+                  categoriaSeleccionada === cat.id
+                    ? 'bg-[#28353E] text-white shadow-xs'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
               >
-                {c.nombre}
+                {getCategoriaIcon(cat.nombre)}
+                <span>{cat.nombre}</span>
               </button>
             ))}
           </div>
 
-          {/* 5. Catálogo de productos */}
-          <div className="prods">
-            {productosFiltrados.map((prod) => (
-              <button
-                key={prod.id}
-                type="button"
-                className="prod"
-                onClick={() => handleClicProducto(prod.id)}
-              >
-                <div className="pi">
-                  <Beer className="w-4 h-4 text-slate-700" />
-                </div>
-                <b>{prod.nombre}</b>
-                <span>${Number(prod.precio_venta).toLocaleString('es-CO')}</span>
-                <small className={prod.stock_actual <= 5 ? 'low' : ''}>
-                  Stock {prod.stock_actual}
-                </small>
-              </button>
-            ))}
+          {/* 3. Grid de Productos Limpio y Proporcionado */}
+          <div className="flex-1 p-4 overflow-y-auto">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5">
+              {productosFiltrados.map((prod) => (
+                <button
+                  key={prod.id}
+                  onClick={() => handleClicProducto(prod.id)}
+                  className="bg-white rounded-xl p-3 border border-slate-200/90 shadow-2xs text-left flex flex-col justify-between hover:border-[#28353E] hover:shadow-xs transition-all active:scale-95 group relative"
+                >
+                  <div className="flex items-start justify-between gap-1 mb-2">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight truncate">
+                      {prod.categoria_nombre || 'Producto'}
+                    </span>
+
+                    <span
+                      className={`text-[9.5px] font-bold px-1.5 py-0.5 rounded-md ${
+                        prod.stock_actual <= 5
+                          ? 'bg-rose-50 text-rose-700 font-extrabold'
+                          : 'bg-slate-100 text-slate-600'
+                      }`}
+                    >
+                      Stock {prod.stock_actual}
+                    </span>
+                  </div>
+
+                  <div>
+                    <h4 className="font-bold text-xs text-slate-800 line-clamp-1 leading-snug group-hover:text-black">
+                      {prod.nombre}
+                    </h4>
+                    <div className="flex items-center justify-between mt-2 pt-1 border-t border-slate-100">
+                      <span className="font-mono font-black text-sm text-[#28353E]">
+                        ${Number(prod.precio_venta).toLocaleString('es-CO')}
+                      </span>
+                      <div className="w-6 h-6 rounded-lg bg-slate-100 text-slate-700 group-hover:bg-[#28353E] group-hover:text-white flex items-center justify-center transition-all">
+                        <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
         </section>
 
-        {/* ================= Lado derecho: Comanda / Resumen ================= */}
-        <section className="ord">
-          <div className="d-head">
-            <div className="c-num">{mesaActual ? String(mesaActual.numero).padStart(2, '0') : 'B'}</div>
-            <div className="min-w-0 flex-1">
-              <h3 className="truncate">
-                {mesaActual ? `Venta en Mesa ${mesaActual.numero}` : 'Venta en Barra'}
-              </h3>
-              <p className="truncate">
-                {subtituloMesa}
-              </p>
+        {/* ================= LADO DERECHO: TICKET PERFORADO DE COMANDA ================= */}
+        <section className="w-[370px] bg-white flex flex-col h-full shrink-0 shadow-xl justify-between border-l border-slate-300 relative">
+          
+          {/* Cabecera del Ticket */}
+          <div className="p-4 bg-gradient-to-r from-[#28353E] to-[#1E293B] text-white flex items-center justify-between shrink-0 shadow-md">
+            <div className="flex items-center gap-2.5">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-500 text-white flex items-center justify-center font-mono font-black text-base shadow-sm">
+                {mesaActual ? String(mesaActual.numero).padStart(2, '0') : 'B'}
+              </div>
+              <div>
+                <h3 className="font-extrabold text-sm text-white tracking-tight leading-none">
+                  {mesaActual ? `Ticket Mesa ${mesaActual.numero}` : 'Venta en Barra'}
+                </h3>
+                <p className="text-[10.5px] font-semibold text-slate-300 mt-1 uppercase tracking-wider">
+                  {mesaActual ? `${mesaActual.tipo.replace('_', ' ')} · Comanda` : 'Despacho directo'}
+                </p>
+              </div>
             </div>
-            {formatoTiempoSesion ? (
-              <span className="mini-timer" title="Tiempo de juego">
-                {formatoTiempoSesion}
-              </span>
-            ) : null}
+
             <button
-              type="button"
               onClick={onCerrar}
-              className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 border border-slate-200/80 flex items-center justify-center transition-colors flex-shrink-0 ml-1 cursor-pointer"
-              title="Cerrar comanda"
+              className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition-all"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
-          <div className="lines">
+          {/* Borde Perforado Dentado estilo papel térmico */}
+          <div className="w-full h-2 receipt-serrated shrink-0 bg-white" />
+
+          {/* Cuerpo del Recibo: Lista de Ítems */}
+          <div className="flex-1 px-4 py-2 overflow-y-auto flex flex-col gap-2">
             {itemsCanastaArray.length === 0 ? (
-              <div style={{ textAlign: 'center', color: 'var(--c400)', padding: '50px 20px', fontSize: '13px' }}>
-                <Store className="w-8 h-8 mx-auto mb-2 text-slate-300" />
-                <p className="font-semibold text-slate-600">Comanda vacía</p>
-                <small className="block text-slate-400 mt-1">
-                  Selecciona la cuenta y haz clic en los productos para agregarlos
-                </small>
+              <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-slate-400">
+                <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center mb-3 border border-slate-200 shadow-inner">
+                  <Receipt className="w-7 h-7 text-slate-300" />
+                </div>
+                <b className="text-sm font-bold text-slate-700">Ticket Sin Ítems</b>
+                <span className="text-[11px] text-slate-400 mt-1 max-w-[190px]">
+                  Toca las bebidas del catálogo para incluirlas en la orden
+                </span>
               </div>
             ) : (
               itemsCanastaArray.map(([itemKey, item]) => {
@@ -500,39 +498,53 @@ export default function DrawerPedidos({
                 const sub = Number(prod.precio_venta) * item.cantidad;
 
                 return (
-                  <div key={itemKey} className="line">
-                    <div className="li">
-                      <b>
+                  <div
+                    key={itemKey}
+                    className="flex items-center justify-between p-2.5 rounded-xl bg-[#F8FAFC] border border-slate-200 gap-2 shadow-2xs"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <h5 className="font-bold text-xs text-[#28353E] truncate leading-tight">
                         {prod.nombre}
-                        <span className={`tag ${item.cuenta === 'Mesa' ? 'mesa' : ''}`}>
+                      </h5>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
                           {item.cuenta}
                         </span>
-                      </b>
-                      <small>${Number(prod.precio_venta).toLocaleString('es-CO')} c/u</small>
+                        <span className="font-mono text-[10.5px] text-slate-500">
+                          ${Number(prod.precio_venta).toLocaleString('es-CO')}
+                        </span>
+                      </div>
                     </div>
-                    <div className="qty">
+
+                    {/* Controles + / - */}
+                    <div className="flex items-center gap-1 bg-white px-1.5 py-0.5 rounded-lg border border-slate-300 shrink-0">
                       <button
-                        type="button"
                         onClick={() => onQuitarDeCanasta(itemKey)}
-                        title="Disminuir"
+                        className="w-5 h-5 rounded flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50"
                       >
                         <Minus className="w-3 h-3" />
                       </button>
-                      <span>{item.cantidad}</span>
+                      <span className="font-mono font-black text-xs min-w-[16px] text-center text-[#28353E]">
+                        {item.cantidad}
+                      </span>
                       <button
-                        type="button"
                         onClick={() => onAgregarACanasta(item.productoId, item.cuenta, item.jugadorId)}
-                        title="Aumentar"
+                        className="w-5 h-5 rounded flex items-center justify-center text-slate-400 hover:text-emerald-700 hover:bg-emerald-50"
                       >
                         <Plus className="w-3 h-3" />
                       </button>
                     </div>
-                    <div className="lp">${sub.toLocaleString('es-CO')}</div>
+
+                    {/* Subtotal */}
+                    <div className="text-right shrink-0">
+                      <b className="font-mono text-xs font-black text-[#28353E]">
+                        ${sub.toLocaleString('es-CO')}
+                      </b>
+                    </div>
+
                     <button
-                      type="button"
-                      className="del"
                       onClick={() => onEliminarItemCanasta(itemKey)}
-                      title="Eliminar de la comanda"
+                      className="text-slate-300 hover:text-rose-600 p-1 shrink-0"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -542,31 +554,35 @@ export default function DrawerPedidos({
             )}
           </div>
 
-          <div className="d-tot">
-            <div className="row">
-              <span>Unidades en venta</span>
-              <b>{totalItems}</b>
+          {/* Resumen Total y Botón de Envío */}
+          <div className="p-4 bg-[#F8FAFC] border-t border-slate-300 flex flex-col gap-3 shrink-0">
+            <div className="flex justify-between text-xs text-slate-600 font-semibold">
+              <span>Total de unidades:</span>
+              <b className="font-mono text-slate-900">{totalItems}</b>
             </div>
-            <div className="total">
-              <span>Total Venta</span>
-              <b>${totalMonto.toLocaleString('es-CO')}</b>
-            </div>
-          </div>
 
-          <div className="d-actions">
+            <div className="pt-2 border-t border-slate-200 flex items-center justify-between">
+              <span className="text-xs font-black text-[#28353E] uppercase tracking-wider">Total a Cargar:</span>
+              <span className="text-2xl font-black font-mono text-emerald-700">
+                ${totalMonto.toLocaleString('es-CO')}
+              </span>
+            </div>
+
             <button
-              type="button"
-              className="a a-pri"
               disabled={totalItems === 0}
               onClick={onEnviarPedido}
-              style={totalItems === 0 ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+              className={`w-full py-3.5 px-4 rounded-xl font-black text-xs shadow-md flex items-center justify-center gap-2 transition-all ${
+                totalItems > 0
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white active:scale-95 shadow-emerald-700/20 cursor-pointer'
+                  : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+              }`}
             >
               <CreditCard className="w-4 h-4" />
-              Registrar Venta
+              <span>Cargar a la Mesa · ${totalMonto.toLocaleString('es-CO')}</span>
             </button>
           </div>
         </section>
-      </aside>
-    </>
+      </div>
+    </div>
   );
 }
