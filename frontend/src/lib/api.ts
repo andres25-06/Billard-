@@ -242,3 +242,48 @@ export async function fetchSidebarStats() {
   return res.json();
 }
 
+export async function abrirTurnoCaja(montoBase: number) {
+  const res = await fetch(`${API_BASE}/caja/abrir`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ monto_base: montoBase }),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.detail || "Error al abrir turno");
+  }
+  return res.json();
+}
+
+export async function cerrarTurnoCaja(efectivoDeclarado: number, observaciones?: string) {
+  const res = await fetch(`${API_BASE}/caja/cerrar`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ efectivo_declarado: efectivoDeclarado, observaciones }),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.detail || "Error al cerrar turno");
+  }
+  return res.json();
+}
+
+export async function registrarMovimientoCaja(data: {
+  tipo: string;
+  monto: number;
+  descripcion: string;
+  metodo_pago?: string;
+}) {
+  const res = await fetch(`${API_BASE}/caja/movimiento`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.detail || "Error al registrar movimiento");
+  }
+  return res.json();
+}
+
+
