@@ -294,7 +294,15 @@ const VENTAS_INICIALES: VentaRegistro[] = [
 ];
 
 export default function ViewPedidos() {
-  const [ventas, setVentas] = useState<VentaRegistro[]>(VENTAS_INICIALES);
+  const [ventas, setVentas] = useState<VentaRegistro[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const guardadas = JSON.parse(localStorage.getItem('billard_chamo_ventas_mesas') || '[]');
+      return Array.isArray(guardadas) ? guardadas : [];
+    } catch {
+      return [];
+    }
+  });
   const [filtro, setFiltro] = useState<
     'todas' | 'por_cobrar' | 'pagadas' | 'deportistas' | 'barra' | 'anuladas'
   >('todas');

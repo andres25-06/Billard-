@@ -69,6 +69,18 @@ export default function ViewMesas({
   const [mesaSeleccionadaId, setMesaSeleccionadaId] = useState<string>(mesas[0]?.id || '');
   const [modalAbrir, setModalAbrir] = useState<Mesa | null>(null);
   const [modalCobrar, setModalCobrar] = useState<Mesa | null>(null);
+  const [modalPagoRealizado, setModalPagoRealizado] = useState<{
+    mesaNumero: number;
+    total: number;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!modalPagoRealizado) return;
+    const timer = setTimeout(() => {
+      setModalPagoRealizado(null);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [modalPagoRealizado]);
   const [lucesEstado, setLucesEstado] = useState<Record<string, boolean>>({});
 
   // Formulario apertura
@@ -219,8 +231,68 @@ export default function ViewMesas({
 
   const handleConfirmarCobro = async () => {
     if (!modalCobrar) return;
+    const totalALiquidar = modalCobrar.sesion?.total_acumulado || 0;
+    if (metodoPagoSeleccionado === 'efectivo' && (efectivoRecibido || 0) < totalALiquidar) {
+      return;
+    }
+    const mesaNumero = modalCobrar.numero;
+    const mesaTipo = modalCobrar.tipo;
+    const minutos = modalCobrar.sesion?.minutos_transcurridos || 0;
+    const costoTiempo = modalCobrar.sesion?.costo_tiempo || 0;
+    const totalPedidos = modalCobrar.sesion?.total_pedidos || 0;
+
     await onCerrarMesa(modalCobrar.id, metodoPagoSeleccionado);
+
+    try {
+      const STORAGE_KEY = 'billard_chamo_ventas_mesas';
+      const existentes = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      const ahora = new Date();
+      const items: Array<{
+        id: string;
+        producto_nombre: string;
+        cantidad: number;
+        precio_unitario: number;
+        subtotal: number;
+      }> = [
+        {
+          id: `tiempo-${Date.now()}`,
+          producto_nombre: `Tiempo de juego (${minutos} min)`,
+          cantidad: 1,
+          precio_unitario: costoTiempo,
+          subtotal: costoTiempo,
+        },
+      ];
+      if (totalPedidos > 0) {
+        items.push({
+          id: `consumo-${Date.now()}`,
+          producto_nombre: 'Consumo de bar y cafetería',
+          cantidad: 1,
+          precio_unitario: totalPedidos,
+          subtotal: totalPedidos,
+        });
+      }
+      const nuevoRegistro = {
+        id: `venta-mesa-${Date.now()}`,
+        codigo_pedido: `MESA-${String(mesaNumero).padStart(2, '0')}-${String(ahora.getTime()).slice(-4)}`,
+        mesa_numero: mesaNumero,
+        mesa_tipo: mesaTipo,
+        deportista: `Mesa ${mesaNumero}`,
+        origen: 'Mapa de Mesas',
+        estado_cobro: 'pagado' as const,
+        metodo_pago: metodoPagoSeleccionado === 'efectivo' ? 'Efectivo' : 'Transferencia',
+        total_pedido: totalALiquidar,
+        solicitado_el: ahora.toISOString(),
+        hora_registro: ahora.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }),
+        items,
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify([nuevoRegistro, ...existentes]));
+    } catch {
+      // Ignorar errores de almacenamiento local
+    }
+
     setModalCobrar(null);
+    setEfectivoRecibido(0);
+    setModalPagoRealizado({ mesaNumero, total: totalALiquidar });
   };
 
   return (
@@ -541,7 +613,7 @@ export default function ViewMesas({
                     }}
                   >
                     <Plus style={{ width: '15px', height: '15px' }} />
-                    <span>+ Comanda</span>
+                    <span>Comanda</span>
                   </button>
 
                   <button
@@ -1091,11 +1163,10 @@ export default function ViewMesas({
                 <label style={{ fontSize: '11px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '8px' }}>
                   Método de Pago
                 </label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
                   {[
                     { id: 'efectivo', label: 'Efectivo', icon: DollarSign, desc: 'Caja' },
                     { id: 'transferencia', label: 'Transferencia', icon: Smartphone, desc: 'Nequi / Banc.' },
-                    { id: 'tarjeta', label: 'Datáfono', icon: CreditCard, desc: 'Tarjeta' },
                   ].map((m) => {
                     const isSel = metodoPagoSeleccionado === m.id;
                     const Icon = m.icon;
@@ -1172,10 +1243,14 @@ export default function ViewMesas({
                         $
                       </span>
                       <input
-                        type="number"
-                        value={efectivoRecibido || ''}
-                        onChange={(e) => setEfectivoRecibido(Number(e.target.value))}
-                        placeholder={String(modalCobrar.sesion?.total_acumulado || 0)}
+                        type="text"
+                        inputMode="numeric"
+                        value={efectivoRecibido ? efectivoRecibido.toLocaleString('es-CO') : ''}
+                        onChange={(e) => {
+                          const soloDigitos = e.target.value.replace(/\D/g, '');
+                          setEfectivoRecibido(soloDigitos ? Number(soloDigitos) : 0);
+                        }}
+                        placeholder={(modalCobrar.sesion?.total_acumulado || 0).toLocaleString('es-CO')}
                         style={{
                           width: '100%',
                           padding: '8px 10px 8px 24px',
@@ -1242,6 +1317,10 @@ export default function ViewMesas({
               <button
                 type="button"
                 onClick={handleConfirmarCobro}
+                disabled={
+                  metodoPagoSeleccionado === 'efectivo' &&
+                  (efectivoRecibido || 0) < (modalCobrar.sesion?.total_acumulado || 0)
+                }
                 style={{
                   flex: 2,
                   padding: '12px',
@@ -1251,7 +1330,16 @@ export default function ViewMesas({
                   fontWeight: 800,
                   fontSize: '13px',
                   border: 'none',
-                  cursor: 'pointer',
+                  cursor:
+                    metodoPagoSeleccionado === 'efectivo' &&
+                    (efectivoRecibido || 0) < (modalCobrar.sesion?.total_acumulado || 0)
+                      ? 'not-allowed'
+                      : 'pointer',
+                  opacity:
+                    metodoPagoSeleccionado === 'efectivo' &&
+                    (efectivoRecibido || 0) < (modalCobrar.sesion?.total_acumulado || 0)
+                      ? 0.5
+                      : 1,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -1264,6 +1352,95 @@ export default function ViewMesas({
               </button>
             </div>
           </aside>
+        </div>
+      )}
+
+      {modalPagoRealizado && (
+        <div
+          onClick={() => setModalPagoRealizado(null)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 90,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(15, 23, 42, 0.45)',
+            backdropFilter: 'blur(4px)',
+            overflow: 'hidden',
+          }}
+        >
+          <style>{`
+            @keyframes confetti-fall {
+              0% {
+                transform: translateY(-10vh) rotate(0deg);
+                opacity: 1;
+              }
+              100% {
+                transform: translateY(110vh) rotate(720deg);
+                opacity: 0;
+              }
+            }
+          `}</style>
+          {Array.from({ length: 36 }).map((_, i) => {
+            const colors = ['#16A34A', '#22C55E', '#FACC15', '#3B82F6', '#EC4899', '#F97316'];
+            const left = `${(i * 2.8 + (i % 3) * 1.5) % 100}%`;
+            const delay = `${(i % 8) * 0.12}s`;
+            const duration = `${2.2 + (i % 5) * 0.35}s`;
+            const size = 8 + (i % 4) * 3;
+            return (
+              <span
+                key={i}
+                style={{
+                  position: 'fixed',
+                  top: 0,
+                  left,
+                  width: `${size}px`,
+                  height: `${size * 0.6}px`,
+                  background: colors[i % colors.length],
+                  borderRadius: '2px',
+                  pointerEvents: 'none',
+                  animation: `confetti-fall ${duration} linear ${delay} infinite`,
+                }}
+              />
+            );
+          })}
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '20px',
+              padding: '28px 36px',
+              textAlign: 'center',
+              boxShadow: '0 20px 50px rgba(15, 23, 42, 0.25)',
+              border: '1px solid #E2E8F0',
+              maxWidth: '340px',
+              width: '90%',
+            }}
+          >
+            <div
+              style={{
+                width: '56px',
+                height: '56px',
+                borderRadius: '9999px',
+                background: '#DCFCE7',
+                color: '#16A34A',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 14px',
+              }}
+            >
+              <Check style={{ width: '30px', height: '30px', strokeWidth: 3 }} />
+            </div>
+            <h3 style={{ margin: '0 0 6px', fontSize: '18px', fontWeight: 800, color: '#0F172A' }}>
+              Pago realizado
+            </h3>
+            <p style={{ margin: 0, fontSize: '13px', color: '#64748B', fontWeight: 600 }}>
+              Mesa {modalPagoRealizado.mesaNumero} · $
+              {modalPagoRealizado.total.toLocaleString('es-CO')}
+            </p>
+          </div>
         </div>
       )}
     </div>
