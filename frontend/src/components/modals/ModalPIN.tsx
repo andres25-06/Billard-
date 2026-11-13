@@ -74,7 +74,10 @@ export default function ModalPIN({ abierto, onCerrar, onExito }: ModalPINProps) 
         </div>
 
         {/* Teclado numérico */}
-        <div className="grid grid-cols-3 gap-3 w-full max-w-[240px]">
+        <div
+          className="grid grid-cols-3 gap-3 w-full max-w-[240px]"
+          style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }}
+        >
           {['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'del'].map((val, idx) => {
             if (val === '') return <div key={idx} />;
             if (val === 'del') {
