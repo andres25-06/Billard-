@@ -343,8 +343,8 @@ export default function ViewCaja() {
             </div>
           </div>
 
-          {/* 2. Cuatro Tarjetas KPI Financieras */}
-          <div className="grid grid-cols-4 gap-3 shrink-0">
+          {/* 2. Cuatro Tarjetas KPI Financieras en una sola fila */}
+          <div className="grid grid-cols-4 gap-3 shrink-0" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}>
             {/* KPI 1: Facturación Total */}
             <div className="bg-white rounded-2xl p-4 border border-slate-300 shadow-xs flex flex-col justify-between">
               <div className="flex items-center justify-between text-slate-500">
@@ -477,15 +477,15 @@ export default function ViewCaja() {
               </div>
             </div>
 
-            {/* Desglose Lateral por Método de Pago */}
-            <div className="w-[300px] bg-white rounded-2xl p-4 border border-slate-300 shadow-xs flex flex-col justify-between shrink-0">
-              <div className="flex flex-col gap-3">
-                <h4 className="font-black text-sm text-[#28353E] pb-2 border-b border-slate-200">
+            {/* Desglose Lateral por Método de Pago (Compactado sin recortes) */}
+            <div className="w-[310px] bg-white rounded-2xl p-4 border border-slate-300 shadow-xs flex flex-col justify-between shrink-0 overflow-y-auto">
+              <div className="flex flex-col gap-2">
+                <h4 className="font-black text-sm text-[#28353E] pb-1.5 border-b border-slate-200">
                   Desglose por Métodos
                 </h4>
 
-                <div className="flex flex-col gap-2.5 text-xs">
-                  <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-200">
+                <div className="flex flex-col gap-1.5 text-xs">
+                  <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200">
                     <span className="font-bold text-slate-600 flex items-center gap-1.5">
                       <Banknote className="w-3.5 h-3.5 text-emerald-600" />
                       Efectivo en Ventas
@@ -493,7 +493,7 @@ export default function ViewCaja() {
                     <b className="font-mono text-[#28353E]">{formatearCOP(turno.total_efectivo)}</b>
                   </div>
 
-                  <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-200">
+                  <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200">
                     <span className="font-bold text-slate-600 flex items-center gap-1.5">
                       <Smartphone className="w-3.5 h-3.5 text-purple-600" />
                       Transferencias
@@ -501,7 +501,7 @@ export default function ViewCaja() {
                     <b className="font-mono text-[#28353E]">{formatearCOP(turno.total_transferencias)}</b>
                   </div>
 
-                  <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-200">
+                  <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200">
                     <span className="font-bold text-slate-600 flex items-center gap-1.5">
                       <CreditCard className="w-3.5 h-3.5 text-blue-600" />
                       Datáfono / Tarjetas
@@ -510,10 +510,10 @@ export default function ViewCaja() {
                   </div>
                 </div>
 
-                <div className="mt-2 p-3 rounded-xl bg-[#EDF2F7] border border-slate-300 flex flex-col gap-1 text-xs">
+                <div className="mt-1 p-2.5 rounded-xl bg-[#EDF2F7] border border-slate-300 flex flex-col gap-1 text-xs">
                   <span className="text-[10px] font-black uppercase text-slate-500">Balance del Cajón</span>
                   <div className="flex justify-between text-slate-700">
-                    <span>Base Inicial:</span>
+                    <span>Base Inicial (Fija):</span>
                     <b className="font-mono">{formatearCOP(turno.monto_apertura_base)}</b>
                   </div>
                   <div className="flex justify-between text-slate-700">
@@ -524,7 +524,7 @@ export default function ViewCaja() {
                     <span>Egresos / Gastos:</span>
                     <b className="font-mono text-rose-600">-{formatearCOP(turno.total_egresos)}</b>
                   </div>
-                  <div className="pt-2 border-t border-slate-300 flex justify-between items-center font-black text-[#28353E]">
+                  <div className="pt-1.5 border-t border-slate-300 flex justify-between items-center font-black text-[#28353E]">
                     <span>Total en Cajón:</span>
                     <span className="font-mono text-emerald-800 text-sm">
                       {formatearCOP(turno.saldo_esperado_efectivo)}
@@ -535,7 +535,7 @@ export default function ViewCaja() {
 
               <button
                 onClick={() => setModalArqueoAbierto(true)}
-                className="w-full py-3 rounded-xl bg-[#184A35] hover:bg-[#123828] text-white font-black text-xs shadow-md shadow-[#184A35]/20 flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer mt-3"
+                className="w-full py-2.5 rounded-xl bg-[#184A35] hover:bg-[#123828] text-white font-black text-xs shadow-md shadow-[#184A35]/20 flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer mt-2 shrink-0"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 <span>Proceder al Arqueo Físico</span>

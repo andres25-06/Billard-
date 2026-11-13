@@ -26,6 +26,8 @@ import {
   fetchAlertasActivas,
   atenderAlerta,
   fetchSidebarStats,
+  fetchTurnoActivo,
+  abrirTurnoCaja,
 } from '@/lib/api';
 
 export interface ItemPedidoCanasta {
@@ -59,6 +61,35 @@ export default function PCControlPage() {
 
   // Modal PIN
   const [modalPinAbierto, setModalPinAbierto] = useState<boolean>(false);
+
+  // Modal Apertura de Caja Obligatoria al iniciar sesión
+  const [requiereAperturaCaja, setRequiereAperturaCaja] = useState<boolean>(false);
+  const [baseInicialDia, setBaseInicialDia] = useState<number>(100000);
+  const [abriendoCajaDia, setAbriendoCajaDia] = useState<boolean>(false);
+
+  useEffect(() => {
+    fetchTurnoActivo()
+      .then((res) => {
+        if (!res.turno) {
+          setRequiereAperturaCaja(true);
+        }
+      })
+      .catch((err) => console.error('Error verificando turno activo:', err));
+  }, []);
+
+  const handleConfirmarAperturaDia = async () => {
+    if (baseInicialDia < 0) return;
+    try {
+      setAbriendoCajaDia(true);
+      await abrirTurnoCaja(baseInicialDia);
+      setRequiereAperturaCaja(false);
+      await cargarDatos();
+    } catch (e: any) {
+      alert(e.message || 'Error al abrir turno de caja');
+    } finally {
+      setAbriendoCajaDia(false);
+    }
+  };
 
   // Carga de datos
   const cargarDatos = useCallback(async () => {
@@ -273,6 +304,72 @@ export default function PCControlPage() {
         onCerrar={() => setModalPinAbierto(false)}
         onExito={() => setModalPinAbierto(false)}
       />
+
+      {/* 5. Modal Obligatorio de Apertura de Caja (Primer Inicio del Día) */}
+      {requiereAperturaCaja && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/75 backdrop-blur-sm p-4 font-['Urbanist',sans-serif] select-none">
+          <div className="w-full max-w-md bg-white rounded-3xl p-8 border border-slate-300 shadow-2xl text-center">
+            <div className="w-16 h-16 rounded-2xl bg-[#184A35] text-white flex items-center justify-center mx-auto mb-4 shadow-md">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 9.9-1" />
+              </svg>
+            </div>
+
+            <span className="text-[10px] font-black tracking-widest text-[#184A35] uppercase bg-[#184A35]/10 px-3 py-1 rounded-full">
+              Inicio de Jornada · Caja Cerrada
+            </span>
+
+            <h3 className="font-black text-2xl text-[#28353E] mt-3">
+              Apertura de Caja del Día
+            </h3>
+            <p className="text-xs font-semibold text-slate-500 mt-1">
+              Registra el dinero base físico en cajón para comenzar a operar. Esta base quedará fija hasta el cierre y arqueo de turno.
+            </p>
+
+            <div className="mt-5 p-4 bg-[#EDF2F7] rounded-2xl border border-slate-300/80 text-left">
+              <label className="text-[11px] font-black text-slate-600 uppercase tracking-wider block mb-2">
+                Base Inicial en Efectivo (COP)
+              </label>
+              <div className="relative flex items-center">
+                <span className="absolute left-3.5 font-mono font-black text-lg text-slate-400">$</span>
+                <input
+                  type="number"
+                  value={baseInicialDia || ''}
+                  onChange={(e) => setBaseInicialDia(Number(e.target.value))}
+                  placeholder="100000"
+                  className="w-full pl-8 pr-4 py-2.5 rounded-xl bg-white border border-slate-300 text-xl font-mono font-black text-[#28353E] focus:outline-none focus:ring-2 focus:ring-[#184A35]"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 mt-2.5">
+                {[50000, 100000, 200000].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setBaseInicialDia(preset)}
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      baseInicialDia === preset
+                        ? 'bg-[#184A35] text-white shadow-xs'
+                        : 'bg-white text-slate-700 hover:bg-slate-200 border border-slate-300'
+                    }`}
+                  >
+                    ${preset.toLocaleString('es-CO')}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={handleConfirmarAperturaDia}
+              disabled={abriendoCajaDia || baseInicialDia < 0}
+              className="w-full mt-5 py-3.5 rounded-2xl bg-[#184A35] hover:bg-[#123828] text-white font-black text-sm shadow-lg shadow-[#184A35]/25 transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+            >
+              {abriendoCajaDia ? 'Iniciando Turno...' : 'Confirmar Base e Iniciar Turno'}
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   );
