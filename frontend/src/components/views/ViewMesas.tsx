@@ -15,6 +15,10 @@ import {
   Clock,
   DollarSign,
   Smartphone,
+  Zap,
+  Search,
+  UserPlus,
+  ChevronDown,
 } from 'lucide-react';
 import { fetchClientes, guardarCliente, toggleLuzMesa, actualizarPuntosJugador } from '@/lib/api';
 
@@ -73,6 +77,60 @@ export default function ViewMesas({
   const [jugadoresCuenta, setJugadoresCuenta] = useState<string[]>(['Mesa']);
   const [nuevoJugadorInput, setNuevoJugadorInput] = useState<string>('');
   const [clientesBD, setClientesBD] = useState<Array<{ id: string; nombre: string; apodo?: string; visitas?: number }>>([]);
+  const [menuClientesAbierto, setMenuClientesAbierto] = useState<boolean>(false);
+  const [modalNuevoCliente, setModalNuevoCliente] = useState<boolean>(false);
+  const [nuevoClienteNombre, setNuevoClienteNombre] = useState<string>('');
+  const [nuevoClienteApodo, setNuevoClienteApodo] = useState<string>('');
+  const [nuevoClienteTelefono, setNuevoClienteTelefono] = useState<string>('');
+  const [guardandoNuevoCliente, setGuardandoNuevoCliente] = useState<boolean>(false);
+
+  const handleGuardarNuevoClienteModal = async () => {
+    const limpio = nuevoClienteNombre.trim();
+    if (!limpio) return;
+    try {
+      setGuardandoNuevoCliente(true);
+      const res = await guardarCliente(
+        limpio,
+        nuevoClienteApodo.trim() || undefined,
+        nuevoClienteTelefono.trim() || undefined
+      );
+      if (res?.cliente) {
+        setClientesBD((prev) => [res.cliente, ...prev]);
+      }
+      if (!jugadoresCuenta.some((j) => j.toLowerCase() === limpio.toLowerCase())) {
+        setJugadoresCuenta((prev) => [...prev, limpio]);
+      }
+      setNuevoClienteNombre('');
+      setNuevoClienteApodo('');
+      setNuevoClienteTelefono('');
+      setModalNuevoCliente(false);
+    } catch (e: any) {
+      alert(e.message || 'Error al registrar cliente');
+    } finally {
+      setGuardandoNuevoCliente(false);
+    }
+  };
+
+  const handleAgregarJugadorDesdeMenu = async (nombre: string) => {
+    const limpio = nombre.trim();
+    if (!limpio) return;
+    const existeEnBD = clientesBD.some((c) => c.nombre.toLowerCase() === limpio.toLowerCase());
+    if (!existeEnBD) {
+      try {
+        const res = await guardarCliente(limpio);
+        if (res?.cliente) {
+          setClientesBD((prev) => [res.cliente, ...prev]);
+        }
+      } catch (e) {
+        console.error('Error registrando cliente:', e);
+      }
+    }
+    if (!jugadoresCuenta.some((j) => j.toLowerCase() === limpio.toLowerCase())) {
+      setJugadoresCuenta((prev) => [...prev, limpio]);
+    }
+    setNuevoJugadorInput('');
+    setMenuClientesAbierto(false);
+  };
 
   useEffect(() => {
     if (!mesaSeleccionadaId && mesas.length > 0) {
@@ -357,18 +415,6 @@ export default function ViewMesas({
                     </p>
                   </div>
                 </div>
-
-                <button
-                  onClick={() => handleToggleLuz(mesaActiva.id)}
-                  className={`p-2 rounded-xl transition-all shadow-xs ${
-                    lucesEstado[mesaActiva.id]
-                      ? 'bg-amber-400 text-amber-950 font-bold'
-                      : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                  }`}
-                  title="Encender o apagar luz"
-                >
-                  <Lightbulb className="w-4 h-4 fill-current" />
-                </button>
               </div>
 
               {/* Contenido en Juego */}
@@ -418,22 +464,10 @@ export default function ViewMesas({
                             </span>
                           </div>
 
-                          <div className="flex items-center gap-1 bg-white px-1.5 py-0.5 rounded-lg border border-slate-200">
-                            <button
-                              onClick={() => handleDeltaPuntos(j.id, -1)}
-                              className="w-5 h-5 rounded flex items-center justify-center text-slate-500 hover:bg-rose-50 hover:text-rose-600 font-black text-xs"
-                            >
-                              -
-                            </button>
-                            <span className="font-mono font-black text-xs min-w-[18px] text-center text-[var(--ink)]">
-                              {j.puntos_carambolas || 0}
+                          <div className="bg-white px-2.5 py-0.5 rounded-lg border border-slate-200">
+                            <span className="font-mono font-black text-xs text-[var(--ink)]">
+                              {j.puntos_carambolas || 0} pts
                             </span>
-                            <button
-                              onClick={() => handleDeltaPuntos(j.id, 1)}
-                              className="w-5 h-5 rounded flex items-center justify-center text-slate-500 hover:bg-emerald-50 hover:text-emerald-700 font-black text-xs"
-                            >
-                              +
-                            </button>
                           </div>
                         </div>
                       ))}
@@ -574,58 +608,101 @@ export default function ViewMesas({
       {modalAbrir && (
         <div
           onClick={() => setModalAbrir(null)}
-          className="overlay show cursor-pointer"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-150 cursor-pointer"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="modal cursor-default"
+            className="w-full max-w-lg bg-white rounded-3xl border border-slate-300 shadow-2xl cursor-default font-['Urbanist',sans-serif]"
           >
-            <div className="m-head">
-              <div className="c-num">{String(modalAbrir.numero).padStart(2, '0')}</div>
-              <div>
-                <h3>Abrir {modalAbrir.nombre}</h3>
-                <p>{modalAbrir.tipo.replace('_', ' ')} · ${Number(modalAbrir.tarifa_por_hora).toLocaleString('es-CO')} / hora</p>
+            {/* Header Oscuro Elegante */}
+            <div className="p-5 bg-[#28353E] text-white flex items-center justify-between rounded-t-3xl">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-2xl bg-[#184A35] text-white font-mono font-black text-base flex items-center justify-center shadow-sm border border-emerald-400/30">
+                  {String(modalAbrir.numero).padStart(2, '0')}
+                </div>
+                <div>
+                  <h3 className="font-black text-base leading-tight">Abrir {modalAbrir.nombre}</h3>
+                  <p className="text-[11px] font-semibold text-slate-300 capitalize mt-0.5">
+                    {modalAbrir.tipo.replace('_', ' ')} · ${Number(modalAbrir.tarifa_por_hora).toLocaleString('es-CO')} / hora
+                  </p>
+                </div>
               </div>
-              <button className="x" onClick={() => setModalAbrir(null)}>
+              <button
+                type="button"
+                onClick={() => setModalAbrir(null)}
+                className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="m-body">
+            {/* Cuerpo */}
+            <div className="p-5 space-y-4">
+              {/* Paso 1: Modalidad */}
               <div>
-                <div className="step"><i>1</i>Modalidad de juego</div>
-                <div className="opts">
+                <span className="text-[11px] font-black uppercase tracking-wider text-slate-500 block mb-2">
+                  1. Modalidad de Juego
+                </span>
+                <div
+                  className="grid grid-cols-2 gap-2.5"
+                  style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}
+                >
                   <button
-                    className={`opt ${modalidadTiempo === 'libre' ? 'sel' : ''}`}
+                    type="button"
                     onClick={() => setModalidadTiempo('libre')}
+                    className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                      modalidadTiempo === 'libre'
+                        ? 'bg-[#EDF2F7] border-[#28353E] ring-2 ring-[#28353E]/20'
+                        : 'bg-white border-slate-200 hover:bg-slate-50'
+                    }`}
                   >
-                    <div className="t">Tiempo libre</div>
-                    <small>Se liquida al final según minutos reales</small>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-black text-xs text-[#28353E]">Tiempo Libre</span>
+                      <Clock className="w-4 h-4 text-[#184A35]" />
+                    </div>
+                    <p className="text-[10.5px] font-semibold text-slate-500 leading-snug">
+                      Se liquida al final según minutos reales
+                    </p>
                   </button>
+
                   <button
-                    className={`opt ${modalidadTiempo === 'prepago' ? 'sel' : ''}`}
+                    type="button"
                     onClick={() => setModalidadTiempo('prepago')}
+                    className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                      modalidadTiempo === 'prepago'
+                        ? 'bg-[#EDF2F7] border-[#28353E] ring-2 ring-[#28353E]/20'
+                        : 'bg-white border-slate-200 hover:bg-slate-50'
+                    }`}
                   >
-                    <div className="t">Prepago fijado</div>
-                    <small>Tiempo límite con aviso sonoro/luz</small>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-black text-xs text-[#28353E]">Prepago Fijado</span>
+                      <Zap className="w-4 h-4 text-amber-500" />
+                    </div>
+                    <p className="text-[10.5px] font-semibold text-slate-500 leading-snug">
+                      Tiempo límite con aviso al finalizar
+                    </p>
                   </button>
                 </div>
               </div>
 
               {modalidadTiempo === 'prepago' && (
-                <div className="grid grid-cols-4 gap-2">
+                <div
+                  className="grid grid-cols-4 gap-2"
+                  style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}
+                >
                   {[30, 60, 90, 120].map((mins) => (
                     <button
                       key={mins}
+                      type="button"
                       onClick={() => setBloquePrepago(mins)}
-                      className={`p-2.5 rounded-xl border text-center transition-all ${
+                      className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
                         bloquePrepago === mins
-                          ? 'border-[var(--ink)] bg-[var(--ink)] text-white font-bold shadow'
-                          : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                          ? 'border-[#28353E] bg-[#28353E] text-white font-bold shadow-xs'
+                          : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
                       }`}
                     >
-                      <span className="block text-sm font-bold">{mins} min</span>
-                      <small className="text-[10px] opacity-80">
+                      <span className="block text-xs font-black">{mins} min</span>
+                      <small className="text-[10px] opacity-80 font-mono">
                         ${((mins / 60) * Number(modalAbrir.tarifa_por_hora)).toLocaleString('es-CO')}
                       </small>
                     </button>
@@ -633,19 +710,23 @@ export default function ViewMesas({
                 </div>
               )}
 
+              {/* Paso 2: Jugadores */}
               <div>
-                <div className="step"><i>2</i>Nombre de Jugadores / Cuenta</div>
-                <div className="flex flex-wrap gap-2 mb-2">
+                <span className="text-[11px] font-black uppercase tracking-wider text-slate-500 block mb-2">
+                  2. Jugadores / Cuenta
+                </span>
+                <div className="flex flex-wrap gap-1.5 mb-2.5">
                   {jugadoresCuenta.map((j, idx) => (
                     <span
                       key={idx}
-                      className="px-3 py-1 rounded-full bg-slate-100 text-slate-800 text-xs font-semibold flex items-center gap-1.5"
+                      className="px-3 py-1 rounded-full bg-[#EDF2F7] border border-slate-300 text-[#28353E] text-xs font-bold flex items-center gap-1.5"
                     >
                       {j}
                       {j !== 'Mesa' && (
                         <button
+                          type="button"
                           onClick={() => setJugadoresCuenta(prev => prev.filter((_, i) => i !== idx))}
-                          className="text-slate-400 hover:text-rose-600"
+                          className="text-slate-400 hover:text-rose-600 font-black cursor-pointer"
                         >
                           ×
                         </button>
@@ -654,41 +735,204 @@ export default function ViewMesas({
                   ))}
                 </div>
 
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={nuevoJugadorInput}
-                    onChange={(e) => setNuevoJugadorInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && nuevoJugadorInput.trim()) {
-                        setJugadoresCuenta(prev => [...prev, nuevoJugadorInput.trim()]);
-                        setNuevoJugadorInput('');
-                      }
-                    }}
-                    placeholder="Escribe el nombre del cliente..."
-                    className="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-[var(--ink)]"
-                  />
-                  <button
-                    onClick={() => {
-                      if (nuevoJugadorInput.trim()) {
-                        setJugadoresCuenta(prev => [...prev, nuevoJugadorInput.trim()]);
-                        setNuevoJugadorInput('');
-                      }
-                    }}
-                    className="px-4 py-2 rounded-xl bg-slate-800 text-white text-xs font-bold"
-                  >
-                    Agregar
-                  </button>
+                <div className="relative">
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        value={nuevoJugadorInput}
+                        onFocus={() => setMenuClientesAbierto(true)}
+                        onChange={(e) => {
+                          setNuevoJugadorInput(e.target.value);
+                          setMenuClientesAbierto(true);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && nuevoJugadorInput.trim()) {
+                            handleAgregarJugadorDesdeMenu(nuevoJugadorInput);
+                          }
+                        }}
+                        placeholder="Buscar cliente o escribir nuevo..."
+                        className="w-full pl-8 pr-8 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs font-semibold text-[#28353E] focus:outline-none focus:ring-2 focus:ring-[#184A35]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setMenuClientesAbierto((v) => !v)}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 cursor-pointer"
+                      >
+                        <ChevronDown className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNuevoClienteNombre(nuevoJugadorInput.trim());
+                        setMenuClientesAbierto(false);
+                        setModalNuevoCliente(true);
+                      }}
+                      className="px-4 py-2 rounded-xl bg-[#28353E] hover:bg-[#1a2329] text-white text-xs font-bold cursor-pointer transition-all"
+                    >
+                      Agregar
+                    </button>
+                  </div>
+
+                  {menuClientesAbierto && (
+                    <div className="absolute left-0 right-0 top-11 z-30 max-h-40 overflow-y-auto rounded-xl bg-white border border-slate-300 shadow-2xl p-1.5 space-y-1">
+                      {clientesBD
+                        .filter((c) =>
+                          c.nombre.toLowerCase().includes(nuevoJugadorInput.trim().toLowerCase())
+                        )
+                        .slice(0, 6)
+                        .map((c) => (
+                          <button
+                            key={c.id}
+                            type="button"
+                            onClick={() => handleAgregarJugadorDesdeMenu(c.nombre)}
+                            className="w-full px-3 py-1.5 rounded-lg hover:bg-slate-100 text-left text-xs font-bold text-[#28353E] flex items-center justify-between cursor-pointer"
+                          >
+                            <span>{c.nombre}</span>
+                            <span className="text-[10px] text-slate-400 font-semibold">Cliente registrado</span>
+                          </button>
+                        ))}
+
+                      {nuevoJugadorInput.trim() &&
+                        !clientesBD.some(
+                          (c) => c.nombre.toLowerCase() === nuevoJugadorInput.trim().toLowerCase()
+                        ) && (
+                          <button
+                            type="button"
+                            onClick={() => handleAgregarJugadorDesdeMenu(nuevoJugadorInput)}
+                            className="w-full px-3 py-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-black flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <UserPlus className="w-3.5 h-3.5" />
+                            <span>Registrar y agregar "{nuevoJugadorInput.trim()}"</span>
+                          </button>
+                        )}
+
+                      {clientesBD.length === 0 && !nuevoJugadorInput.trim() && (
+                        <p className="text-[11px] text-slate-400 text-center py-2">
+                          Escribe un nombre para registrar el primer cliente
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
-            <div className="m-foot">
-              <button className="btn btn-ghost" onClick={() => setModalAbrir(null)}>
+            {/* Footer */}
+            <div className="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center gap-2.5 rounded-b-3xl">
+              <button
+                type="button"
+                onClick={() => setModalAbrir(null)}
+                className="flex-1 py-2.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 font-bold text-xs cursor-pointer transition-all"
+              >
                 Cancelar
               </button>
-              <button className="btn btn-primary" onClick={handleConfirmarApertura}>
-                Confirmar y Encender Luz
+              <button
+                type="button"
+                onClick={handleConfirmarApertura}
+                className="flex-1 py-2.5 rounded-xl bg-[#184A35] hover:bg-[#123828] text-white font-black text-xs shadow-md shadow-[#184A35]/20 flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-95"
+              >
+                <Play className="w-4 h-4 fill-current" />
+                <span>Confirmar y Abrir Mesa</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Rápido para Registrar Nuevo Jugador en Base de Datos */}
+      {modalNuevoCliente && (
+        <div
+          onClick={() => setModalNuevoCliente(false)}
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/65 backdrop-blur-xs p-4 animate-in fade-in duration-150 cursor-pointer"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-sm bg-white rounded-3xl border border-slate-300 shadow-2xl overflow-hidden cursor-default font-['Urbanist',sans-serif]"
+          >
+            <div className="p-4 bg-[#28353E] text-white flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-[#184A35] flex items-center justify-center">
+                  <UserPlus className="w-4 h-4 text-emerald-300" />
+                </div>
+                <div>
+                  <h4 className="font-black text-sm leading-tight">Registrar Jugador</h4>
+                  <p className="text-[10.5px] text-slate-300">Se guardará en la base de datos</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setModalNuevoCliente(false)}
+                className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-3 text-xs">
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">
+                  Nombre completo *
+                </label>
+                <input
+                  autoFocus
+                  type="text"
+                  value={nuevoClienteNombre}
+                  onChange={(e) => setNuevoClienteNombre(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && nuevoClienteNombre.trim()) {
+                      handleGuardarNuevoClienteModal();
+                    }
+                  }}
+                  placeholder="Ej: Carlos Rodríguez"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 font-bold text-[#28353E] focus:outline-none focus:ring-2 focus:ring-[#184A35]"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">
+                  Apodo (opcional)
+                </label>
+                <input
+                  type="text"
+                  value={nuevoClienteApodo}
+                  onChange={(e) => setNuevoClienteApodo(e.target.value)}
+                  placeholder="Ej: El Zurdo"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 font-semibold text-[#28353E] focus:outline-none focus:ring-2 focus:ring-[#184A35]"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">
+                  Teléfono / WhatsApp (opcional)
+                </label>
+                <input
+                  type="text"
+                  value={nuevoClienteTelefono}
+                  onChange={(e) => setNuevoClienteTelefono(e.target.value)}
+                  placeholder="Ej: 300 123 4567"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 font-mono font-semibold text-[#28353E] focus:outline-none focus:ring-2 focus:ring-[#184A35]"
+                />
+              </div>
+            </div>
+
+            <div className="px-5 py-3 bg-slate-50 border-t border-slate-200 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setModalNuevoCliente(false)}
+                className="flex-1 py-2 rounded-xl bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 font-bold text-xs cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={guardandoNuevoCliente || !nuevoClienteNombre.trim()}
+                onClick={handleGuardarNuevoClienteModal}
+                className="flex-1 py-2 rounded-xl bg-[#184A35] hover:bg-[#123828] text-white font-black text-xs cursor-pointer disabled:opacity-50"
+              >
+                {guardandoNuevoCliente ? 'Guardando...' : 'Guardar y Agregar'}
               </button>
             </div>
           </div>

@@ -62,6 +62,15 @@ export default function PCControlPage() {
   // Modal PIN
   const [modalPinAbierto, setModalPinAbierto] = useState<boolean>(false);
 
+  // Modal de notificación elegante (reemplaza alert nativo)
+  const [modalNotificacion, setModalNotificacion] = useState<{ titulo: string; mensaje: string } | null>(null);
+
+  useEffect(() => {
+    if (!modalNotificacion) return;
+    const timer = setTimeout(() => setModalNotificacion(null), 6000);
+    return () => clearTimeout(timer);
+  }, [modalNotificacion]);
+
   // Modal Apertura de Caja Obligatoria al iniciar sesión
   const [requiereAperturaCaja, setRequiereAperturaCaja] = useState<boolean>(false);
   const [baseInicialDia, setBaseInicialDia] = useState<number>(100000);
@@ -211,7 +220,10 @@ export default function PCControlPage() {
       setCanasta({});
       setDrawerPedidos(false);
       await cargarDatos();
-      alert('¡Pedido enviado exitosamente!');
+      setModalNotificacion({
+        titulo: '¡Pedido Enviado!',
+        mensaje: 'La comanda fue cargada y despachada correctamente.',
+      });
     } catch (err: any) {
       alert(err.message);
     }
@@ -304,6 +316,34 @@ export default function PCControlPage() {
         onCerrar={() => setModalPinAbierto(false)}
         onExito={() => setModalPinAbierto(false)}
       />
+
+      {/* Modal de Confirmación / Notificación */}
+      {modalNotificacion && (
+        <div
+          onClick={() => setModalNotificacion(null)}
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-150 cursor-pointer font-['Urbanist',sans-serif]"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-sm bg-white rounded-3xl p-6 border border-slate-300 shadow-2xl text-center cursor-default"
+          >
+            <div className="w-12 h-12 rounded-2xl bg-[#184A35] text-white flex items-center justify-center mx-auto mb-3 shadow-md shadow-[#184A35]/20">
+              <svg className="w-6 h-6 text-emerald-300" fill="none" stroke="currentColor" strokeWidth="2.8" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h4 className="font-black text-lg text-[#28353E]">{modalNotificacion.titulo}</h4>
+            <p className="text-xs font-semibold text-slate-500 mt-1">{modalNotificacion.mensaje}</p>
+            <button
+              type="button"
+              onClick={() => setModalNotificacion(null)}
+              className="w-full mt-5 py-2.5 rounded-xl bg-[#184A35] hover:bg-[#123828] text-white font-black text-xs cursor-pointer transition-all"
+            >
+              Aceptar
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 5. Modal Obligatorio de Apertura de Caja (Primer Inicio del Día) */}
       {requiereAperturaCaja && (

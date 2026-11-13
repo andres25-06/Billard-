@@ -1,3 +1,4 @@
+# pyright: reportArgumentType=false, reportCallIssue=false, reportIndexIssue=false, reportOptionalSubscript=false, reportGeneralTypeIssues=false
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional, List

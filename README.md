@@ -1,8 +1,8 @@
-# 🎱 Sistema de Control y Gestión - Billar Chamo
+# 🎱 Sistema de Control y Gestión - Club de Billar & Café Bar "El Encuentro Tocano"
 
-Sistema integral y multiplataforma de control de mesas, cronometraje en vivo, pedidos de bar, inventario y arqueo de caja para clubes de billar. 
+Sistema integral y multiplataforma de control de mesas, cronometraje en vivo, pedidos de bar, inventario, arqueo de caja, reportes, torneos y configuración para clubes de billar.
 
-El proyecto está diseñado bajo una arquitectura modular de alto rendimiento que permite operar en red local (sin depender de internet) y que facilita el empaquetado como aplicación de escritorio y app táctil tipo Kiosco.
+El proyecto está diseñado bajo una arquitectura modular de alto rendimiento que permite operar en red local (sin depender de internet) y facilita el empaquetado como aplicación de escritorio y app táctil tipo Kiosco.
 
 ---
 
@@ -72,25 +72,25 @@ Billard-/
 ├── frontend/                            # Aplicación Frontend desarrollada en Next.js
 │   ├── src/
 │   │   ├── app/
-│   │   │   ├── globals.css              # Estilos globales y paleta de colores "Groza"
-│   │   │   ├── layout.tsx               # Plantilla raíz
-│   │   │   └── page.tsx                 # Entorno 1: PC de Control (Controlador de vistas)
+│   │   │   ├── globals.css              # Estilos globales, tipografía Urbanist/JetBrains Mono y paleta Slate/Billar (#28353E, #184A35, #EDF2F7)
+│   │   │   ├── layout.tsx               # Plantilla raíz con fuentes Google (Urbanist y JetBrains Mono)
+│   │   │   └── page.tsx                 # Entorno 1: PC de Control + Apertura obligatoria de caja al iniciar jornada
 │   │   ├── components/
 │   │   │   ├── layout/
-│   │   │   │   ├── Sidebar.tsx          # Menú lateral con badges en tiempo real y bloqueo PIN
-│   │   │   │   └── Topbar.tsx           # Cabecera dinámica con estado local y alertas
+│   │   │   │   ├── Sidebar.tsx          # Menú lateral con indicador animado, Reportes/Ajustes abajo y bloqueo PIN
+│   │   │   │   └── Topbar.tsx           # Cabecera dinámica con estado de caja, alertas y acceso rápido a Barra
 │   │   │   ├── views/
-│   │   │   │   ├── ViewMesas.tsx        # Módulo 1: Mapa interactivo de mesas y cronometraje
+│   │   │   │   ├── ViewMesas.tsx        # Módulo 1: Mapa interactivo de mesas, cronometraje, carambolas y cobro slide-over
 │   │   │   │   ├── ViewPedidos.tsx      # Módulo 2: Despacho y estado de órdenes
 │   │   │   │   ├── ViewInventario.tsx   # Módulo 3: Catálogo, existencias y ajuste de stock
-│   │   │   │   ├── ViewCaja.tsx         # Módulo 4: Turnos, base y arqueo de caja
-│   │   │   │   ├── ViewTorneos.tsx      # Módulo 5: Grupos y llaves eliminatorias 1 vs 1
-│   │   │   │   ├── ViewReportes.tsx     # Módulo 6: Métricas y facturación
-│   │   │   │   └── ViewConfiguracion.tsx# Módulo 7: Tarifas por hora y personal
+│   │   │   │   ├── ViewCaja.tsx         # Módulo 4: Turno activo, egresos menores, calculadora COP y tirilla 80mm
+│   │   │   │   ├── ViewTorneos.tsx      # Módulo 5: Fase de grupos ilimitados (editar/eliminar), llaves y partidas en vivo
+│   │   │   │   ├── ViewReportes.tsx     # Módulo 6: KPIs, gráfica Mesas vs Barra con eje Y, calendario de rango y detalle de cierres
+│   │   │   │   └── ViewConfiguracion.tsx# Módulo 7: Tarifas Tres Bandas y Pool, reglas de tiempo, personal/PIN y datos del club
 │   │   │   ├── drawers/
-│   │   │   │   └── DrawerPedidos.tsx    # Carrito lateral de ventas de bar y barra
+│   │   │   │   └── DrawerPedidos.tsx    # Terminal POS lateral de Venta en Barra / Comandas con selector y registro de clientes
 │   │   │   └── modals/
-│   │   │       └── ModalPIN.tsx         # Modal numérico de desbloqueo rápido con PIN
+│   │   │       └── ModalPIN.tsx         # Modal numérico de 3 columnas para desbloqueo rápido con PIN
 │   │   └── lib/
 │   │       └── api.ts                   # Cliente HTTP para conectar con la API
 │   ├── tailwind.config.js               # Configuración de diseño y colores
