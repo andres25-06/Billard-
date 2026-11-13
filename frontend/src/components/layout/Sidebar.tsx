@@ -248,23 +248,27 @@ export default function Sidebar({
         }}
       >
         {/* Indicador de barra vertical animada situado dentro del nav */}
-        <span
-          className="bar-billar"
-          style={{
-            position: 'absolute',
-            left: 0,
-            top: 0,
-            width: '4px',
-            height: '26px',
-            borderRadius: '0 4px 4px 0',
-            background: 'var(--bar)',
-            transform: `translateY(${barTop}px)`,
-            transition: 'transform 0.25s cubic-bezier(0.3, 0.8, 0.3, 1)',
-          }}
-          aria-hidden="true"
-        />
+        {moduloActivo !== 'reportes' && moduloActivo !== 'configuracion' && (
+          <span
+            className="bar-billar"
+            style={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              width: '4px',
+              height: '26px',
+              borderRadius: '0 4px 4px 0',
+              background: 'var(--bar)',
+              transform: `translateY(${barTop}px)`,
+              transition: 'transform 0.25s cubic-bezier(0.3, 0.8, 0.3, 1)',
+            }}
+            aria-hidden="true"
+          />
+        )}
 
-        {menuItems.map((item) => {
+        {menuItems
+          .filter((item) => item.id !== 'reportes' && item.id !== 'configuracion')
+          .map((item) => {
           const isActive = moduloActivo === item.id;
           return (
             <button
@@ -336,13 +340,74 @@ export default function Sidebar({
         })}
       </nav>
 
+      {/* Empuje hacia abajo + Reportes y Ajustes encima de Cerrar Sesión */}
+      <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '10px', paddingTop: '10px', borderTop: '1px solid rgba(119, 139, 150, 0.18)' }}>
+        {menuItems.filter((item) => item.id === 'reportes' || item.id === 'configuracion').map((item) => {
+          const isActive = moduloActivo === item.id;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => onCambiarModulo(item.id)}
+              style={{
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '9px 10px 9px 14px',
+                borderRadius: '10px',
+                fontFamily: 'inherit',
+                fontSize: '13.5px',
+                fontWeight: isActive ? 700 : 500,
+                color: isActive ? 'var(--text)' : 'var(--label)',
+                background: isActive ? 'rgba(40, 53, 62, 0.08)' : 'transparent',
+                border: 0,
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'all 0.15s',
+              }}
+            >
+              {isActive && (
+                <span
+                  style={{
+                    position: 'absolute',
+                    left: '-10px',
+                    width: '4px',
+                    height: '22px',
+                    borderRadius: '0 4px 4px 0',
+                    background: 'var(--bar)',
+                  }}
+                  aria-hidden="true"
+                />
+              )}
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                style={{
+                  width: '18px',
+                  height: '18px',
+                  flex: 'none',
+                  stroke: isActive ? 'var(--text)' : 'var(--label)',
+                  fill: 'none',
+                  strokeWidth: isActive ? 2 : 1.6,
+                  strokeLinecap: 'round',
+                  strokeLinejoin: 'round',
+                }}
+              >
+                {item.svgPath}
+              </svg>
+              <span style={{ flex: 1 }}>{item.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
       {/* Card Inferior: Cerrar Sesión / Bloquear Terminal */}
       <button
         className="hist-billar group"
         type="button"
         onClick={onBloquearTerminal}
         style={{
-          marginTop: 'auto',
           background: 'var(--card)',
           color: 'var(--card-text)',
           borderRadius: '18px',
