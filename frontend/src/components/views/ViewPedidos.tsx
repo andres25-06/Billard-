@@ -27,7 +27,14 @@ import {
   Wallet,
   Banknote,
 } from 'lucide-react';
-import { eliminarPedido, editarPedido, fetchProductos } from '@/lib/api';
+import {
+  eliminarPedido,
+  editarPedido,
+  fetchProductos,
+  fetchPedidos,
+  actualizarEstadoPedido,
+  fetchMetodosPago,
+} from '@/lib/api';
 
 export interface VentaItem {
   id: string;
@@ -49,6 +56,8 @@ export interface VentaRegistro {
   origen: string;
   estado_cobro: 'pendiente' | 'pagado' | 'anulado';
   metodo_pago?: string;
+  monto_recibido?: number;
+  cambio?: number;
   total_pedido: number;
   solicitado_el: string;
   hora_registro?: string;
@@ -294,15 +303,7 @@ const VENTAS_INICIALES: VentaRegistro[] = [
 ];
 
 export default function ViewPedidos() {
-  const [ventas, setVentas] = useState<VentaRegistro[]>(() => {
-    if (typeof window === 'undefined') return [];
-    try {
-      const guardadas = JSON.parse(localStorage.getItem('billard_chamo_ventas_mesas') || '[]');
-      return Array.isArray(guardadas) ? guardadas : [];
-    } catch {
-      return [];
-    }
-  });
+  const [ventas, setVentas] = useState<VentaRegistro[]>([]);
   const [filtro, setFiltro] = useState<
     'todas' | 'por_cobrar' | 'pagadas' | 'deportistas' | 'barra' | 'anuladas'
   >('todas');
@@ -334,6 +335,12 @@ export default function ViewPedidos() {
   // Estado de Cobro dentro del modal
   const [metodoPagoSeleccionado, setMetodoPagoSeleccionado] = useState<string>('Efectivo');
   const [efectivoRecibido, setEfectivoRecibido] = useState<number>(0);
+  const [metodosPago, setMetodosPago] = useState<
+    Array<{ codigo: string; nombre: string; descripcion?: string }>
+  >([
+    { codigo: 'efectivo', nombre: 'Efectivo', descripcion: 'Caja física' },
+    { codigo: 'transferencia', nombre: 'Transferencia', descripcion: 'Nequi / Banc.' },
+  ]);
 
   // Estado para anulación de venta liquidada con motivo obligatorio
   const [mostrarModalAnulacion, setMostrarModalAnulacion] = useState<boolean>(false);
@@ -347,6 +354,58 @@ export default function ViewPedidos() {
         }
       })
       .catch(() => {});
+
+    fetchMetodosPago()
+      .then((data) => {
+        if (Array.isArray(data?.metodos_pago) && data.metodos_pago.length > 0) {
+          setMetodosPago(data.metodos_pago);
+        }
+      })
+      .catch(() => {});
+
+    try {
+      localStorage.removeItem('billard_chamo_ventas_mesas');
+    } catch {}
+
+    const cargarPedidosApi = () => {
+      fetchPedidos()
+        .then((data) => {
+          if (Array.isArray(data?.pedidos)) {
+            const mapeados: VentaRegistro[] = data.pedidos.map((p: any) => ({
+              id: p.id,
+              codigo_pedido: p.codigo_pedido || `PED-${String(p.id).slice(0, 6)}`,
+              mesa_numero: p.mesa_numero ?? undefined,
+              mesa_tipo: p.mesa_tipo ?? undefined,
+              deportista: p.deportista || p.cliente_nombre || 'Cliente Barra',
+              origen: p.mesa_numero ? 'Mapa de Mesas' : 'Barra Directa',
+              estado_cobro:
+                p.estado_cobro ||
+                (p.estado === 'pagado' ? 'pagado' : p.estado === 'anulado' ? 'anulado' : 'pendiente'),
+              metodo_pago: p.metodo_pago ?? undefined,
+              monto_recibido:
+                p.monto_recibido !== null && p.monto_recibido !== undefined
+                  ? Number(p.monto_recibido)
+                  : undefined,
+              cambio:
+                p.cambio !== null && p.cambio !== undefined ? Number(p.cambio) : undefined,
+              motivo_anulacion: p.motivo_anulacion ?? undefined,
+              total_pedido: Number(p.total_pedido || 0),
+              solicitado_el: p.solicitado_el || new Date().toISOString(),
+              hora_registro: p.hora_registro ?? undefined,
+              nota: p.nota ?? undefined,
+              items: Array.isArray(p.items) ? p.items : [],
+            }));
+            setVentas(mapeados);
+          }
+        })
+        .catch(() => {});
+    };
+
+    cargarPedidosApi();
+    window.addEventListener('billard_chamo_pedidos_actualizados', cargarPedidosApi);
+    return () => {
+      window.removeEventListener('billard_chamo_pedidos_actualizados', cargarPedidosApi);
+    };
   }, []);
 
   // Indicadores superiores (KPIs de valor)
@@ -510,12 +569,17 @@ export default function ViewPedidos() {
     const deportistaFijo = ventaSeleccionada.deportista;
 
     setItemsEdicion((prev) => {
+      const prodCatalogo = productosDisponibles.find((p: any) => p.id === prod.id);
+      const stockMax =
+        typeof prodCatalogo?.stock_actual === 'number' ? prodCatalogo.stock_actual : Infinity;
       const existente = prev.find((it) => it.producto_id === prod.id);
       if (existente) {
+        if (existente.cantidad >= stockMax) return prev;
         return prev.map((it) =>
           it.producto_id === prod.id ? { ...it, cantidad: it.cantidad + 1 } : it
         );
       }
+      if (stockMax <= 0) return prev;
       return [
         ...prev,
         {
@@ -536,6 +600,12 @@ export default function ViewPedidos() {
       const nuevaCantidad = item.cantidad + delta;
       if (nuevaCantidad <= 0) {
         return nuevo.filter((_, idx) => idx !== index);
+      }
+      if (delta > 0) {
+        const prodCatalogo = productosDisponibles.find((p: any) => p.id === item.producto_id);
+        const stockMax =
+          typeof prodCatalogo?.stock_actual === 'number' ? prodCatalogo.stock_actual : Infinity;
+        if (nuevaCantidad > stockMax) return prev;
       }
       nuevo[index] = { ...item, cantidad: nuevaCantidad };
       return nuevo;
@@ -594,8 +664,9 @@ export default function ViewPedidos() {
             nota: ventaSeleccionada.deportista,
           })),
           nota: ventaSeleccionada.nota,
-          estado: 'servido',
+          estado: 'pendiente',
         });
+        window.dispatchEvent(new Event('billard_chamo_pedidos_actualizados'));
       } catch {}
     }
 
@@ -603,16 +674,34 @@ export default function ViewPedidos() {
     setVistaModal('detalle');
   };
 
-  const handleConfirmarCobro = () => {
+  const handleConfirmarCobro = async () => {
     if (!ventaSeleccionada) return;
+    const total = Number(ventaSeleccionada.total_pedido || 0);
+    const esEfectivo = metodoPagoSeleccionado.toLowerCase() === 'efectivo';
+    if (esEfectivo && (efectivoRecibido || 0) < total) {
+      return;
+    }
+    const montoRecibido = esEfectivo ? efectivoRecibido : total;
+    const cambio = esEfectivo ? Math.max(0, efectivoRecibido - total) : 0;
+
+    try {
+      await actualizarEstadoPedido(ventaSeleccionada.id, 'pagado', metodoPagoSeleccionado, {
+        monto_recibido: montoRecibido,
+        cambio,
+      });
+    } catch {}
+
     const actualizada: VentaRegistro = {
       ...ventaSeleccionada,
       estado_cobro: 'pagado',
       metodo_pago: metodoPagoSeleccionado,
+      monto_recibido: montoRecibido,
+      cambio,
     };
     setVentas((prev) =>
       prev.map((v) => (v.id === ventaSeleccionada.id ? actualizada : v))
     );
+    window.dispatchEvent(new Event('billard_chamo_pedidos_actualizados'));
     setVentaSeleccionada(null);
   };
 
@@ -1324,6 +1413,24 @@ export default function ViewPedidos() {
                           </span>
                         </div>
 
+                        {ventaSeleccionada.estado_cobro === 'pagado' &&
+                          ventaSeleccionada.monto_recibido !== undefined && (
+                            <div className="mt-2 pt-2 border-t border-dashed border-slate-200 space-y-1 text-xs">
+                              <div className="flex justify-between text-slate-600">
+                                <span className="font-semibold">Pagado con ({ventaSeleccionada.metodo_pago || 'Efectivo'})</span>
+                                <span className="font-mono font-bold text-slate-800">
+                                  ${Number(ventaSeleccionada.monto_recibido).toLocaleString('es-CO')}
+                                </span>
+                              </div>
+                              <div className="flex justify-between text-emerald-700">
+                                <span className="font-semibold">Cambio / Vueltas</span>
+                                <span className="font-mono font-bold">
+                                  ${Number(ventaSeleccionada.cambio || 0).toLocaleString('es-CO')}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+
                         {/* PIE DEL TICKET */}
                         <div className="mt-4 pt-3 border-t border-dashed border-slate-200 text-center">
                           <p className="text-[10px] text-slate-400 font-mono">
@@ -1387,7 +1494,7 @@ export default function ViewPedidos() {
                           </button>
                           <button
                             type="button"
-                            className="px-4.5 py-2 rounded-xl bg-[#184A35] hover:bg-[#123828] text-white text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs"
+                            className="px-4 py-2 rounded-xl bg-[#184A35] hover:bg-[#123828] text-white text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs"
                             onClick={() => setVentaSeleccionada(null)}
                           >
                             <Check className="w-4 h-4" />
@@ -1416,7 +1523,7 @@ export default function ViewPedidos() {
                           </button>
                           <button
                             type="button"
-                            className="px-4.5 py-2 rounded-xl bg-[#184A35] hover:bg-[#123828] text-white text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs"
+                            className="px-4 py-2 rounded-xl bg-[#184A35] hover:bg-[#123828] text-white text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs"
                             onClick={() => {
                               setEfectivoRecibido(Number(ventaSeleccionada.total_pedido));
                               setVistaModal('cobrar');
@@ -1445,37 +1552,18 @@ export default function ViewPedidos() {
                         <span>Medio de Pago</span>
                       </div>
 
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                        {[
-                          {
-                            id: 'Efectivo',
-                            sub: 'Caja física',
-                            icon: Banknote,
-                            accent: 'hover:border-emerald-500',
-                            activeClass: '!border-emerald-600 !bg-emerald-50 text-emerald-900 ring-2 ring-emerald-600/20',
-                          },
-                          {
-                            id: 'Nequi',
-                            sub: 'Transferencia',
-                            icon: Smartphone,
-                            accent: 'hover:border-purple-500',
-                            activeClass: '!border-purple-600 !bg-purple-50 text-purple-900 ring-2 ring-purple-600/20',
-                          },
-                          {
-                            id: 'Daviplata',
-                            sub: 'Billetera',
-                            icon: Wallet,
-                            accent: 'hover:border-rose-500',
-                            activeClass: '!border-rose-600 !bg-rose-50 text-rose-900 ring-2 ring-rose-600/20',
-                          },
-                          {
-                            id: 'Tarjeta',
-                            sub: 'Datáfono',
-                            icon: CreditCard,
-                            accent: 'hover:border-blue-500',
-                            activeClass: '!border-blue-600 !bg-blue-50 text-blue-900 ring-2 ring-blue-600/20',
-                          },
-                        ].map((mp) => {
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '10px' }}>
+                        {metodosPago.map((m) => {
+                          const esEfectivo = m.codigo === 'efectivo';
+                          const mp = {
+                            id: m.nombre,
+                            sub: m.descripcion || (esEfectivo ? 'Caja física' : 'Nequi / Banc.'),
+                            icon: esEfectivo ? Banknote : Smartphone,
+                            accent: esEfectivo ? 'hover:border-emerald-500' : 'hover:border-purple-500',
+                            activeClass: esEfectivo
+                              ? '!border-emerald-600 !bg-emerald-50 text-emerald-900 ring-2 ring-emerald-600/20'
+                              : '!border-purple-600 !bg-purple-50 text-purple-900 ring-2 ring-purple-600/20',
+                          };
                           const IconComp = mp.icon;
                           const esActivo = metodoPagoSeleccionado === mp.id;
                           return (
@@ -1608,7 +1696,11 @@ export default function ViewPedidos() {
                       </button>
                       <button
                         type="button"
-                        className="px-5 py-2.5 rounded-xl bg-[#184A35] hover:bg-[#123828] text-white text-xs font-bold flex items-center gap-2 transition-all shadow-md active:scale-95"
+                        disabled={
+                          metodoPagoSeleccionado.toLowerCase() === 'efectivo' &&
+                          (efectivoRecibido || 0) < Number(ventaSeleccionada.total_pedido || 0)
+                        }
+                        className="px-5 py-2.5 rounded-xl bg-[#184A35] hover:bg-[#123828] text-white text-xs font-bold flex items-center gap-2 transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                         onClick={handleConfirmarCobro}
                       >
                         <Check className="w-4 h-4" />

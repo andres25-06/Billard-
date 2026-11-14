@@ -8,6 +8,7 @@ from app.api.productos import router as productos_router
 from app.api.caja import router as caja_router
 from app.api.alertas import router as alertas_router
 from app.api.clientes import router as clientes_router
+from app.api.metodos_pago import router as metodos_pago_router
 from app.core.database import get_db
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -33,6 +34,7 @@ app.include_router(productos_router)
 app.include_router(caja_router)
 app.include_router(alertas_router)
 app.include_router(clientes_router)
+app.include_router(metodos_pago_router)
 
 @app.get("/")
 def root():

@@ -206,9 +206,57 @@ export async function eliminarPedido(pedidoId: string) {
   return res.json();
 }
 
+export async function fetchPedidos() {
+  const res = await fetch(`${API_BASE}/pedidos`, { cache: 'no-store' });
+  if (!res.ok) throw new Error("Error al obtener pedidos");
+  return res.json();
+}
+
+export async function actualizarEstadoPedido(
+  pedidoId: string,
+  estado: string,
+  metodo_pago?: string,
+  extra?: { monto_recibido?: number; cambio?: number; motivo_anulacion?: string }
+) {
+  const res = await fetch(`${API_BASE}/pedidos/${pedidoId}/estado`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ estado, metodo_pago, ...(extra || {}) }),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.detail || "Error al actualizar estado del pedido");
+  }
+  return res.json();
+}
+
+export async function cargarTiempoACuenta(data: {
+  mesa_id: string;
+  deportista: string;
+  minutos: number;
+  costo_tiempo: number;
+}) {
+  const res = await fetch(`${API_BASE}/pedidos/cargo-tiempo`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.detail || "Error al cargar tiempo a cuenta");
+  }
+  return res.json();
+}
+
 export async function fetchClientes() {
   const res = await fetch(`${API_BASE}/clientes`, { cache: 'no-store' });
   if (!res.ok) throw new Error("Error al obtener clientes");
+  return res.json();
+}
+
+export async function fetchMetodosPago() {
+  const res = await fetch(`${API_BASE}/metodos-pago`, { cache: 'no-store' });
+  if (!res.ok) throw new Error("Error al obtener métodos de pago");
   return res.json();
 }
 
@@ -221,6 +269,24 @@ export async function guardarCliente(nombre: string, apodo?: string, telefono?: 
   if (!res.ok) {
     const err = await res.json();
     throw new Error(err.detail || "Error al guardar cliente");
+  }
+  return res.json();
+}
+
+export async function actualizarCliente(
+  clienteId: string,
+  nombre: string,
+  apodo?: string,
+  telefono?: string
+) {
+  const res = await fetch(`${API_BASE}/clientes/${clienteId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nombre, apodo, telefono }),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.detail || "Error al actualizar jugador");
   }
   return res.json();
 }

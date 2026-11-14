@@ -20,7 +20,13 @@ import {
   UserPlus,
   ChevronDown,
 } from 'lucide-react';
-import { fetchClientes, guardarCliente, toggleLuzMesa, actualizarPuntosJugador } from '@/lib/api';
+import {
+  fetchClientes,
+  guardarCliente,
+  toggleLuzMesa,
+  actualizarPuntosJugador,
+  cargarTiempoACuenta,
+} from '@/lib/api';
 
 interface Jugador {
   id: string;
@@ -69,6 +75,9 @@ export default function ViewMesas({
   const [mesaSeleccionadaId, setMesaSeleccionadaId] = useState<string>(mesas[0]?.id || '');
   const [modalAbrir, setModalAbrir] = useState<Mesa | null>(null);
   const [modalCobrar, setModalCobrar] = useState<Mesa | null>(null);
+  const [modalNuevoTiempo, setModalNuevoTiempo] = useState<Mesa | null>(null);
+  const [jugadorCuenta, setJugadorCuenta] = useState('');
+  const [busquedaJugadorCuenta, setBusquedaJugadorCuenta] = useState('');
   const [modalPagoRealizado, setModalPagoRealizado] = useState<{
     mesaNumero: number;
     total: number;
@@ -236,63 +245,42 @@ export default function ViewMesas({
       return;
     }
     const mesaNumero = modalCobrar.numero;
-    const mesaTipo = modalCobrar.tipo;
-    const minutos = modalCobrar.sesion?.minutos_transcurridos || 0;
-    const costoTiempo = modalCobrar.sesion?.costo_tiempo || 0;
-    const totalPedidos = modalCobrar.sesion?.total_pedidos || 0;
-
     await onCerrarMesa(modalCobrar.id, metodoPagoSeleccionado);
-
-    try {
-      const STORAGE_KEY = 'billard_chamo_ventas_mesas';
-      const existentes = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-      const ahora = new Date();
-      const items: Array<{
-        id: string;
-        producto_nombre: string;
-        cantidad: number;
-        precio_unitario: number;
-        subtotal: number;
-      }> = [
-        {
-          id: `tiempo-${Date.now()}`,
-          producto_nombre: `Tiempo de juego (${minutos} min)`,
-          cantidad: 1,
-          precio_unitario: costoTiempo,
-          subtotal: costoTiempo,
-        },
-      ];
-      if (totalPedidos > 0) {
-        items.push({
-          id: `consumo-${Date.now()}`,
-          producto_nombre: 'Consumo de bar y cafetería',
-          cantidad: 1,
-          precio_unitario: totalPedidos,
-          subtotal: totalPedidos,
-        });
-      }
-      const nuevoRegistro = {
-        id: `venta-mesa-${Date.now()}`,
-        codigo_pedido: `MESA-${String(mesaNumero).padStart(2, '0')}-${String(ahora.getTime()).slice(-4)}`,
-        mesa_numero: mesaNumero,
-        mesa_tipo: mesaTipo,
-        deportista: `Mesa ${mesaNumero}`,
-        origen: 'Mapa de Mesas',
-        estado_cobro: 'pagado' as const,
-        metodo_pago: metodoPagoSeleccionado === 'efectivo' ? 'Efectivo' : 'Transferencia',
-        total_pedido: totalALiquidar,
-        solicitado_el: ahora.toISOString(),
-        hora_registro: ahora.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }),
-        items,
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify([nuevoRegistro, ...existentes]));
-    } catch {
-      // Ignorar errores de almacenamiento local
-    }
-
     setModalCobrar(null);
     setEfectivoRecibido(0);
     setModalPagoRealizado({ mesaNumero, total: totalALiquidar });
+  };
+
+  const handleCargarACuentaYNuevoTiempo = async () => {
+    if (!modalNuevoTiempo) return;
+    const mesaId = modalNuevoTiempo.id;
+    const mesaNumero = modalNuevoTiempo.numero;
+    const minutos = modalNuevoTiempo.sesion?.minutos_transcurridos || 0;
+    const costoTiempo = modalNuevoTiempo.sesion?.costo_tiempo || 0;
+    const modalidadActual = (modalNuevoTiempo.sesion as any)?.modalidad || 'libre';
+    const jugadoresActuales = modalNuevoTiempo.sesion?.jugadores?.map((j) => j.nombre) || [];
+    const nombreJugador =
+      jugadorCuenta.trim() || clientesBD[0]?.nombre || jugadoresActuales[0] || `Mesa ${mesaNumero}`;
+
+    try {
+      await cargarTiempoACuenta({
+        mesa_id: mesaId,
+        deportista: nombreJugador,
+        minutos,
+        costo_tiempo: costoTiempo,
+      });
+      await onAbrirMesa(mesaId, {
+        modalidad_tiempo: modalidadActual,
+        jugadores: jugadoresActuales.length > 0 ? jugadoresActuales : [nombreJugador],
+      });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('billard_chamo_pedidos_actualizados'));
+      }
+      setModalNuevoTiempo(null);
+      setJugadorCuenta('');
+    } catch (err: any) {
+      alert(err.message || 'Error al cargar tiempo a la cuenta');
+    }
   };
 
   return (
@@ -640,6 +628,31 @@ export default function ViewMesas({
                   >
                     <CreditCard style={{ width: '15px', height: '15px' }} />
                     <span>Cobrar</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setJugadorCuenta(clientesBD[0]?.nombre || '');
+                      setModalNuevoTiempo(mesaActiva);
+                    }}
+                    style={{
+                      flex: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '5px',
+                      padding: '10px 8px',
+                      borderRadius: '12px',
+                      background: '#FEF3C7',
+                      color: '#92400E',
+                      fontWeight: 700,
+                      fontSize: '12px',
+                      border: '1px solid #FDE68A',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <Clock style={{ width: '15px', height: '15px' }} />
+                    <span>Nuevo Tiempo</span>
                   </button>
                 </>
               ) : (
@@ -1440,6 +1453,227 @@ export default function ViewMesas({
               Mesa {modalPagoRealizado.mesaNumero} · $
               {modalPagoRealizado.total.toLocaleString('es-CO')}
             </p>
+          </div>
+        </div>
+      )}
+
+      {modalNuevoTiempo && (
+        <div
+          onClick={() => setModalNuevoTiempo(null)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 90,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(15, 23, 42, 0.45)',
+            backdropFilter: 'blur(4px)',
+            padding: '16px',
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '20px',
+              padding: '24px',
+              width: '100%',
+              maxWidth: '380px',
+              boxShadow: '0 20px 50px rgba(15, 23, 42, 0.25)',
+              border: '1px solid #E2E8F0',
+            }}
+          >
+            <h3 style={{ margin: '0 0 6px', fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
+              Nuevo Tiempo · Mesa {modalNuevoTiempo.numero}
+            </h3>
+            <p style={{ margin: '0 0 14px', fontSize: '12px', color: '#64748B' }}>
+              Se cargará{' '}
+              <b>${(modalNuevoTiempo.sesion?.total_acumulado || 0).toLocaleString('es-CO')}</b> (
+              {modalNuevoTiempo.sesion?.minutos_transcurridos || 0} min) como cuenta por cobrar y se
+              iniciará un nuevo tiempo.
+            </p>
+
+            <label
+              style={{
+                display: 'block',
+                fontSize: '11px',
+                fontWeight: 700,
+                color: '#475569',
+                marginBottom: '6px',
+              }}
+            >
+              Seleccionar jugador registrado:
+            </label>
+            <input
+              type="text"
+              value={busquedaJugadorCuenta}
+              onChange={(e) => setBusquedaJugadorCuenta(e.target.value)}
+              placeholder="Buscar jugador por nombre o apodo..."
+              style={{
+                width: '100%',
+                padding: '8px 10px',
+                borderRadius: '10px',
+                border: '1px solid #CBD5E1',
+                fontSize: '12px',
+                marginBottom: '8px',
+                outline: 'none',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '6px',
+                maxHeight: '200px',
+                overflowY: 'auto',
+                marginBottom: '16px',
+                paddingRight: '2px',
+              }}
+            >
+              {(() => {
+                const q = busquedaJugadorCuenta.trim().toLowerCase();
+                const filtrados = q
+                  ? clientesBD.filter(
+                      (c) =>
+                        c.nombre.toLowerCase().includes(q) ||
+                        (c.apodo || '').toLowerCase().includes(q)
+                    )
+                  : clientesBD;
+                const existeExacto =
+                  q && clientesBD.some((c) => c.nombre.toLowerCase() === q);
+
+                return (
+                  <>
+                    {filtrados.map((c) => {
+                      const seleccionado = jugadorCuenta === c.nombre;
+                      return (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => setJugadorCuenta(c.nombre)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '9px 12px',
+                            borderRadius: '12px',
+                            border: seleccionado ? '2px solid #184A35' : '1px solid #E2E8F0',
+                            background: seleccionado ? '#ECFDF5' : '#FFFFFF',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <div
+                              style={{
+                                width: '30px',
+                                height: '30px',
+                                borderRadius: '9999px',
+                                background: seleccionado ? '#184A35' : '#E2E8F0',
+                                color: seleccionado ? '#FFFFFF' : '#475569',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '12px',
+                                fontWeight: 800,
+                                flexShrink: 0,
+                              }}
+                            >
+                              {c.nombre.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>
+                                {c.nombre}
+                              </div>
+                              {c.apodo && (
+                                <div style={{ fontSize: '11px', color: '#64748B' }}>
+                                  "{c.apodo}"
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          {seleccionado && (
+                            <Check style={{ width: '16px', height: '16px', color: '#184A35' }} />
+                          )}
+                        </button>
+                      );
+                    })}
+
+                    {q && !existeExacto && (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const nuevoNombre = busquedaJugadorCuenta.trim();
+                          if (!nuevoNombre) return;
+                          try {
+                            await guardarCliente(nuevoNombre);
+                            const res = await fetchClientes();
+                            setClientesBD(res.clientes || []);
+                            setJugadorCuenta(nuevoNombre);
+                            setBusquedaJugadorCuenta('');
+                          } catch (err: any) {
+                            alert(err.message || 'Error al agregar jugador');
+                          }
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          padding: '9px 12px',
+                          borderRadius: '12px',
+                          border: '1px dashed #184A35',
+                          background: '#F0FDF4',
+                          color: '#184A35',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <Plus style={{ width: '14px', height: '14px' }} />
+                        <span>Agregar "{busquedaJugadorCuenta.trim()}"</span>
+                      </button>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => setModalNuevoTiempo(null)}
+                style={{
+                  padding: '9px 14px',
+                  borderRadius: '10px',
+                  background: '#F1F5F9',
+                  color: '#475569',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleCargarACuentaYNuevoTiempo}
+                style={{
+                  padding: '9px 16px',
+                  borderRadius: '10px',
+                  background: '#D97706',
+                  color: '#FFFFFF',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                Confirmar y Abrir Nuevo Tiempo
+              </button>
+            </div>
           </div>
         </div>
       )}

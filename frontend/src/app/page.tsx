@@ -8,6 +8,7 @@ import DrawerPedidos, { Producto, Categoria } from '@/components/drawers/DrawerP
 
 import ViewMesas, { Mesa } from '@/components/views/ViewMesas';
 import ViewPedidos from '@/components/views/ViewPedidos';
+import ViewJugadores from '@/components/views/ViewJugadores';
 import ViewInventario from '@/components/views/ViewInventario';
 import ViewCaja from '@/components/views/ViewCaja';
 import ViewTorneos from '@/components/views/ViewTorneos';
@@ -93,6 +94,9 @@ export default function PCControlPage() {
       await abrirTurnoCaja(baseInicialDia);
       setRequiereAperturaCaja(false);
       await cargarDatos();
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('billard_chamo_pedidos_actualizados'));
+      }
     } catch (e: any) {
       alert(e.message || 'Error al abrir turno de caja');
     } finally {
@@ -132,6 +136,9 @@ export default function PCControlPage() {
     try {
       await abrirMesa(mesaId, data);
       await cargarDatos();
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('billard_chamo_pedidos_actualizados'));
+      }
     } catch (err: any) {
       alert(err.message);
     }
@@ -141,6 +148,9 @@ export default function PCControlPage() {
     try {
       await cerrarMesa(mesaId, { metodo_pago: metodoPago });
       await cargarDatos();
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('billard_chamo_pedidos_actualizados'));
+      }
     } catch (err: any) {
       alert(err.message);
     }
@@ -150,6 +160,9 @@ export default function PCControlPage() {
     try {
       await toggleLuzMesa(mesaId);
       await cargarDatos();
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('billard_chamo_pedidos_actualizados'));
+      }
     } catch (err: any) {
       alert(err.message);
     }
@@ -159,6 +172,9 @@ export default function PCControlPage() {
     try {
       await actualizarPuntosJugador(jugadorId, delta);
       await cargarDatos();
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('billard_chamo_pedidos_actualizados'));
+      }
     } catch (err: any) {
       console.error(err);
     }
@@ -166,16 +182,25 @@ export default function PCControlPage() {
 
   // Manejadores de Canasta / Pedido
   const handleAgregarACanasta = (prodId: string, cuenta: string = 'Mesa', jugadorId?: string) => {
+    const prod = productos.find((p) => p.id === prodId);
     const itemKey = `${prodId}:::${cuenta}`;
-    setCanasta((prev) => ({
-      ...prev,
-      [itemKey]: {
-        productoId: prodId,
-        cuenta,
-        cantidad: (prev[itemKey]?.cantidad || 0) + 1,
-        jugadorId,
-      },
-    }));
+    setCanasta((prev) => {
+      const totalEnCanasta = Object.values(prev)
+        .filter((i) => i.productoId === prodId)
+        .reduce((acc, i) => acc + i.cantidad, 0);
+      if (prod && totalEnCanasta >= prod.stock_actual) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [itemKey]: {
+          productoId: prodId,
+          cuenta,
+          cantidad: (prev[itemKey]?.cantidad || 0) + 1,
+          jugadorId,
+        },
+      };
+    });
   };
 
   const handleQuitarDeCanasta = (itemKey: string) => {
@@ -220,6 +245,9 @@ export default function PCControlPage() {
       setCanasta({});
       setDrawerPedidos(false);
       await cargarDatos();
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('billard_chamo_pedidos_actualizados'));
+      }
       setModalNotificacion({
         titulo: '¡Pedido Enviado!',
         mensaje: 'La comanda fue cargada y despachada correctamente.',
@@ -233,6 +261,9 @@ export default function PCControlPage() {
     try {
       await atenderAlerta(alertaId);
       await cargarDatos();
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('billard_chamo_pedidos_actualizados'));
+      }
     } catch (err: any) {
       console.error(err);
     }
@@ -284,6 +315,7 @@ export default function PCControlPage() {
           )}
 
           {moduloActivo === 'pedidos' && <ViewPedidos />}
+          {moduloActivo === 'jugadores' && <ViewJugadores />}
           {moduloActivo === 'inventario' && <ViewInventario />}
           {moduloActivo === 'caja' && <ViewCaja />}
           {moduloActivo === 'torneos' && <ViewTorneos />}

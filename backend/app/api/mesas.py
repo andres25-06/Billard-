@@ -353,7 +353,56 @@ def cerrar_mesa(mesa_id: str, req: CerrarMesaRequest):
                 UPDATE mesas
                 SET estado = 'disponible', luz_encendida = false
                 WHERE id = %s
+                RETURNING numero
             """, (mesa_id,))
+            mesa_row = cur.fetchone()
+            mesa_numero = mesa_row["numero"] if mesa_row else 1
+
+            # Registrar o actualizar el pedido de la sesión como pagado en la tabla pedidos
+            from app.api.pedidos import _asegurar_esquema_pedidos, obtener_o_crear_producto_tiempo
+            _asegurar_esquema_pedidos(cur)
+            prod_tiempo_id = obtener_o_crear_producto_tiempo(cur)
+            metodo_label = "Efectivo" if (req.metodo_pago or "").lower() == "efectivo" else "Transferencia"
+
+            cur.execute("""
+                SELECT id FROM pedidos
+                WHERE sesion_id = %s AND estado = 'pendiente'
+                ORDER BY solicitado_el ASC
+            """, (sesion_id,))
+            pedidos_sesion = cur.fetchall()
+
+            if pedidos_sesion:
+                pedido_principal_id = pedidos_sesion[0]["id"]
+                for extra in pedidos_sesion[1:]:
+                    cur.execute("UPDATE detalle_pedidos SET pedido_id = %s WHERE pedido_id = %s", (pedido_principal_id, extra["id"]))
+                    cur.execute("DELETE FROM pedidos WHERE id = %s", (extra["id"],))
+            else:
+                cur.execute("SELECT COUNT(*) + 1 as seq FROM pedidos")
+                seq = cur.fetchone()["seq"]
+                codigo_pedido = f"MESA-{mesa_numero:02d}-{int(ahora.timestamp()) % 10000:04d}"
+                titular_mesa = f"Mesa {mesa_numero}"
+                cur.execute("""
+                    INSERT INTO pedidos (codigo_pedido, sesion_id, mesa_id, origen, estado, total_pedido, nota, deportista, metodo_pago)
+                    VALUES (%s, %s, %s, 'caja', 'pagado', 0.0, %s, %s, %s)
+                    RETURNING id
+                """, (codigo_pedido, sesion_id, mesa_id, titular_mesa, titular_mesa, metodo_label))
+                pedido_principal_id = cur.fetchone()["id"]
+
+            cur.execute("""
+                INSERT INTO detalle_pedidos (pedido_id, producto_id, cantidad, precio_unitario, subtotal, nota)
+                VALUES (%s, %s, 1, %s, %s, %s)
+            """, (pedido_principal_id, prod_tiempo_id, costo_tiempo, costo_tiempo, f"Tiempo de juego ({minutos} min)"))
+
+            cur.execute("""
+                UPDATE pedidos
+                SET estado = 'pagado',
+                    metodo_pago = %s,
+                    entregado_el = CURRENT_TIMESTAMP,
+                    total_pedido = (
+                        SELECT COALESCE(SUM(subtotal), 0) FROM detalle_pedidos WHERE pedido_id = %s
+                    )
+                WHERE id = %s
+            """, (metodo_label, pedido_principal_id, pedido_principal_id))
 
             # Registrar movimiento en caja si hay un turno abierto
             cur.execute("SELECT id FROM turnos_caja WHERE estado = 'abierto' ORDER BY fecha_apertura DESC LIMIT 1")
